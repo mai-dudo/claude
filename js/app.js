@@ -146,13 +146,16 @@
 
   /* ---------- Действие с пунктом ---------- */
   const kindOf = (it) => it.dataset.kind || '';
+  const isMedia = (it) => kindOf(it) === 'photo' || kindOf(it) === 'clip';
   const linkOf = (it) => q('.it__zoom', it) || q('.it__row', it);
+  // с клавиатуры: фото и ролики — в просмотрщик, аватарка «О себе» — тоже, игра — поверх сайта,
+  // обычная ссылка — как клик по ней самой, чтобы браузер сам решал про новую вкладку
   function open(it) {
-    const kind = kindOf(it);
-    if (kind === 'photo' || kind === 'clip') return showViewer(it);
+    if (isMedia(it) || q('.it__zoom', it)) return showViewer(it);
     const row = q('.it__row', it);
-    if (kind === 'game' && row) return openGame(row.getAttribute('href'));
-    if (row && row.href) window.open(row.href, row.target || '_self', 'noopener');
+    if (!row) return;
+    if (kindOf(it) === 'game') return openGame(row.getAttribute('href'));
+    if (row.href) row.click();
   }
   const openCurrent = () => { const it = itemsOf(cur)[pick[cur]]; if (it) open(it); };
   const overlayOpen = () => !viewer.hidden || !game.hidden;
@@ -179,12 +182,16 @@
   menu.addEventListener('click', (e) => {
     if (swiped) { e.preventDefault(); swiped = false; return; }
     if (e.target.closest('.it__card a')) return; // ссылки в карточке работают сами
+    // аватарка в «О себе» открывается в просмотрщике только кликом по ней самой
+    const zoom = e.target.closest('.cat.is-on .it.is-sel .it__zoom');
+    if (zoom) { e.preventDefault(); showViewer(zoom.closest('.it')); return; }
     const it = e.target.closest('.cat.is-on .it');
     if (!it) return;
-    e.preventDefault();
     const j = itemsOf(cur).indexOf(it);
-    if (j !== pick[cur]) { move(j); return; }
-    open(it);
+    if (j !== pick[cur]) { e.preventDefault(); move(j); return; }
+    if (isMedia(it)) { e.preventDefault(); showViewer(it); return; }
+    if (kindOf(it) === 'game') { e.preventDefault(); openGame(q('.it__row', it).getAttribute('href')); }
+    // обычная ссылка открывается самим браузером: так работают Ctrl-клик, колёсико и блокировщики окон
   });
 
   /* ---------- Колесо и тачпад: копим сдвиг, чтобы один жест не пролистывал десяток пунктов ---------- */
@@ -345,6 +352,7 @@
     const data = await res.json();
     return (Array.isArray(data) ? data : data.videos || []).filter((v) => v && v.id && !/^VIDEO_ID/.test(v.id));
   };
+  class EmptyList extends Error {}
 
   const makeItem = ({ href, iconClass, iconSrc, lazy, title, sub }) => {
     const li = document.createElement('li');
@@ -379,7 +387,7 @@
 
   const loadVideos = fetchVideos()
     .then((videos) => {
-      if (!videos.length) throw new Error('Роликов пока нет');
+      if (!videos.length) throw new EmptyList('Роликов пока нет');
       videoList.replaceChildren(...videos.map((v) => makeItem({
         href: `https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}`,
         iconClass: 'it__ico--video',
@@ -391,10 +399,11 @@
     })
     .catch((err) => {
       console.warn(err);
+      // список пуст или в нём только примеры — подсказка владельцу; не загрузился — как в оригинале
       videoList.replaceChildren(makeItem({
         href: YOUTUBE.channelUrl,
         iconSrc: q('#videos').dataset.icon,
-        title: 'Добавь свои ролики в data/videos.json',
+        title: err instanceof EmptyList ? 'Добавь свои ролики в data/videos.json' : 'Не получилось загрузить видео',
         sub: 'Смотреть на YouTube',
       }));
     });

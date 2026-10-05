@@ -3,10 +3,6 @@
     {
       "source": "/assets/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
-    },
-    {
-      "source": "/game/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
     }
   ]
 }

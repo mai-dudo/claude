@@ -9,25 +9,43 @@
   const ctx = canvas.getContext('2d');
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ---------- свой ролик, если он есть: на телефонах и при экономии трафика — лёгкая версия ----------
+  // ---------- Ролик аквариума: на телефонах и при экономии трафика — лёгкая версия ----------
+  // Видео показано сразу с кадром-постером; нарисованный аквариум включается, только если ролика
+  // нет (ошибка загрузки) или автозапуск запрещён. На телефонах ролик начинает грузиться лишь
+  // после play(), поэтому зовём его сразу, а не ждём loadeddata.
   let usingVideo = false;
+  const useCanvas = () => {
+    if (usingVideo) return;
+    video.hidden = true;
+    canvas.hidden = false;
+    if (!still) start();
+  };
   if (video && !still) {
     const small = matchMedia('(max-width: 900px)').matches || Boolean(navigator.connection && navigator.connection.saveData);
     // H.264 MP4 играет почти везде; где его нет (сборки Chromium без кодеков) — VP9 WebM
     const h264 = video.canPlayType('video/mp4; codecs="avc1.42E01E"');
     video.src = h264 ? `assets/video/bg-${small ? '540p' : '720p'}.mp4` : 'assets/video/bg-720p.webm';
-    video.addEventListener('loadeddata', () => {
+    video.muted = true;
+    video.hidden = false;
+    canvas.hidden = true;
+    const gotVideo = () => {
+      if (usingVideo) return;
       usingVideo = true;
       video.hidden = false;
       canvas.hidden = true;
       stop();
-      video.play().catch(() => {}); // если автозапуск запрещён, останется кадр-постер
       const credit = document.getElementById('bgCredit');
-      if (credit) credit.textContent = 'Свой ролик из assets/video';
-    }, { once: true });
-    video.addEventListener('error', () => { video.removeAttribute('src'); video.hidden = true; }, { once: true });
-    video.preload = 'auto';
-    video.load();
+      if (credit && credit.dataset.credit) credit.textContent = credit.dataset.credit;
+    };
+    ['playing', 'loadeddata'].forEach((ev) => video.addEventListener(ev, gotVideo, { once: true }));
+    video.addEventListener('error', () => { video.removeAttribute('src'); useCanvas(); }, { once: true });
+    video.play().catch(useCanvas); // автозапуск запрещён — рисуем аквариум сами
+    // браузер ставит фоновое видео на паузу, пока вкладка скрыта, — при возвращении продолжаем
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && usingVideo && video.paused) video.play().catch(() => {});
+    });
+  } else if (video) {
+    video.hidden = true;
   }
 
   // ---------- сцена ----------
@@ -303,13 +321,14 @@
 
   build();
   if (still) { water(0); weedsDraw(0, true); coralsDraw(); fish.forEach((f) => fishDraw(f, 0)); seabed(); weedsDraw(0, false); running = false; }
+  else if (canvas.hidden) running = false; // ждём: заиграет ролик — холст не нужен, нет — включим
   else raf = requestAnimationFrame(frame);
 
   let rz;
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(build, 150); });
 
   const pause = () => { stop(); if (usingVideo) video.pause(); };
-  const resume = () => { if (usingVideo) video.play().catch(() => {}); else if (!still) start(); };
+  const resume = () => { if (usingVideo) video.play().catch(() => {}); else if (!still && !canvas.hidden) start(); };
   document.addEventListener('scene:pause', pause);
   document.addEventListener('scene:resume', resume);
   document.addEventListener('visibilitychange', () => (document.hidden ? pause() : resume()));

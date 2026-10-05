@@ -48,7 +48,7 @@
   };
   if (!still) {
     const schedule = () => later(() => { glitch(); schedule(); }, 6000, 15000);
-    later(() => { glitch(); schedule(); }, 1500, 4000);
+    schedule();
   }
 
   if (still) return; // без движения остаются только строки развёртки из CSS
@@ -76,14 +76,19 @@ uniform float band;   // положение полосы трекинга 0..1, 
 uniform float glitch; // сила сбоя 0..1
 varying vec2 uv;
 
-float rnd(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+// хэш без sin(): на мобильных видеокартах sin() от больших чисел теряет точность и шум сбивается в полосы
+float rnd(vec2 p) {
+  vec3 q = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
+  q += dot(q, q.yzx + 33.33);
+  return fract((q.x + q.y) * q.z);
+}
 vec3 toYiq(vec3 c) { return vec3(dot(c, vec3(.299, .587, .114)), dot(c, vec3(.596, -.274, -.322)), dot(c, vec3(.211, -.523, .312))); }
 vec3 toRgb(vec3 c) { return vec3(c.x + .956 * c.y + .621 * c.z, c.x - .272 * c.y - .647 * c.z, c.x - 1.106 * c.y + 1.703 * c.z); }
 vec3 pick(vec2 p) { return texture2D(src, clamp((p - .5) * cover + .5, 0., 1.)).rgb; }
 
 void main() {
   float line = floor(uv.y * res.y);
-  float frame = floor(time * 30.);
+  float frame = mod(floor(time * 30.), 4096.); // номер кадра держим небольшим ради точности float
   float r = rnd(vec2(line, frame));
 
   // строки гуляют вбок

@@ -17,15 +17,15 @@ Sony Interactive Entertainment; это фанатская страница, с S
 | Что | Автор | Лицензия | Источник |
 | --- | --- | --- | --- |
 | Иконки разделов и пунктов `assets/icons/aero/*.png` (кроме перечисленных ниже) | KDE / Oxygen contributors | LGPL-3.0-or-later (`LICENSES/oxygen/`) | https://invent.kde.org/frameworks/oxygen-icons |
-| `assets/icons/aero/photos.png` — альбом из набора Crystal Remix (иконка digiKam) | Everaldo Coelho, адаптация Viet Dang | LGPL (`LICENSES/crystal-remix/`) | https://github.com/dangvd/crystal-remix-icon-theme |
+| `assets/icons/aero/photos.png` — альбом из набора Crystal Remix (иконка digiKam) | Everaldo Coelho, адаптация Viet Dang | LGPL-2.1 (`LICENSES/crystal-remix/`) | https://github.com/dangvd/crystal-remix-icon-theme |
 | `assets/icons/aero/inspiration-bulb.png` — лампочка из набора Crystal Clear (ktip) | Everaldo Coelho | LGPL | https://commons.wikimedia.org/wiki/File:Crystal_Clear_app_ktip.png |
-| `assets/icons/aero/skate.png` — скейтборд из Noto Emoji | Google | Apache-2.0 (`LICENSES/noto-emoji/`) | https://github.com/googlefonts/noto-emoji |
+| `assets/icons/aero/skate.png` — скейтборд из Noto Emoji (картинки набора под Apache-2.0, шрифты под OFL) | Google | Apache-2.0 (`LICENSES/noto-emoji/`) | https://github.com/googlefonts/noto-emoji |
 | `assets/icons/aero/hexgl.png`, `astray.png` — значки игр из их же репозиториев | см. раздел «Игры» | см. раздел «Игры» | см. раздел «Игры» |
 | `assets/icons/social/tiktok.svg` | ByteDance | CC0 (Wikimedia Commons), товарный знак | https://commons.wikimedia.org/wiki/File:Tiktok_icon.svg |
 | `assets/icons/social/vk.svg` | VK | Public domain (Wikimedia Commons), товарный знак | https://commons.wikimedia.org/wiki/File:VK_Compact_Logo_(2021-present).svg |
 | `assets/icons/social/twitch.svg` — значок Twitch 2012 года | Twitch Interactive | Public domain (Wikimedia Commons), товарный знак | https://commons.wikimedia.org/wiki/File:Twitch_icon_2012.svg |
 | `assets/icons/social/telegram.svg`, `youtube.svg`, `instagram.svg`, `github.svg`, `discord.svg` | Simple Icons | CC0-1.0 (`LICENSES/simple-icons.md`), товарные знаки владельцев | https://simpleicons.org |
-| `assets/frames/amsn-dp-border.png` — стеклянная рамка аватарки с экрана входа aMSN 2 | aMSN 2 contributors | GNU GPL | https://github.com/drf/amsn2 |
+| `assets/frames/amsn-dp-border.png` — стеклянная рамка аватарки с экрана входа aMSN 2 | aMSN 2 contributors | GNU GPL-2.0 (`LICENSES/amsn2/`) | https://github.com/drf/amsn2 |
 
 Логотипы сервисов используются только как ссылки на профили. Глянец плиток под логотипами
 и серебристый цвет иконок разделов заданы стилями CSS, сами файлы не менялись.

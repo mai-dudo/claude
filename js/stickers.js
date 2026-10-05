@@ -5,10 +5,12 @@
   'use strict';
 
   const LIB = 'js/lib/lottie_light_canvas.min.js';
+  const VERSION = 1;                        // /assets/ кэшируется на неделю: поменял стикер — подними версию
   const SIZE = 88;                          // самый крупный размер на экране, меньшие делает CSS
   const DPR = Math.min(devicePixelRatio || 1, 2);
   const FPS = 60;
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const saveData = Boolean(navigator.connection && navigator.connection.saveData);
   const viewer = document.getElementById('viewer');
   const game = document.getElementById('game');
   const covered = () => (viewer && !viewer.hidden) || (game && !game.hidden);
@@ -43,7 +45,7 @@
   };
 
   /* ---------- Один таймер на всех: играет только выбранный ---------- */
-  const players = new Map(); // holder -> player
+  const players = new Map(); // holder -> Promise<player|null>
   let active = null;
   let raf = 0;
   let last = 0;
@@ -66,7 +68,11 @@
 
   const setActive = (p) => {
     if (active === p) return;
-    if (active) active.startedAt = -1;
+    if (active) { // невыбранный стикер возвращается на первый кадр, как иконка на PS3
+      active.startedAt = -1;
+      active.frame = 0;
+      active.anim.goToAndStop(0, true);
+    }
     active = p;
     wake();
   };
@@ -74,11 +80,11 @@
   /* ---------- Загрузка ---------- */
   const make = async (holder) => {
     const lottie = await loadLib();
-    const res = await fetch(holder.dataset.tgs, { cache: 'force-cache' });
+    const res = await fetch(`${holder.dataset.tgs}?v=${VERSION}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = sanitize(await res.json());
     const canvas = document.createElement('canvas');
-    canvas.className = 'item__tgs';
+    canvas.className = 'it__tgs';
     canvas.width = canvas.height = SIZE * DPR;
     const anim = lottie.loadAnimation({
       renderer: 'canvas',
@@ -88,18 +94,24 @@
       rendererSettings: { context: canvas.getContext('2d'), clearCanvas: true, preserveAspectRatio: 'xMidYMid meet' },
     });
     const p = { holder, anim, fps: data.fr || 60, total: anim.totalFrames || 1, frame: 0, startedAt: -1, seen: 0 };
-    anim.addEventListener('DOMLoaded', () => {
-      anim.goToAndStop(0, true);
-      canvas.classList.add('is-ready');
+    await new Promise((resolve, reject) => {
+      anim.addEventListener('DOMLoaded', resolve);
+      anim.addEventListener('data_failed', () => reject(new Error('data')));
+      anim.addEventListener('error', () => reject(new Error('render')));
     });
-    holder.append(canvas);
+    anim.goToAndStop(0, true);
+    // стикер становится единственным содержимым ячейки, обычная иконка откладывается на случай сбоя
+    holder.replaceChildren(canvas);
+    requestAnimationFrame(() => canvas.classList.add('is-ready'));
     return p;
   };
 
   const prepare = (holder) => {
     if (players.has(holder)) return players.get(holder);
+    const fallback = Array.from(holder.childNodes);
     const p = make(holder).catch((err) => {
       console.warn('Стикер:', holder.dataset.tgs, err.message);
+      holder.replaceChildren(...fallback);
       holder.classList.add('tgs-failed'); // показываем обычную иконку
       return null;
     });
@@ -109,7 +121,11 @@
 
   /* ---------- Какой пункт выбран ---------- */
   const update = async () => {
-    const holder = document.querySelector('.cat.is-on .it.is-sel [data-tgs]');
+    // стикеры открытого раздела грузим сразу, выбранный — первым
+    const open = document.querySelector('.cat.is-on');
+    const holder = open && open.querySelector('.it.is-sel [data-tgs]');
+    if (holder) prepare(holder);
+    if (open) open.querySelectorAll('[data-tgs]').forEach(prepare);
     if (!holder) { setActive(null); return; }
     const p = await prepare(holder);
     if (p && document.querySelector('.cat.is-on .it.is-sel [data-tgs]') === holder) setActive(p);
@@ -118,15 +134,19 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
   [viewer, game].forEach((el) => el && new MutationObserver(wake).observe(el, { attributes: true, attributeFilter: ['hidden'] }));
 
-  // стикеры открытого раздела готовим сразу, остальные — когда браузер свободен
-  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
-  const queue = holders.slice();
-  const next = () => {
-    const h = queue.shift();
-    if (!h) return;
-    prepare(h).then(() => idle(next));
-  };
-  document.querySelectorAll('.cat.is-on [data-tgs]').forEach(prepare);
-  idle(next);
+  // остальные стикеры готовим по одному, когда страница загрузилась и браузер свободен;
+  // при экономии трафика заранее ничего не качаем
+  if (!saveData) {
+    const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 3000 }) : setTimeout(fn, 200));
+    const queue = holders.slice();
+    const next = () => {
+      const h = queue.shift();
+      if (!h) return;
+      prepare(h).then(() => idle(next));
+    };
+    const start = () => setTimeout(() => idle(next), 1000);
+    if (document.readyState === 'complete') start();
+    else addEventListener('load', start, { once: true });
+  }
   update();
 })();
