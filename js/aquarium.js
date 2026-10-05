@@ -9,17 +9,23 @@
   const ctx = canvas.getContext('2d');
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ---------- свой ролик, если он есть ----------
+  // ---------- свой ролик, если он есть: на телефонах и при экономии трафика — лёгкая версия ----------
   let usingVideo = false;
-  if (video) {
-    video.src = 'assets/video/bg.mp4';
+  if (video && !still) {
+    const small = matchMedia('(max-width: 900px)').matches || Boolean(navigator.connection && navigator.connection.saveData);
+    // H.264 MP4 играет почти везде; где его нет (сборки Chromium без кодеков) — VP9 WebM
+    const h264 = video.canPlayType('video/mp4; codecs="avc1.42E01E"');
+    video.src = h264 ? `assets/video/bg-${small ? '540p' : '720p'}.mp4` : 'assets/video/bg-720p.webm';
     video.addEventListener('loadeddata', () => {
       usingVideo = true;
       video.hidden = false;
       canvas.hidden = true;
-      video.play().catch(() => {});
+      stop();
+      video.play().catch(() => {}); // если автозапуск запрещён, останется кадр-постер
+      const credit = document.getElementById('bgCredit');
+      if (credit) credit.textContent = 'Свой ролик из assets/video';
     }, { once: true });
-    video.addEventListener('error', () => video.removeAttribute('src'), { once: true });
+    video.addEventListener('error', () => { video.removeAttribute('src'); video.hidden = true; }, { once: true });
     video.preload = 'auto';
     video.load();
   }

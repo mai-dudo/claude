@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="foot" cx=".35" cy=".3" r=".8">
+      <stop offset="0" stop-color="#8fc4ff"/><stop offset=".55" stop-color="#2f74d8"/><stop offset="1" stop-color="#143f8c"/>
+    </radialGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-12 44 80)">
+    <ellipse cx="44" cy="84" rx="15" ry="26" fill="url(#foot)"/>
+    <ellipse cx="44" cy="74" rx="11" ry="12" fill="url(#shine)"/>
+    <circle cx="30" cy="52" r="5" fill="url(#foot)"/><circle cx="39" cy="48" r="5.5" fill="url(#foot)"/>
+    <circle cx="48" cy="48" r="5.5" fill="url(#foot)"/><circle cx="57" cy="52" r="5" fill="url(#foot)"/>
+  </g>
+  <g transform="rotate(12 84 50)">
+    <ellipse cx="84" cy="54" rx="15" ry="26" fill="url(#foot)"/>
+    <ellipse cx="84" cy="44" rx="11" ry="12" fill="url(#shine)"/>
+    <circle cx="70" cy="22" r="5" fill="url(#foot)"/><circle cx="79" cy="18" r="5.5" fill="url(#foot)"/>
+    <circle cx="88" cy="18" r="5.5" fill="url(#foot)"/><circle cx="97" cy="22" r="5" fill="url(#foot)"/>
+  </g>
+</svg>

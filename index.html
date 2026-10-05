@@ -4,13 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Мой ник</title>
-  <meta name="description" content="Личная страница: видео, фото, проекты и ссылки">
-  <meta name="theme-color" content="#06183a">
-  <link rel="icon" href="assets/icons/xmb/profile.png">
+  <meta name="description" content="Мой ник — личная страница: видео, фото, проекты и ссылки">
+  <meta name="theme-color" content="#0b2a5a">
+  <link rel="icon" type="image/png" href="assets/icons/aero/profile.png">
+  <link rel="apple-touch-icon" href="assets/icons/aero/profile.png">
 
+  <!-- M PLUS 1p — шрифт M+, по духу близок к системному шрифту PS3 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300;400;500&display=swap">
+
   <link rel="stylesheet" href="css/style.css">
   <script>
     document.documentElement.classList.add('js');
@@ -23,14 +26,18 @@
 </head>
 <body>
 
-  <!-- Фон. Положи свой ролик в assets/video/bg.mp4, и он заменит нарисованный аквариум -->
+  <!-- Фон: аквариум. Свой ролик кладётся в assets/video/bg-720p.mp4 и bg-540p.mp4 (кадр-постер bg-poster.jpg);
+       пока ролика нет, аквариум рисует js/aquarium.js. Картинку «с кассеты» поверх кладёт js/vhs.js -->
   <div class="scene" aria-hidden="true">
+    <video class="scene__video" id="bgVideo" muted loop playsinline preload="none" poster="assets/video/bg-poster.jpg" hidden></video>
     <canvas class="scene__canvas" id="aquarium"></canvas>
-    <video class="scene__video" id="bgVideo" muted loop playsinline preload="none" hidden></video>
   </div>
 
-  <img class="thermo" src="assets/icons/thermometer.svg" alt="" aria-hidden="true">
+  <div class="status" aria-hidden="true">
+    <img class="status__thermo" src="assets/icons/thermometer.svg" alt="">
+  </div>
 
+  <!-- Экран телевизора поверх сайта: строки развёртки и виньетка в CSS, зерно и полоса — запасные без WebGL -->
   <div class="crt" aria-hidden="true">
     <div class="crt__grain" id="grain"></div>
     <div class="crt__band"></div>
@@ -39,133 +46,148 @@
   <!--
     Как редактировать:
     • раздел — <section class="cat" data-icon="иконка">, его название в <h2>;
-    • пункт — <li class="it"> внутри раздела;
-    • data-kind у пункта: photo и clip открываются в просмотрщике, game — поверх сайта, остальное — как ссылка.
+    • пункт — <li class="it"> внутри раздела; data-kind: photo и clip открываются в просмотрщике,
+      game — поверх сайта, остальные пункты работают как ссылки;
+    • анимированный стикер вместо иконки: <span class="it__ico" data-tgs="assets/stickers/имя.json">…</span>
+      (TGS из Telegram распаковывается в JSON командой gunzip -c file.tgs > имя.json).
   -->
   <main class="menu" id="menu">
 
-    <section class="cat" id="profile" data-icon="assets/icons/xmb/profile.png">
+    <!-- Профиль -->
+    <section class="cat" id="profile" data-icon="assets/icons/aero/profile.png">
       <h2 class="cat__name">Мой ник</h2>
       <ul class="cat__list">
         <li class="it" data-kind="photo">
-          <a class="it__row" href="assets/photos/avatar.svg">
-            <span class="it__ico it__ico--avatar"><img src="assets/photos/avatar.svg" alt="Аватарка"></span>
+          <div class="it__row">
+            <a class="it__ico it__ico--avatar it__zoom" href="assets/photos/avatar.svg"><span class="avatar"><img src="assets/photos/avatar.svg" alt="Аватарка"></span></a>
             <span class="it__txt">
               <span class="it__title">О себе</span>
-              <span class="it__sub">Пара строк о себе: как зовут, сколько лет, чем занимаешься. Подробности рядом.</span>
+              <span class="it__sub">Пара строк о себе: как зовут, сколько лет, чем занимаешься. Подробности можно посмотреть справа.</span>
             </span>
-          </a>
+          </div>
           <div class="it__card">
             <p class="card__note">Тут можно объяснить, откуда взялся ник.</p>
             <dl class="card__facts">
               <div><dt>Занятие</dt><dd>Чем занимаешься</dd></div>
               <div><dt>Изучаю</dt><dd>Что сейчас изучаешь</dd></div>
               <div><dt>Слушаю</dt><dd>Любимые жанры</dd></div>
-              <div><dt>Работа</dt><dd><a href="#" target="_blank" rel="noopener">Ссылка на канал</a></dd></div>
+              <div><dt>Работа</dt><dd><a href="https://www.youtube.com/" target="_blank" rel="noopener">YouTube канал</a></dd></div>
             </dl>
           </div>
         </li>
       </ul>
     </section>
 
-    <!-- Пункты собирает js/app.js из data/videos.json -->
-    <section class="cat" id="videos" data-icon="assets/icons/xmb/videos.png">
-      <h2 class="cat__name">Видео</h2>
+    <!-- Ютуб видосы: пункты собирает js/app.js из data/videos.json (обновить: node scripts/sync-youtube.mjs UC…) -->
+    <section class="cat" id="videos" data-icon="assets/icons/aero/videos.png">
+      <h2 class="cat__name">Ютуб видосы</h2>
       <ul class="cat__list" id="videoList">
         <li class="it">
           <div class="it__row">
-            <span class="it__ico"><img src="assets/icons/xmb/clock.png" alt=""></span>
+            <span class="it__ico"><img src="assets/icons/aero/clock.png" alt=""></span>
             <span class="it__txt"><span class="it__title">Загружаю видео…</span></span>
           </div>
         </li>
       </ul>
     </section>
 
-    <section class="cat" id="photos" data-icon="assets/icons/xmb/photos.png">
-      <h2 class="cat__name">Фото</h2>
+    <!-- Мои Фотки: файлы в assets/photos/, уменьшенные копии для списка — рядом в thumbs/ или те же файлы -->
+    <section class="cat" id="photos" data-icon="assets/icons/aero/photos.png">
+      <h2 class="cat__name">Мои Фотки</h2>
       <ul class="cat__list">
-        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-1.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-1.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 1</span></span></a></li>
-        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-2.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-2.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 2</span></span></a></li>
-        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-3.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-3.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 3</span></span></a></li>
-        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-4.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-4.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 4</span></span></a></li>
-        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-5.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-5.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 5</span></span></a></li>
-        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-6.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-6.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 6</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-1.svg" target="_blank"><span class="it__ico it__ico--photo"><img src="assets/photos/photo-1.svg" alt="Подпись к фото 1"></span><span class="it__txt"><span class="it__title">Подпись к фото 1</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-2.svg" target="_blank"><span class="it__ico it__ico--photo"><img src="assets/photos/photo-2.svg" alt="Подпись к фото 2"></span><span class="it__txt"><span class="it__title">Подпись к фото 2</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-3.svg" target="_blank"><span class="it__ico it__ico--photo"><img src="assets/photos/photo-3.svg" alt="Подпись к фото 3"></span><span class="it__txt"><span class="it__title">Подпись к фото 3</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-4.svg" target="_blank"><span class="it__ico it__ico--photo"><img src="assets/photos/photo-4.svg" alt="Подпись к фото 4"></span><span class="it__txt"><span class="it__title">Подпись к фото 4</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-5.svg" target="_blank"><span class="it__ico it__ico--photo"><img src="assets/photos/photo-5.svg" alt="Подпись к фото 5"></span><span class="it__txt"><span class="it__title">Подпись к фото 5</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-6.svg" target="_blank"><span class="it__ico it__ico--photo"><img src="assets/photos/photo-6.svg" alt="Подпись к фото 6"></span><span class="it__txt"><span class="it__title">Подпись к фото 6</span></span></a></li>
       </ul>
     </section>
 
-    <!-- Положи ролики в assets/video/skate/ и обложки рядом с тем же именем -->
-    <section class="cat" id="skate" data-icon="assets/icons/xmb/skate.svg">
-      <h2 class="cat__name">Скейт</h2>
+    <!-- Скейт видосы: ролики в assets/video/skate/, обложка — картинка с тем же именем -->
+    <section class="cat" id="skate" data-icon="assets/icons/aero/skate.png">
+      <h2 class="cat__name">Скейт видосы</h2>
       <ul class="cat__list">
-        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-1.mp4"><span class="it__ico it__ico--wide"><img src="assets/photos/photo-3.svg" alt=""></span><span class="it__txt"><span class="it__title">Ролик 1</span></span></a></li>
-        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-2.mp4"><span class="it__ico it__ico--wide"><img src="assets/photos/photo-1.svg" alt=""></span><span class="it__txt"><span class="it__title">Ролик 2</span></span></a></li>
-        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-3.mp4"><span class="it__ico it__ico--wide"><img src="assets/photos/photo-5.svg" alt=""></span><span class="it__txt"><span class="it__title">Ролик 3</span></span></a></li>
+        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-1.mp4" target="_blank"><span class="it__ico it__ico--video"><img src="assets/photos/photo-3.svg" alt=""></span><span class="it__txt"><span class="it__title">Название ролика 1</span></span></a></li>
+        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-2.mp4" target="_blank"><span class="it__ico it__ico--video"><img src="assets/photos/photo-1.svg" alt=""></span><span class="it__txt"><span class="it__title">Название ролика 2</span></span></a></li>
+        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-3.mp4" target="_blank"><span class="it__ico it__ico--video"><img src="assets/photos/photo-5.svg" alt=""></span><span class="it__txt"><span class="it__title">Название ролика 3</span></span></a></li>
+        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-4.mp4" target="_blank"><span class="it__ico it__ico--video"><img src="assets/photos/photo-6.svg" alt=""></span><span class="it__txt"><span class="it__title">Название ролика 4</span></span></a></li>
       </ul>
     </section>
 
-    <!-- Только на компьютере: на телефоне раздел убирается -->
-    <section class="cat" id="games" data-icon="assets/icons/xmb/games.png" data-desktop-only>
+    <!-- Игры: только на ПК, на узком экране раздел убирает js/app.js -->
+    <section class="cat" id="games" data-desktop-only data-icon="assets/icons/aero/game-pad.png">
       <h2 class="cat__name">Игры</h2>
       <ul class="cat__list">
-        <li class="it" data-kind="game"><a class="it__row" href="game/hexgl/index.html"><span class="it__ico"><img src="game/hexgl/icon_128.png" alt=""></span><span class="it__txt"><span class="it__title">HexGL</span><span class="it__sub">Гонка на WebGL · стрелки для управления</span></span></a></li>
-        <li class="it" data-kind="game"><a class="it__row" href="game/astray/index.html"><span class="it__ico"><img src="game/astray/ball.png" alt=""></span><span class="it__txt"><span class="it__title">Astray</span><span class="it__sub">Лабиринт на WebGL · стрелки для управления</span></span></a></li>
+        <li class="it" data-kind="game"><a class="it__row" href="game/hexgl/index.html"><span class="it__ico"><img src="assets/icons/aero/hexgl.png" alt=""></span><span class="it__txt"><span class="it__title">HexGL</span><span class="it__sub">Гонка на WebGL · управление стрелками</span></span></a></li>
+        <li class="it" data-kind="game"><a class="it__row" href="game/astray/index.html"><span class="it__ico"><img src="assets/icons/aero/astray.png" alt=""></span><span class="it__txt"><span class="it__title">Astray</span><span class="it__sub">Лабиринт на WebGL · управление стрелками</span></span></a></li>
       </ul>
     </section>
 
-    <section class="cat" id="projects" data-icon="assets/icons/xmb/projects.png">
+    <!-- Проекты: вместо иконки у пункта может быть стикер — data-tgs="assets/stickers/имя.json" на it__ico -->
+    <section class="cat" id="projects" data-icon="assets/icons/aero/projects-folder.png">
       <h2 class="cat__name">Проекты</h2>
       <ul class="cat__list">
-        <li class="it"><a class="it__row" href="#" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 1</span><span class="it__sub">Короткое описание или @username бота</span></span></a></li>
-        <li class="it"><a class="it__row" href="#" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 2</span><span class="it__sub">Короткое описание</span></span></a></li>
-        <li class="it"><a class="it__row" href="#" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 3</span><span class="it__sub">Короткое описание</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 1</span><span class="it__sub">@username бота или короткое описание</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 2</span><span class="it__sub">@username бота</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 3</span><span class="it__sub">@username бота</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 4</span><span class="it__sub">@username бота</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 5</span><span class="it__sub">@username бота</span></span></a></li>
       </ul>
     </section>
 
-    <section class="cat" id="links" data-icon="assets/icons/xmb/links.png">
-      <h2 class="cat__name">Ссылки</h2>
+    <!-- Линки -->
+    <section class="cat" id="links" data-icon="assets/icons/aero/links.png">
+      <h2 class="cat__name">Линки</h2>
       <ul class="cat__list">
-        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--telegram"><img src="assets/icons/social/telegram.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Telegram</span><span class="it__sub">t.me/твой_ник</span></span></a></li>
-        <li class="it"><a class="it__row" href="https://www.youtube.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--youtube"><img src="assets/icons/social/youtube.svg" alt=""></span></span><span class="it__txt"><span class="it__title">YouTube</span><span class="it__sub">youtube.com/@твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--telegram"><img src="assets/icons/social/telegram.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Контакт в Telegram</span><span class="it__sub">t.me/твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--telegram"><img src="assets/icons/social/telegram.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Telegram канал</span><span class="it__sub">t.me/твой_канал</span></span></a></li>
         <li class="it"><a class="it__row" href="https://www.instagram.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--instagram"><img src="assets/icons/social/instagram.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Instagram</span><span class="it__sub">instagram.com/твой_ник</span></span></a></li>
         <li class="it"><a class="it__row" href="https://www.tiktok.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--tiktok"><img src="assets/icons/social/tiktok.svg" alt=""></span></span><span class="it__txt"><span class="it__title">TikTok</span><span class="it__sub">tiktok.com/@твой_ник</span></span></a></li>
         <li class="it"><a class="it__row" href="https://vk.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--vk"><img src="assets/icons/social/vk.svg" alt=""></span></span><span class="it__txt"><span class="it__title">ВКонтакте</span><span class="it__sub">vk.com/твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://www.youtube.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--youtube"><img src="assets/icons/social/youtube.svg" alt=""></span></span><span class="it__txt"><span class="it__title">YouTube</span><span class="it__sub">youtube.com/@твой_ник</span></span></a></li>
         <li class="it"><a class="it__row" href="https://www.twitch.tv/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--twitch"><img src="assets/icons/social/twitch.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Twitch</span><span class="it__sub">twitch.tv/твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://example.com/" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/site.png" alt=""></span><span class="it__txt"><span class="it__title">Мой сайт</span><span class="it__sub">example.com</span></span></a></li>
         <li class="it"><a class="it__row" href="https://github.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--github"><img src="assets/icons/social/github.svg" alt=""></span></span><span class="it__txt"><span class="it__title">GitHub</span><span class="it__sub">github.com/твой_ник</span></span></a></li>
-        <li class="it"><a class="it__row" href="https://discord.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--discord"><img src="assets/icons/social/discord.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Discord</span><span class="it__sub">Ссылка на сервер</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://www.donationalerts.com/" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/donate.png" alt=""></span><span class="it__txt"><span class="it__title">Донат</span><span class="it__sub">donationalerts.com/r/твой_ник</span></span></a></li>
       </ul>
     </section>
 
-    <section class="cat" id="about" data-icon="assets/icons/xmb/info.png">
-      <h2 class="cat__name">О сайте</h2>
+    <!-- Об этом сайте -->
+    <section class="cat" id="about" data-icon="assets/icons/aero/info.png">
+      <h2 class="cat__name">Об этом сайте</h2>
       <ul class="cat__list">
-        <li class="it"><div class="it__row"><span class="it__ico"><img src="assets/icons/xmb/bulb.png" alt=""></span><span class="it__txt"><span class="it__title">Меню в духе XMB, Frutiger Aero и скевоморфизма</span></span></div></li>
-        <li class="it" id="visitsItem" hidden><div class="it__row"><span class="it__ico"><img src="assets/icons/xmb/visits.png" alt=""></span><span class="it__txt"><span class="it__title">Визиты сайта: <span id="visits">…</span></span></span></div></li>
-        <li class="it"><a class="it__row" href="https://invent.kde.org/frameworks/oxygen-icons" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/file.png" alt=""></span><span class="it__txt"><span class="it__title">Иконки разделов</span><span class="it__sub">Oxygen (KDE) · LGPL-3.0-or-later</span></span></a></li>
-        <li class="it"><a class="it__row" href="https://simpleicons.org" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/file.png" alt=""></span><span class="it__txt"><span class="it__title">Значки соцсетей</span><span class="it__sub">Simple Icons · CC0</span></span></a></li>
-        <li class="it"><a class="it__row" href="CREDITS.md" target="_blank"><span class="it__ico"><img src="assets/icons/xmb/file.png" alt=""></span><span class="it__txt"><span class="it__title">Авторы и лицензии</span><span class="it__sub">Игры HexGL (MIT) и Astray (Unlicense), шрифт M PLUS 1p (OFL)</span></span></a></li>
+        <li class="it"><div class="it__row"><span class="it__ico"><img src="assets/icons/aero/inspiration-bulb.png" alt=""></span><span class="it__txt"><span class="it__title">Сайт был создан от вдохновения с Frutiger Aero y2k и скевоморфизма</span></span></div></li>
+        <li class="it"><div class="it__row"><span class="it__ico"><img src="assets/icons/aero/visits-steps.svg" alt=""></span><span class="it__txt"><span class="it__title">Визиты сайта: <span id="visits">…</span></span></span></div></li>
+        <li class="it"><div class="it__row"><span class="it__ico"><img src="assets/icons/aero/file.png" alt=""></span><span class="it__txt"><span class="it__title">Видео аквариума</span><span class="it__sub" id="bgCredit">Нарисовано кодом, пока нет своего ролика</span></span></div></li>
+        <li class="it"><a class="it__row" href="https://invent.kde.org/frameworks/oxygen-icons" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/file.png" alt=""></span><span class="it__txt"><span class="it__title">Иконки разделов</span><span class="it__sub">Oxygen (KDE) · LGPL-3.0-or-later</span></span></a></li>
+        <li class="it"><a class="it__row" href="CREDITS.md" target="_blank"><span class="it__ico"><img src="assets/icons/aero/file.png" alt=""></span><span class="it__txt"><span class="it__title">Логотипы и иконки</span><span class="it__sub">Crystal, Noto Emoji, Simple Icons, Wikimedia Commons, aMSN</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://fonts.google.com/specimen/M+PLUS+1p" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/aero/file.png" alt=""></span><span class="it__txt"><span class="it__title">Шрифт M PLUS 1p</span><span class="it__sub">M+ Fonts Project · SIL OFL</span></span></a></li>
       </ul>
     </section>
   </main>
 
-  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Просмотр" hidden>
-    <img class="viewer__media" id="viewerImg" alt="">
-    <video class="viewer__media" id="viewerVideo" controls playsinline preload="metadata" hidden></video>
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Просмотр фото" hidden>
+    <img class="viewer__img" id="viewerImg" alt="">
+    <video class="viewer__video" id="viewerVideo" controls playsinline preload="metadata" hidden></video>
     <p class="viewer__msg" id="viewerMsg" hidden></p>
     <div class="viewer__bar">
-      <button class="viewer__btn" type="button" data-step="-1" aria-label="Назад">‹</button>
+      <button class="viewer__btn" type="button" data-step="-1" aria-label="Предыдущее">‹</button>
       <span id="viewerCount"></span>
-      <button class="viewer__btn" type="button" data-step="1" aria-label="Вперёд">›</button>
+      <button class="viewer__btn" type="button" data-step="1" aria-label="Следующее">›</button>
     </div>
     <button class="viewer__btn viewer__close" type="button" data-close aria-label="Закрыть">✕</button>
   </div>
 
+  <!-- игра открывается поверх сайта; крестик справа сверху закрывает -->
   <div class="game" id="game" hidden>
     <iframe class="game__frame" id="gameFrame" title="Игра" allow="fullscreen; autoplay; gamepad"></iframe>
     <button class="game__close" id="gameClose" type="button" aria-label="Закрыть игру">✕</button>
   </div>
 
   <script src="js/aquarium.js"></script>
-  <script src="js/crt.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/stickers.js"></script>
+  <script src="js/vhs.js"></script>
 </body>
 </html>
