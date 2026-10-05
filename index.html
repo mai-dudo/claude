@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barricade — настольная игра</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Barricade <span class="sub">(Malefiz)</span></h1>
+    <nav>
+      <button id="btn-rules" type="button" class="ghost">Правила</button>
+      <button id="btn-new" type="button" class="ghost">Новая игра</button>
+    </nav>
+  </header>
+
+  <!-- Экран настройки -->
+  <section id="setup" class="panel setup">
+    <h2>Новая партия</h2>
+    <p class="hint">Выберите от двух до четырёх участников. Люди ходят по очереди за одним экраном.</p>
+    <table class="seats">
+      <thead>
+        <tr><th>Цвет</th><th>Участник</th><th>Имя</th></tr>
+      </thead>
+      <tbody id="seat-rows"></tbody>
+    </table>
+    <div class="row">
+      <button id="btn-start" type="button" class="primary">Начать игру</button>
+      <button id="btn-demo" type="button">Демо: компьютер против компьютера</button>
+    </div>
+    <p id="setup-error" class="error" hidden></p>
+  </section>
+
+  <!-- Игровой экран -->
+  <main id="game" class="game" hidden>
+    <div class="board-wrap">
+      <svg id="board" viewBox="0 0 720 620" role="img" aria-label="Игровое поле"></svg>
+    </div>
+    <aside class="side">
+      <section class="panel status">
+        <div id="turn-badge" class="turn-badge">
+          <span id="turn-color" class="swatch"></span>
+          <span id="turn-name">—</span>
+        </div>
+        <div class="dice-row">
+          <div id="dice" class="dice" aria-live="polite" aria-label="Кубик"></div>
+          <button id="btn-roll" type="button" class="primary">Бросить кубик</button>
+        </div>
+        <p id="message" class="message">&nbsp;</p>
+      </section>
+      <section class="panel players">
+        <h3>Игроки</h3>
+        <ul id="player-list"></ul>
+      </section>
+      <section class="panel log">
+        <h3>Журнал</h3>
+        <ol id="log" reversed></ol>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Правила -->
+  <dialog id="rules">
+    <h2>Правила Barricade</h2>
+    <ol>
+      <li>У каждого игрока пять фишек в базе. Цель — первым довести <b>одну</b> фишку до клетки-цели наверху доски.</li>
+      <li>Ход: бросьте кубик и передвиньте одну фишку ровно на выпавшее число клеток. В пределах одного хода нельзя возвращаться на уже пройденные клетки. Если ход возможен, его обязательно нужно сделать.</li>
+      <li>Фишка, выходящая из базы, первым шагом попадает на нижнюю клетку своей дорожки.</li>
+      <li>Через свои и чужие фишки можно перепрыгивать. Встать на свою фишку нельзя.</li>
+      <li>Если фишка заканчивает ход на фишке соперника, та отправляется в базу.</li>
+      <li><b>Баррикады</b> (белые блоки) нельзя перепрыгивать или проходить сквозь них. Остановившись ровно на баррикаде, вы снимаете её и ставите на любую свободную клетку, кроме цели, нижней линии и стартовых дорожек.</li>
+      <li>На цель нужно попасть точным броском.</li>
+    </ol>
+    <form method="dialog"><button type="submit" class="primary">Понятно</button></form>
+  </dialog>
+
+  <!-- Победа -->
+  <dialog id="winner">
+    <h2 id="winner-title">Победа!</h2>
+    <p id="winner-text"></p>
+    <form method="dialog">
+      <button type="submit" value="again" class="primary">Сыграть ещё</button>
+      <button type="submit" value="close">Посмотреть доску</button>
+    </form>
+  </dialog>
+
+  <script src="engine.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>
