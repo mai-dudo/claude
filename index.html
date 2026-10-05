@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Striver</title>
+<meta name="description" content="Личная страница Striver — видео, скейт, вайб-кодинг и ссылки на все соцсети.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#8fd6ff; --sky-mid:#3aa7f0; --sky-bottom:#0b63b8;
+    --grass:#5fd04a; --grass-dark:#2d8f1f;
+    --glass:rgba(255,255,255,.28); --glass-border:rgba(255,255,255,.65);
+    --text:#0b2e55; --text-light:#f4fbff; --accent:#ff8a00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Nunito',"Segoe UI",Tahoma,sans-serif;color:var(--text);
+    background:
+      radial-gradient(ellipse 120% 60% at 50% 115%, var(--grass) 0%, var(--grass-dark) 35%, transparent 60%),
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,.55), transparent 30%),
+      linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 45%,var(--sky-bottom) 100%);
+    background-attachment:fixed;min-height:100vh;overflow-x:hidden;
+  }
+  /* плавающие пузыри */
+  .bubble{position:fixed;border-radius:50%;pointer-events:none;z-index:0;
+    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(255,255,255,.15) 60%, rgba(255,255,255,.4) 100%);
+    border:1px solid rgba(255,255,255,.6);box-shadow:inset 0 -6px 14px rgba(255,255,255,.5), 0 8px 24px rgba(0,40,90,.15);
+    animation:float 14s ease-in-out infinite;}
+  .bubble:nth-child(1){width:140px;height:140px;left:6%;top:12%}
+  .bubble:nth-child(2){width:70px;height:70px;left:82%;top:18%;animation-delay:-4s}
+  .bubble:nth-child(3){width:110px;height:110px;left:70%;top:66%;animation-delay:-8s}
+  .bubble:nth-child(4){width:50px;height:50px;left:18%;top:72%;animation-delay:-2s}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-28px)}}
+
+  .wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:48px 16px 64px}
+
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.55),var(--glass));
+    border:1px solid var(--glass-border);border-radius:28px;
+    box-shadow:0 20px 50px rgba(0,30,80,.28), inset 0 1px 0 rgba(255,255,255,.9);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    padding:32px 28px;text-align:center;
+  }
+  .avatar{
+    width:128px;height:128px;border-radius:50%;margin:-96px auto 16px;display:grid;place-items:center;
+    background:radial-gradient(circle at 35% 30%, #ffe9a8, #ffb300 55%, #e07a00 100%);
+    border:5px solid #fff;box-shadow:0 12px 28px rgba(0,40,90,.35), inset 0 -10px 18px rgba(0,0,0,.15);
+    font-size:56px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.3);
+  }
+  h1{font-size:40px;font-weight:800;letter-spacing:-.5px;
+     background:linear-gradient(180deg,#1e6fd0,#0b3f8f);-webkit-background-clip:text;background-clip:text;color:transparent;
+     filter:drop-shadow(0 2px 0 rgba(255,255,255,.8))}
+  .sub{margin-top:8px;font-weight:600;color:#1a4f8a;font-size:16px;line-height:1.5}
+  .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px 0 26px}
+  .tag{padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;color:#fff;
+       background:linear-gradient(180deg,#5cc3ff,#1b86e0);border:1px solid rgba(255,255,255,.7);
+       box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 4px 10px rgba(0,50,120,.25)}
+
+  .links{display:grid;gap:12px}
+  .btn{
+    display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:18px;text-decoration:none;
+    color:var(--text);font-weight:700;font-size:17px;
+    background:linear-gradient(180deg,rgba(255,255,255,.95) 0%,rgba(230,245,255,.9) 50%,rgba(200,232,255,.9) 100%);
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow:0 6px 16px rgba(0,40,90,.22), inset 0 1px 0 #fff, inset 0 -2px 6px rgba(120,180,230,.4);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,40,90,.3), inset 0 1px 0 #fff}
+  .btn:active{transform:translateY(1px)}
+  .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;color:#fff;font-weight:800;font-size:15px;
+       box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 8px rgba(0,0,0,.2)}
+  .yt{background:linear-gradient(180deg,#ff6b6b,#d60000)}
+  .tw{background:linear-gradient(180deg,#b78cff,#6a2fd6)}
+  .ig{background:linear-gradient(135deg,#ffb347,#ff2f6d 55%,#8a3ab9)}
+  .tt{background:linear-gradient(180deg,#444,#000)}
+  .tg{background:linear-gradient(180deg,#5fc5ff,#1e8fd6)}
+  .em{background:linear-gradient(180deg,#ffd45c,#f59e0b)}
+  .btn span.label{flex:1;text-align:left}
+  .btn .arrow{opacity:.5}
+
+  footer{margin-top:28px;text-align:center;color:var(--text-light);font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,30,80,.6)}
+  footer a{color:#fff}
+
+  @media (max-width:420px){h1{font-size:32px}.card{padding:28px 18px}.btn{font-size:16px}}
+</style>
+</head>
+<body>
+  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+
+  <main class="wrap">
+    <section class="card" style="margin-top:96px">
+      <div class="avatar" aria-hidden="true">★</div>
+      <h1>Striver</h1>
+      <p class="sub">Привет, я Никита. Снимаю видео, катаюсь на скейте и занимаюсь вайб-кодингом.</p>
+
+      <div class="tags">
+        <span class="tag">YouTube</span>
+        <span class="tag">Скейт</span>
+        <span class="tag">Vibe coding</span>
+        <span class="tag">y2k</span>
+      </div>
+
+      <!-- TODO: подставить реальные ссылки с оригинального сайта -->
+      <nav class="links" aria-label="Соцсети">
+        <a class="btn" href="#"><span class="ico yt">YT</span><span class="label">YouTube</span><span class="arrow">›</span></a>
+        <a class="btn" href="#"><span class="ico tw">TW</span><span class="label">Twitch</span><span class="arrow">›</span></a>
+        <a class="btn" href="#"><span class="ico ig">IG</span><span class="label">Instagram</span><span class="arrow">›</span></a>
+        <a class="btn" href="#"><span class="ico tt">TT</span><span class="label">TikTok</span><span class="arrow">›</span></a>
+        <a class="btn" href="#"><span class="ico tg">TG</span><span class="label">Telegram</span><span class="arrow">›</span></a>
+        <a class="btn" href="https://emoji.wivvi.net/"><span class="ico em">😀</span><span class="label">Премиум эмодзи для Telegram-ботов</span><span class="arrow">›</span></a>
+      </nav>
+    </section>
+
+    <footer>© 2026 Striver · сделано в духе Frutiger Aero</footer>
+  </main>
+</body>
+</html>
