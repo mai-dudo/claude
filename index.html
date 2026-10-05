@@ -12,7 +12,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300;400;500&display=swap">
   <link rel="stylesheet" href="css/style.css">
-  <script>document.documentElement.classList.add('js');</script>
+  <script>
+    document.documentElement.classList.add('js');
+    // страховка: если js/app.js не загрузится, через 4 секунды показываем обычные списки
+    setTimeout(function () {
+      var r = document.documentElement;
+      if (!r.classList.contains('menu-ready')) r.classList.add('menu-fallback');
+    }, 4000);
+  </script>
 </head>
 <body>
 
