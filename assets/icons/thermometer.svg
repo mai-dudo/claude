@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 120">
+  <defs>
+    <linearGradient id="glass" x1="0" x2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".35" stop-color="#dfe8f1" stop-opacity=".8"/>
+      <stop offset=".7" stop-color="#9fb0c2" stop-opacity=".75"/><stop offset="1" stop-color="#e8eef5" stop-opacity=".9"/>
+    </linearGradient>
+    <linearGradient id="merc" x1="0" x2="1">
+      <stop offset="0" stop-color="#ff7a7a"/><stop offset=".45" stop-color="#e01010"/><stop offset="1" stop-color="#8a0000"/>
+    </linearGradient>
+    <radialGradient id="bulb" cx=".38" cy=".35" r=".7">
+      <stop offset="0" stop-color="#ffb3b3"/><stop offset=".45" stop-color="#e01010"/><stop offset="1" stop-color="#7a0000"/>
+    </radialGradient>
+    <clipPath id="tube"><rect x="16" y="10" width="8" height="90" rx="4"/></clipPath>
+  </defs>
+  <rect x="6" y="2" width="28" height="116" rx="14" fill="url(#glass)" stroke="#7d8b99" stroke-width="1.2"/>
+  <g stroke="#56636f" stroke-width="1">
+    <path d="M26 20h5M26 30h3M26 40h5M26 50h3M26 60h5M26 70h3M26 80h5M26 90h3"/>
+  </g>
+  <rect x="16" y="10" width="8" height="90" rx="4" fill="#f4f6f8" stroke="#a9b4bf" stroke-width=".8"/>
+  <g clip-path="url(#tube)">
+    <rect x="16" y="40" width="8" height="70" fill="url(#merc)">
+      <animate attributeName="y" values="58;34;46;28;52;58" dur="9s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  <circle cx="20" cy="104" r="9" fill="url(#bulb)" stroke="#6d0000" stroke-width=".8"/>
+  <ellipse cx="17" cy="100" rx="3" ry="2" fill="#fff" opacity=".7"/>
+  <path d="M10 12 Q10 6 16 5 L16 98 Q10 96 10 90 Z" fill="#fff" opacity=".35"/>
+</svg>

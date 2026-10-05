@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2550"/><stop offset="1" stop-color="#c86a3c"/></linearGradient></defs>
+<rect width="1200" height="900" fill="url(#sky)"/>
+<rect y="740" width="1200" height="160" fill="#5a3a22"/>
+<circle cx="900" cy="200" r="90" fill="#fff6d8"/><rect x="380" y="380" width="70" height="380" rx="35" fill="#2c6a35"/><rect x="300" y="470" width="60" height="150" rx="30" fill="#2c6a35"/><rect x="300" y="580" width="110" height="50" rx="25" fill="#2c6a35"/><rect x="470" y="430" width="60" height="140" rx="30" fill="#2c6a35"/><rect x="420" y="530" width="110" height="50" rx="25" fill="#2c6a35"/>
+<rect x="40" y="800" width="560" height="64" rx="12" fill="#000" opacity=".35"/>
+<text x="64" y="843" font-family="sans-serif" font-size="30" fill="#fff">Кактус и луна — замени на своё фото</text>
+</svg>

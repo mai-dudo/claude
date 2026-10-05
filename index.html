@@ -1,120 +1,164 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Striver</title>
-<meta name="description" content="Личная страница Striver — видео, скейт, вайб-кодинг и ссылки на все соцсети.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --sky-top:#8fd6ff; --sky-mid:#3aa7f0; --sky-bottom:#0b63b8;
-    --grass:#5fd04a; --grass-dark:#2d8f1f;
-    --glass:rgba(255,255,255,.28); --glass-border:rgba(255,255,255,.65);
-    --text:#0b2e55; --text-light:#f4fbff; --accent:#ff8a00;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{
-    font-family:'Nunito',"Segoe UI",Tahoma,sans-serif;color:var(--text);
-    background:
-      radial-gradient(ellipse 120% 60% at 50% 115%, var(--grass) 0%, var(--grass-dark) 35%, transparent 60%),
-      radial-gradient(circle at 80% 20%, rgba(255,255,255,.55), transparent 30%),
-      linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 45%,var(--sky-bottom) 100%);
-    background-attachment:fixed;min-height:100vh;overflow-x:hidden;
-  }
-  /* плавающие пузыри */
-  .bubble{position:fixed;border-radius:50%;pointer-events:none;z-index:0;
-    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(255,255,255,.15) 60%, rgba(255,255,255,.4) 100%);
-    border:1px solid rgba(255,255,255,.6);box-shadow:inset 0 -6px 14px rgba(255,255,255,.5), 0 8px 24px rgba(0,40,90,.15);
-    animation:float 14s ease-in-out infinite;}
-  .bubble:nth-child(1){width:140px;height:140px;left:6%;top:12%}
-  .bubble:nth-child(2){width:70px;height:70px;left:82%;top:18%;animation-delay:-4s}
-  .bubble:nth-child(3){width:110px;height:110px;left:70%;top:66%;animation-delay:-8s}
-  .bubble:nth-child(4){width:50px;height:50px;left:18%;top:72%;animation-delay:-2s}
-  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-28px)}}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Мой ник</title>
+  <meta name="description" content="Личная страница: видео, фото, проекты и ссылки">
+  <meta name="theme-color" content="#06183a">
+  <link rel="icon" href="assets/icons/xmb/profile.png">
 
-  .wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:48px 16px 64px}
-
-  .card{
-    background:linear-gradient(180deg,rgba(255,255,255,.55),var(--glass));
-    border:1px solid var(--glass-border);border-radius:28px;
-    box-shadow:0 20px 50px rgba(0,30,80,.28), inset 0 1px 0 rgba(255,255,255,.9);
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    padding:32px 28px;text-align:center;
-  }
-  .avatar{
-    width:128px;height:128px;border-radius:50%;margin:-96px auto 16px;display:grid;place-items:center;
-    background:radial-gradient(circle at 35% 30%, #ffe9a8, #ffb300 55%, #e07a00 100%);
-    border:5px solid #fff;box-shadow:0 12px 28px rgba(0,40,90,.35), inset 0 -10px 18px rgba(0,0,0,.15);
-    font-size:56px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.3);
-  }
-  h1{font-size:40px;font-weight:800;letter-spacing:-.5px;
-     background:linear-gradient(180deg,#1e6fd0,#0b3f8f);-webkit-background-clip:text;background-clip:text;color:transparent;
-     filter:drop-shadow(0 2px 0 rgba(255,255,255,.8))}
-  .sub{margin-top:8px;font-weight:600;color:#1a4f8a;font-size:16px;line-height:1.5}
-  .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px 0 26px}
-  .tag{padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;color:#fff;
-       background:linear-gradient(180deg,#5cc3ff,#1b86e0);border:1px solid rgba(255,255,255,.7);
-       box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 4px 10px rgba(0,50,120,.25)}
-
-  .links{display:grid;gap:12px}
-  .btn{
-    display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:18px;text-decoration:none;
-    color:var(--text);font-weight:700;font-size:17px;
-    background:linear-gradient(180deg,rgba(255,255,255,.95) 0%,rgba(230,245,255,.9) 50%,rgba(200,232,255,.9) 100%);
-    border:1px solid rgba(255,255,255,.9);
-    box-shadow:0 6px 16px rgba(0,40,90,.22), inset 0 1px 0 #fff, inset 0 -2px 6px rgba(120,180,230,.4);
-    transition:transform .15s ease, box-shadow .15s ease;
-  }
-  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,40,90,.3), inset 0 1px 0 #fff}
-  .btn:active{transform:translateY(1px)}
-  .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;color:#fff;font-weight:800;font-size:15px;
-       box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 8px rgba(0,0,0,.2)}
-  .yt{background:linear-gradient(180deg,#ff6b6b,#d60000)}
-  .tw{background:linear-gradient(180deg,#b78cff,#6a2fd6)}
-  .ig{background:linear-gradient(135deg,#ffb347,#ff2f6d 55%,#8a3ab9)}
-  .tt{background:linear-gradient(180deg,#444,#000)}
-  .tg{background:linear-gradient(180deg,#5fc5ff,#1e8fd6)}
-  .em{background:linear-gradient(180deg,#ffd45c,#f59e0b)}
-  .btn span.label{flex:1;text-align:left}
-  .btn .arrow{opacity:.5}
-
-  footer{margin-top:28px;text-align:center;color:var(--text-light);font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,30,80,.6)}
-  footer a{color:#fff}
-
-  @media (max-width:420px){h1{font-size:32px}.card{padding:28px 18px}.btn{font-size:16px}}
-</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
-  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
 
-  <main class="wrap">
-    <section class="card" style="margin-top:96px">
-      <div class="avatar" aria-hidden="true">★</div>
-      <h1>Striver</h1>
-      <p class="sub">Привет, я Никита. Снимаю видео, катаюсь на скейте и занимаюсь вайб-кодингом.</p>
+  <!-- Фон. Положи свой ролик в assets/video/bg.mp4, и он заменит нарисованный аквариум -->
+  <div class="scene" aria-hidden="true">
+    <canvas class="scene__canvas" id="aquarium"></canvas>
+    <video class="scene__video" id="bgVideo" muted loop playsinline preload="none" hidden></video>
+  </div>
 
-      <div class="tags">
-        <span class="tag">YouTube</span>
-        <span class="tag">Скейт</span>
-        <span class="tag">Vibe coding</span>
-        <span class="tag">y2k</span>
-      </div>
+  <img class="thermo" src="assets/icons/thermometer.svg" alt="" aria-hidden="true">
 
-      <!-- TODO: подставить реальные ссылки с оригинального сайта -->
-      <nav class="links" aria-label="Соцсети">
-        <a class="btn" href="#"><span class="ico yt">YT</span><span class="label">YouTube</span><span class="arrow">›</span></a>
-        <a class="btn" href="#"><span class="ico tw">TW</span><span class="label">Twitch</span><span class="arrow">›</span></a>
-        <a class="btn" href="#"><span class="ico ig">IG</span><span class="label">Instagram</span><span class="arrow">›</span></a>
-        <a class="btn" href="#"><span class="ico tt">TT</span><span class="label">TikTok</span><span class="arrow">›</span></a>
-        <a class="btn" href="#"><span class="ico tg">TG</span><span class="label">Telegram</span><span class="arrow">›</span></a>
-        <a class="btn" href="https://emoji.wivvi.net/"><span class="ico em">😀</span><span class="label">Премиум эмодзи для Telegram-ботов</span><span class="arrow">›</span></a>
-      </nav>
+  <div class="crt" aria-hidden="true">
+    <div class="crt__grain" id="grain"></div>
+    <div class="crt__band"></div>
+  </div>
+
+  <!--
+    Как редактировать:
+    • раздел — <section class="cat" data-icon="иконка">, его название в <h2>;
+    • пункт — <li class="it"> внутри раздела;
+    • data-kind у пункта: photo и clip открываются в просмотрщике, game — поверх сайта, остальное — как ссылка.
+  -->
+  <main class="menu" id="menu">
+
+    <section class="cat" id="profile" data-icon="assets/icons/xmb/profile.png">
+      <h2 class="cat__name">Мой ник</h2>
+      <ul class="cat__list">
+        <li class="it" data-kind="photo">
+          <a class="it__row" href="assets/photos/avatar.svg">
+            <span class="it__ico it__ico--avatar"><img src="assets/photos/avatar.svg" alt="Аватарка"></span>
+            <span class="it__txt">
+              <span class="it__title">О себе</span>
+              <span class="it__sub">Пара строк о себе: как зовут, сколько лет, чем занимаешься. Подробности рядом.</span>
+            </span>
+          </a>
+          <div class="it__card">
+            <p class="card__note">Тут можно объяснить, откуда взялся ник.</p>
+            <dl class="card__facts">
+              <div><dt>Занятие</dt><dd>Чем занимаешься</dd></div>
+              <div><dt>Изучаю</dt><dd>Что сейчас изучаешь</dd></div>
+              <div><dt>Слушаю</dt><dd>Любимые жанры</dd></div>
+              <div><dt>Работа</dt><dd><a href="#" target="_blank" rel="noopener">Ссылка на канал</a></dd></div>
+            </dl>
+          </div>
+        </li>
+      </ul>
     </section>
 
-    <footer>© 2026 Striver · сделано в духе Frutiger Aero</footer>
+    <!-- Пункты собирает js/app.js из data/videos.json -->
+    <section class="cat" id="videos" data-icon="assets/icons/xmb/videos.png">
+      <h2 class="cat__name">Видео</h2>
+      <ul class="cat__list" id="videoList">
+        <li class="it">
+          <div class="it__row">
+            <span class="it__ico"><img src="assets/icons/xmb/clock.png" alt=""></span>
+            <span class="it__txt"><span class="it__title">Загружаю видео…</span></span>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="cat" id="photos" data-icon="assets/icons/xmb/photos.png">
+      <h2 class="cat__name">Фото</h2>
+      <ul class="cat__list">
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-1.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-1.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 1</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-2.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-2.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 2</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-3.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-3.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 3</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-4.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-4.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 4</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-5.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-5.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 5</span></span></a></li>
+        <li class="it" data-kind="photo"><a class="it__row" href="assets/photos/photo-6.svg"><span class="it__ico it__ico--thumb"><img src="assets/photos/photo-6.svg" alt=""></span><span class="it__txt"><span class="it__title">Подпись к фото 6</span></span></a></li>
+      </ul>
+    </section>
+
+    <!-- Положи ролики в assets/video/skate/ и обложки рядом с тем же именем -->
+    <section class="cat" id="skate" data-icon="assets/icons/xmb/skate.svg">
+      <h2 class="cat__name">Скейт</h2>
+      <ul class="cat__list">
+        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-1.mp4"><span class="it__ico it__ico--wide"><img src="assets/photos/photo-3.svg" alt=""></span><span class="it__txt"><span class="it__title">Ролик 1</span></span></a></li>
+        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-2.mp4"><span class="it__ico it__ico--wide"><img src="assets/photos/photo-1.svg" alt=""></span><span class="it__txt"><span class="it__title">Ролик 2</span></span></a></li>
+        <li class="it" data-kind="clip"><a class="it__row" href="assets/video/skate/clip-3.mp4"><span class="it__ico it__ico--wide"><img src="assets/photos/photo-5.svg" alt=""></span><span class="it__txt"><span class="it__title">Ролик 3</span></span></a></li>
+      </ul>
+    </section>
+
+    <!-- Только на компьютере: на телефоне раздел убирается -->
+    <section class="cat" id="games" data-icon="assets/icons/xmb/games.png" data-desktop-only>
+      <h2 class="cat__name">Игры</h2>
+      <ul class="cat__list">
+        <li class="it" data-kind="game"><a class="it__row" href="game/hexgl/index.html"><span class="it__ico"><img src="game/hexgl/icon_128.png" alt=""></span><span class="it__txt"><span class="it__title">HexGL</span><span class="it__sub">Гонка на WebGL · стрелки для управления</span></span></a></li>
+        <li class="it" data-kind="game"><a class="it__row" href="game/astray/index.html"><span class="it__ico"><img src="game/astray/ball.png" alt=""></span><span class="it__txt"><span class="it__title">Astray</span><span class="it__sub">Лабиринт на WebGL · стрелки для управления</span></span></a></li>
+      </ul>
+    </section>
+
+    <section class="cat" id="projects" data-icon="assets/icons/xmb/projects.png">
+      <h2 class="cat__name">Проекты</h2>
+      <ul class="cat__list">
+        <li class="it"><a class="it__row" href="#" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 1</span><span class="it__sub">Короткое описание или @username бота</span></span></a></li>
+        <li class="it"><a class="it__row" href="#" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 2</span><span class="it__sub">Короткое описание</span></span></a></li>
+        <li class="it"><a class="it__row" href="#" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/site.png" alt=""></span><span class="it__txt"><span class="it__title">Проект 3</span><span class="it__sub">Короткое описание</span></span></a></li>
+      </ul>
+    </section>
+
+    <section class="cat" id="links" data-icon="assets/icons/xmb/links.png">
+      <h2 class="cat__name">Ссылки</h2>
+      <ul class="cat__list">
+        <li class="it"><a class="it__row" href="https://t.me/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--telegram"><img src="assets/icons/social/telegram.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Telegram</span><span class="it__sub">t.me/твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://www.youtube.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--youtube"><img src="assets/icons/social/youtube.svg" alt=""></span></span><span class="it__txt"><span class="it__title">YouTube</span><span class="it__sub">youtube.com/@твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://www.instagram.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--instagram"><img src="assets/icons/social/instagram.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Instagram</span><span class="it__sub">instagram.com/твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://www.tiktok.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--tiktok"><img src="assets/icons/social/tiktok.svg" alt=""></span></span><span class="it__txt"><span class="it__title">TikTok</span><span class="it__sub">tiktok.com/@твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://vk.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--vk"><img src="assets/icons/social/vk.svg" alt=""></span></span><span class="it__txt"><span class="it__title">ВКонтакте</span><span class="it__sub">vk.com/твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://www.twitch.tv/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--twitch"><img src="assets/icons/social/twitch.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Twitch</span><span class="it__sub">twitch.tv/твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://github.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--github"><img src="assets/icons/social/github.svg" alt=""></span></span><span class="it__txt"><span class="it__title">GitHub</span><span class="it__sub">github.com/твой_ник</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://discord.com/" target="_blank" rel="noopener"><span class="it__ico"><span class="tile tile--discord"><img src="assets/icons/social/discord.svg" alt=""></span></span><span class="it__txt"><span class="it__title">Discord</span><span class="it__sub">Ссылка на сервер</span></span></a></li>
+      </ul>
+    </section>
+
+    <section class="cat" id="about" data-icon="assets/icons/xmb/info.png">
+      <h2 class="cat__name">О сайте</h2>
+      <ul class="cat__list">
+        <li class="it"><div class="it__row"><span class="it__ico"><img src="assets/icons/xmb/bulb.png" alt=""></span><span class="it__txt"><span class="it__title">Меню в духе XMB, Frutiger Aero и скевоморфизма</span></span></div></li>
+        <li class="it" id="visitsItem" hidden><div class="it__row"><span class="it__ico"><img src="assets/icons/xmb/visits.png" alt=""></span><span class="it__txt"><span class="it__title">Визиты сайта: <span id="visits">…</span></span></span></div></li>
+        <li class="it"><a class="it__row" href="https://invent.kde.org/frameworks/oxygen-icons" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/file.png" alt=""></span><span class="it__txt"><span class="it__title">Иконки разделов</span><span class="it__sub">Oxygen (KDE) · LGPL-3.0-or-later</span></span></a></li>
+        <li class="it"><a class="it__row" href="https://simpleicons.org" target="_blank" rel="noopener"><span class="it__ico"><img src="assets/icons/xmb/file.png" alt=""></span><span class="it__txt"><span class="it__title">Значки соцсетей</span><span class="it__sub">Simple Icons · CC0</span></span></a></li>
+        <li class="it"><a class="it__row" href="CREDITS.md" target="_blank"><span class="it__ico"><img src="assets/icons/xmb/file.png" alt=""></span><span class="it__txt"><span class="it__title">Авторы и лицензии</span><span class="it__sub">Игры HexGL (MIT) и Astray (Unlicense), шрифт M PLUS 1p (OFL)</span></span></a></li>
+      </ul>
+    </section>
   </main>
+
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Просмотр" hidden>
+    <img class="viewer__media" id="viewerImg" alt="">
+    <video class="viewer__media" id="viewerVideo" controls playsinline preload="metadata" hidden></video>
+    <p class="viewer__msg" id="viewerMsg" hidden></p>
+    <div class="viewer__bar">
+      <button class="viewer__btn" type="button" data-step="-1" aria-label="Назад">‹</button>
+      <span id="viewerCount"></span>
+      <button class="viewer__btn" type="button" data-step="1" aria-label="Вперёд">›</button>
+    </div>
+    <button class="viewer__btn viewer__close" type="button" data-close aria-label="Закрыть">✕</button>
+  </div>
+
+  <div class="game" id="game" hidden>
+    <iframe class="game__frame" id="gameFrame" title="Игра" allow="fullscreen; autoplay; gamepad"></iframe>
+    <button class="game__close" id="gameClose" type="button" aria-label="Закрыть игру">✕</button>
+  </div>
+
+  <script src="js/aquarium.js"></script>
+  <script src="js/crt.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

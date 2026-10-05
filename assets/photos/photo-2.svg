@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd8ff"/><stop offset="1" stop-color="#e9f6ff"/></linearGradient></defs>
+<rect width="1200" height="900" fill="url(#sky)"/>
+<rect y="740" width="1200" height="160" fill="#2f7d4a"/>
+<rect y="560" width="1200" height="180" fill="#3c8fd0"/><rect y="560" width="1200" height="30" fill="#bfe5ff" opacity=".5"/><path d="M0 560 Q200 430 420 540 Q620 420 820 530 Q1000 440 1200 520 V560 H0Z" fill="#2b6b3f"/>
+<rect x="40" y="800" width="560" height="64" rx="12" fill="#000" opacity=".35"/>
+<text x="64" y="843" font-family="sans-serif" font-size="30" fill="#fff">Озеро — замени на своё фото</text>
+</svg>

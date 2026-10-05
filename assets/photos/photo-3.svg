@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#120a2a"/><stop offset="1" stop-color="#3a1d5c"/></linearGradient></defs>
+<rect width="1200" height="900" fill="url(#sky)"/>
+<rect y="740" width="1200" height="160" fill="#1a1030"/>
+<circle cx="600" cy="380" r="140" fill="#fff" opacity=".08"/><path d="M520 560 L680 520 L700 540 L540 585Z" fill="#e2541b"/><circle cx="545" cy="595" r="14" fill="#f3d55b"/><circle cx="680" cy="560" r="14" fill="#f3d55b"/>
+<rect x="40" y="800" width="560" height="64" rx="12" fill="#000" opacity=".35"/>
+<text x="64" y="843" font-family="sans-serif" font-size="30" fill="#fff">Прыжок ночью — замени на своё фото</text>
+</svg>

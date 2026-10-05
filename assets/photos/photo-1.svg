@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1a3a"/><stop offset="1" stop-color="#24406e"/></linearGradient></defs>
+<rect width="1200" height="900" fill="url(#sky)"/>
+<rect y="740" width="1200" height="160" fill="#0c1f14"/>
+<path d="M40 520 L-15 900 L95 900 Z" fill="#081a10"/><path d="M137 467 L82 900 L192 900 Z" fill="#081a10"/><path d="M234 414 L179 900 L289 900 Z" fill="#081a10"/><path d="M295 361 L240 900 L350 900 Z" fill="#081a10"/><path d="M392 308 L337 900 L447 900 Z" fill="#081a10"/><path d="M489 475 L434 900 L544 900 Z" fill="#081a10"/><path d="M550 422 L495 900 L605 900 Z" fill="#081a10"/><path d="M647 369 L592 900 L702 900 Z" fill="#081a10"/><path d="M744 316 L689 900 L799 900 Z" fill="#081a10"/><path d="M805 483 L750 900 L860 900 Z" fill="#081a10"/><path d="M902 430 L847 900 L957 900 Z" fill="#081a10"/><path d="M999 377 L944 900 L1054 900 Z" fill="#081a10"/><path d="M1060 324 L1005 900 L1115 900 Z" fill="#081a10"/><path d="M1157 491 L1102 900 L1212 900 Z" fill="#081a10"/><circle cx="980" cy="160" r="60" fill="#f4f1d0" opacity=".9"/>
+<rect x="40" y="800" width="560" height="64" rx="12" fill="#000" opacity=".35"/>
+<text x="64" y="843" font-family="sans-serif" font-size="30" fill="#fff">Ночной лес — замени на своё фото</text>
+</svg>
