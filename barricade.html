@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Barricade</title>
+<style>
+:root{
+  --bg:#141418;--bg2:#1d1d24;--card:#24242e;--card2:#2d2d39;--text:#f2f2f5;--muted:#9a9aa8;
+  --accent:#f5a623;--green:#43d26a;--green-bg:#1f3d2a;--green-border:#4be07a;
+  --cell:#3a3545;--cell-border:#514a5e;--p1:#ff4d57;--p2:#3d9bff;
+  --p1-zone:#8e3b52;--p2-zone:#2c3f8a;--wall:#f0e2c0;--hover:#ffffff;
+  --gap:9px;--size:min(calc((100vw - 32px - 8 * var(--gap)) / 9), 48px);
+}
+:root[data-theme="light"]{
+  --bg:#f3f1ec;--bg2:#e9e6df;--card:#ffffff;--card2:#efece6;--text:#1a1a22;--muted:#6a6a78;
+  --green-bg:#d8f5e1;--cell:#d9d3c8;--cell-border:#b8b0a3;--p1-zone:#f4a7b3;--p2-zone:#a9c4ff;--wall:#5a4630;--hover:#222;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Comic Sans MS","Chalkboard SE","Segoe UI",system-ui,sans-serif;min-height:100%}
+body{display:flex;flex-direction:column;align-items:center}
+.screen{width:100%;max-width:520px;padding:12px 16px 24px;display:none;flex-direction:column;gap:12px}
+.screen.active{display:flex}
+button{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--card2);border-radius:14px;padding:12px 16px;cursor:pointer}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.4;cursor:default}
+.logo{font-size:2rem;font-weight:bold;color:var(--accent);text-shadow:0 0 12px rgba(245,166,35,.45);letter-spacing:.03em}
+.topline{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+.big{background:var(--green);color:#10281a;text-align:left;padding:18px 20px;border:none}
+.big b{font-size:1.3rem;display:block}
+.big span{font-size:.95rem;opacity:.85}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;font-size:.95rem}
+.tile .ico{font-size:1.6rem}
+.banner{border:1px solid var(--accent);background:rgba(245,166,35,.12);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center}
+.banner .dots span{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px}
+.banner b{display:block}
+.banner small{color:var(--muted)}
+.online{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:.9rem}
+.online i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.rules{background:var(--card);border-radius:14px;padding:14px 16px;font-size:.9rem;line-height:1.45}
+.rules h3{margin:0 0 8px;color:var(--accent)}
+.rules ol{margin:0;padding-left:20px}
+.rules li{margin-bottom:6px}
+/* ---- game ---- */
+.gamebar{display:flex;align-items:center;gap:14px}
+.gamebar .back{font-size:1.6rem;background:none;border:none;padding:4px 8px}
+.gamebar .spacer{flex:1}
+.gamebar .ic{background:none;border:none;font-size:1.3rem;padding:4px}
+.gamebar .txt{background:none;border:none;color:var(--muted);padding:4px}
+.gamebar .txt.danger{color:var(--accent);font-weight:bold}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcard{background:var(--card);border:2px solid transparent;border-radius:14px;padding:12px 14px;transition:.2s}
+.pcard.active{background:var(--green-bg);border-color:var(--green-border);box-shadow:0 0 10px rgba(75,224,122,.35)}
+.pcard .pname{font-weight:bold;margin-bottom:8px}
+.pcard .walls{display:flex;align-items:center;gap:8px;font-weight:bold}
+.pcard .walls i{display:inline-block;width:26px;height:8px;border-radius:4px}
+.pcard .walls small{color:var(--muted);font-weight:normal}
+.log{background:var(--card);border-radius:12px;padding:10px 14px;color:var(--muted);font-size:.9rem;min-height:40px;max-height:64px;overflow-y:auto}
+.log b{color:var(--text)}
+.boardwrap{display:flex;justify-content:center;padding:6px 0}
+.board{display:grid;grid-template-columns:repeat(8,var(--size) var(--gap)) var(--size);grid-template-rows:repeat(8,var(--size) var(--gap)) var(--size);position:relative;touch-action:manipulation}
+.cell{background:var(--cell);border:2px solid var(--cell-border);border-radius:6px;position:relative;display:flex;align-items:center;justify-content:center}
+.cell.z1{background:var(--p1-zone);border-color:#b3607a}
+.cell.z2{background:var(--p2-zone);border-color:#5a73c9}
+.cell.move{border-color:var(--hover);box-shadow:0 0 0 1px var(--hover) inset;cursor:pointer}
+.cell.move::after{content:"";width:28%;height:28%;border-radius:50%;background:var(--hover);opacity:.25}
+.pawn{width:52%;height:52%;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.5),0 0 10px currentColor;transition:transform .25s}
+.pawn.p1{background:var(--p1);color:var(--p1)}
+.pawn.p2{background:var(--p2);color:var(--p2)}
+.wall{background:var(--wall);border-radius:4px;box-shadow:0 0 6px rgba(0,0,0,.4);z-index:2}
+.wall.p1{background:var(--p1)}
+.wall.p2{background:var(--p2)}
+.wall.last{outline:2px solid #fff}
+.slot{position:relative;z-index:3}
+.slot::before{content:"";position:absolute;inset:0;cursor:pointer}
+.slot.h::before{top:-8px;bottom:-8px}
+.slot.v::before{left:-8px;right:-8px}
+.slot::after{content:"";position:absolute;left:0;top:0;border-radius:4px;background:var(--hover);opacity:0;transition:opacity .15s;pointer-events:none}
+.slot.h::after{width:calc(2 * var(--size) + var(--gap));height:100%}
+.slot.v::after{height:calc(2 * var(--size) + var(--gap));width:100%}
+.slot:hover::after{opacity:.6}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:6px 0}
+.tools button{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:bold;font-size:.9rem;padding:10px 6px;border:2px solid var(--card2);white-space:nowrap}
+.tools button.on{border-color:var(--accent);box-shadow:0 0 10px rgba(245,166,35,.45)}
+.tools i{display:inline-block;background:var(--p1);border-radius:4px}
+.tools .h i{width:28px;height:7px}
+.tools .v i{width:7px;height:24px}
+.status{text-align:center;color:var(--muted);font-size:.9rem;min-height:1.2em}
+dialog{background:var(--card);color:var(--text);border:1px solid var(--card2);border-radius:18px;padding:22px 24px;max-width:340px;width:90%;text-align:center}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+dialog h2{margin:0 0 8px;color:var(--accent)}
+dialog p{color:var(--muted);margin:0 0 16px}
+dialog form{display:flex;gap:10px;justify-content:center}
+dialog .primary{background:var(--accent);color:#1a1a1a;border:none;font-weight:bold}
+.tabs{display:flex;justify-content:space-around;margin-top:auto;padding-top:14px;color:var(--muted);font-size:.75rem}
+.tabs div{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs div.on{color:var(--accent)}
+.tabs span{font-size:1.3rem}
+</style>
+</head>
+<body>
+
+<!-- ============ МЕНЮ ============ -->
+<section id="menu" class="screen active">
+  <div class="topline">
+    <div class="logo">Barricade</div>
+    <div style="background:var(--card);border-radius:12px;padding:6px 12px;font-size:.85rem">💎 <b id="menu-rating">1200</b></div>
+  </div>
+  <button class="big" id="m-ai"><b>▶ Играть против компьютера</b><span>Одна партия до победы</span></button>
+  <div class="grid2">
+    <button class="tile" id="m-local"><span class="ico">👥</span>Локальная<small style="color:var(--muted)">двое за одним экраном</small></button>
+    <button class="tile" id="m-watch"><span class="ico">🖥️</span>Смотреть<small style="color:var(--muted)">компьютер vs компьютер</small></button>
+  </div>
+  <div class="banner">
+    <div class="dots"><span style="background:#ff4d57"></span><span style="background:#3d9bff"></span></div>
+    <div><b>Кто первым перейдёт поле?</b><small>9×9, у каждого 10 стен. Стены нельзя перепрыгивать.</small></div>
+  </div>
+  <div class="online"><i></i> <span id="online-count">300</span> игроков в сети · <span id="ingame-count">185</span> в игре</div>
+  <div class="rules">
+    <h3>Правила</h3>
+    <ol>
+      <li>Цель — довести свою фишку до противоположного края поля (красный идёт вверх, синий вниз).</li>
+      <li>За ход можно либо сдвинуть фишку на одну клетку, либо поставить стену длиной в две клетки.</li>
+      <li>Стены нельзя пересекать, накладывать друг на друга и ставить так, чтобы у кого-то вовсе не осталось пути к цели.</li>
+      <li>Если соперник стоит рядом, через него можно перепрыгнуть. Если за ним стена или край, можно шагнуть по диагонали.</li>
+      <li>У каждого по 10 стен. Когда стены кончились — только ходы фишкой.</li>
+    </ol>
+  </div>
+  <div class="tabs">
+    <div class="on"><span>▦</span>Играть</div><div><span>🧩</span>Задачи</div><div><span>🏆</span>Лидеры</div><div><span>👤</span>Профиль</div><div><span>☰</span>Ещё</div>
+  </div>
+</section>
+
+<!-- ============ ИГРА ============ -->
+<section id="game" class="screen">
+  <div class="gamebar">
+    <button class="back" id="g-back" title="В меню">‹</button>
+    <div class="spacer"></div>
+    <button class="ic" id="g-theme" title="Тема">🌙</button>
+    <button class="ic" id="g-sound" title="Звук">🔊</button>
+    <button class="txt" id="g-undo">Отменить</button>
+    <button class="txt danger" id="g-reset">Сбросить</button>
+  </div>
+  <div class="players">
+    <div class="pcard" id="card1"><div class="pname" id="name1">Игрок 1</div><div class="walls"><i style="background:var(--p1)"></i><span id="walls1">10</span><small>/10</small></div></div>
+    <div class="pcard" id="card2"><div class="pname" id="name2">Игрок 2</div><div class="walls"><i style="background:var(--p2)"></i><span id="walls2">10</span><small>/10</small></div></div>
+  </div>
+  <div class="log" id="log">Ходов пока нет</div>
+  <div class="boardwrap"><div class="board" id="board"></div></div>
+  <div class="tools">
+    <button class="h" id="t-h"><i></i>Горизонтально</button>
+    <button class="v" id="t-v"><i></i>Вертикально</button>
+  </div>
+  <div class="status" id="status"></div>
+</section>
+
+<dialog id="dlg-win">
+  <h2 id="win-title">Победа!</h2>
+  <p id="win-text"></p>
+  <form method="dialog">
+    <button class="primary" value="again">Ещё раз</button>
+    <button value="menu">В меню</button>
+  </form>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const N = 9, WALLS = 10;
+const DIRS = [[-1,0],[1,0],[0,-1],[0,1]];
+const COLS = 'abcdefghi';
+
+// ---------------- Движок ----------------
+function initialState() {
+  return {
+    pawns: [[8,4],[0,4]],      // [row, col]; игрок 0 (красный) идёт к строке 0, игрок 1 (синий) — к строке 8
+    wallsLeft: [WALLS, WALLS],
+    walls: {},                 // 'h,r,c' / 'v,r,c' -> владелец
+    current: 0,
+    moves: [],                 // журнал
+    winner: null,
+    lastWall: null,
+  };
+}
+const clone = (s) => JSON.parse(JSON.stringify(s));
+const goalRow = (p) => (p === 0 ? 0 : 8);
+const inb = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+const hasW = (s, t, r, c) => s.walls[`${t},${r},${c}`] !== undefined;
+
+// Заблокирован ли шаг между соседними клетками
+function blocked(s, r1, c1, r2, c2) {
+  if (r2 === r1 + 1) return hasW(s, 'h', r1, c1) || hasW(s, 'h', r1, c1 - 1);
+  if (r2 === r1 - 1) return hasW(s, 'h', r2, c1) || hasW(s, 'h', r2, c1 - 1);
+  if (c2 === c1 + 1) return hasW(s, 'v', r1, c1) || hasW(s, 'v', r1 - 1, c1);
+  if (c2 === c1 - 1) return hasW(s, 'v', r1, c2) || hasW(s, 'v', r1 - 1, c2);
+  return true;
+}
+
+function pawnMoves(s, p) {
+  const [r, c] = s.pawns[p];
+  const [orr, oc] = s.pawns[1 - p];
+  const res = [];
+  for (const [dr, dc] of DIRS) {
+    const nr = r + dr, nc = c + dc;
+    if (!inb(nr, nc) || blocked(s, r, c, nr, nc)) continue;
+    if (nr !== orr || nc !== oc) { res.push([nr, nc]); continue; }
+    // соперник рядом: прыжок
+    const jr = nr + dr, jc = nc + dc;
+    if (inb(jr, jc) && !blocked(s, nr, nc, jr, jc)) { res.push([jr, jc]); continue; }
+    // за соперником стена или край: диагональ
+    for (const [er, ec] of DIRS) {
+      if (er === dr && ec === dc || er === -dr && ec === -dc) continue;
+      const sr = nr + er, sc = nc + ec;
+      if (inb(sr, sc) && !blocked(s, nr, nc, sr, sc)) res.push([sr, sc]);
+    }
+  }
+  return res;
+}
+
+// Кратчайший путь (BFS) без учёта фишки соперника
+function distance(s, p) {
+  const [sr, sc] = s.pawns[p];
+  const goal = goalRow(p);
+  const dist = Array.from({ length: N }, () => Array(N).fill(-1));
+  const q = [[sr, sc]]; dist[sr][sc] = 0;
+  for (let i = 0; i < q.length; i++) {
+    const [r, c] = q[i];
+    if (r === goal) return dist[r][c];
+    for (const [dr, dc] of DIRS) {
+      const nr = r + dr, nc = c + dc;
+      if (!inb(nr, nc) || dist[nr][nc] !== -1 || blocked(s, r, c, nr, nc)) continue;
+      dist[nr][nc] = dist[r][c] + 1; q.push([nr, nc]);
+    }
+  }
+  return -1;
+}
+
+function canPlaceWall(s, t, r, c, p) {
+  if (s.wallsLeft[p] <= 0) return false;
+  if (r < 0 || r > 7 || c < 0 || c > 7) return false;
+  if (hasW(s, t, r, c)) return false;
+  if (t === 'h') { if (hasW(s, 'h', r, c - 1) || hasW(s, 'h', r, c + 1) || hasW(s, 'v', r, c)) return false; }
+  else { if (hasW(s, 'v', r - 1, c) || hasW(s, 'v', r + 1, c) || hasW(s, 'h', r, c)) return false; }
+  s.walls[`${t},${r},${c}`] = p;
+  const ok = distance(s, 0) >= 0 && distance(s, 1) >= 0;
+  delete s.walls[`${t},${r},${c}`];
+  return ok;
+}
+
+function wallMoves(s, p) {
+  const res = [];
+  if (s.wallsLeft[p] <= 0) return res;
+  for (const t of ['h', 'v']) for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++)
+    if (canPlaceWall(s, t, r, c, p)) res.push({ t, r, c });
+  return res;
+}
+
+const cellName = (r, c) => COLS[c] + (N - r);
+
+function doMove(s, mv) {
+  const p = s.current;
+  if (mv.type === 'pawn') {
+    const from = s.pawns[p];
+    s.pawns[p] = [mv.r, mv.c];
+    s.moves.push({ p, text: `${cellName(from[0], from[1])} → ${cellName(mv.r, mv.c)}` });
+    s.lastWall = null;
+    if (mv.r === goalRow(p)) { s.winner = p; return; }
+  } else {
+    s.walls[`${mv.t},${mv.r},${mv.c}`] = p;
+    s.wallsLeft[p]--;
+    s.lastWall = `${mv.t},${mv.r},${mv.c}`;
+    s.moves.push({ p, text: `стена ${mv.t === 'h' ? '—' : '|'} ${cellName(mv.r, mv.c)}` });
+  }
+  s.current = 1 - p;
+}
+
+// ---------------- Компьютер ----------------
+function aiChoose(s) {
+  const p = s.current, o = 1 - p;
+  const myD = distance(s, p), opD = distance(s, o);
+  // Лучший ход фишкой: максимально сокращает собственный путь
+  let bestPawn = null, bestPawnD = Infinity;
+  for (const [r, c] of pawnMoves(s, p)) {
+    if (r === goalRow(p)) return { type: 'pawn', r, c };
+    const st = clone(s); st.pawns[p] = [r, c];
+    const d = distance(st, p) + Math.random() * 0.1;
+    if (d < bestPawnD) { bestPawnD = d; bestPawn = { type: 'pawn', r, c }; }
+  }
+  // Я хожу первым, значит выигрываю гонку, пока мой путь не длиннее пути соперника
+  const winning = myD <= opD;
+  if (s.wallsLeft[p] > 0 && (!winning || opD <= 3 || s.wallsLeft[p] > s.wallsLeft[o] + 3)) {
+    let bestWall = null, bestScore = 0;
+    for (const w of wallMoves(s, p)) {
+      const st = clone(s); st.walls[`${w.t},${w.r},${w.c}`] = p;
+      const gain = distance(st, o) - opD;
+      const loss = distance(st, p) - myD;
+      const score = gain - loss * 1.2 + Math.random() * 0.1;
+      if (score > bestScore) { bestScore = score; bestWall = w; }
+    }
+    // В проигрываемой гонке годится любая задержка, в выигрываемой — только существенная
+    const need = winning ? 2 : 1;
+    if (bestWall && bestScore >= need) return { type: 'wall', ...bestWall };
+  }
+  return bestPawn;
+}
+
+// ---------------- Интерфейс ----------------
+const $ = (id) => document.getElementById(id);
+const screens = { menu: $('menu'), game: $('game') };
+let state = initialState(), history = [], mode = null; // mode: null | 'h' | 'v'
+let players = [{ name: 'Игрок 1', ai: false }, { name: 'Игрок 2', ai: false }];
+let aiTimer = null, sound = true;
+
+function show(name) { for (const k in screens) screens[k].classList.toggle('active', k === name); }
+
+function beep(freq, dur = 0.07) {
+  if (!sound) return;
+  try {
+    const ctx = beep.ctx || (beep.ctx = new (window.AudioContext || window.webkitAudioContext)());
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = freq; o.type = 'triangle';
+    g.gain.setValueAtTime(0.15, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime + dur);
+  } catch (e) { /* звук недоступен */ }
+}
+
+function startGame(cfg) {
+  players = cfg;
+  state = initialState(); history = []; mode = null;
+  clearTimeout(aiTimer);
+  $('name1').textContent = players[0].name; $('name2').textContent = players[1].name;
+  show('game'); render(); scheduleAI();
+}
+
+const humanTurn = () => state.winner === null && !players[state.current].ai;
+
+function render() {
+  const board = $('board');
+  board.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  const moves = humanTurn() ? pawnMoves(state, state.current) : [];
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    const d = document.createElement('div');
+    d.className = 'cell' + (r === 0 ? ' z1' : r === 8 ? ' z2' : '');
+    d.style.gridRow = 2 * r + 1; d.style.gridColumn = 2 * c + 1;
+    if (moves.some(([mr, mc]) => mr === r && mc === c)) { d.classList.add('move'); d.onclick = () => humanMove({ type: 'pawn', r, c }); }
+    frag.appendChild(d);
+  }
+  state.pawns.forEach(([r, c], p) => {
+    const pw = document.createElement('div'); pw.className = 'pawn p' + (p + 1);
+    const cell = frag.children[r * N + c]; cell.appendChild(pw);
+  });
+  for (const key in state.walls) {
+    const [t, r, c] = key.split(','); const w = document.createElement('div');
+    w.className = 'wall p' + (state.walls[key] + 1) + (state.lastWall === key ? ' last' : '');
+    if (t === 'h') { w.style.gridRow = 2 * +r + 2; w.style.gridColumn = `${2 * +c + 1} / span 3`; }
+    else { w.style.gridColumn = 2 * +c + 2; w.style.gridRow = `${2 * +r + 1} / span 3`; }
+    frag.appendChild(w);
+  }
+  if (mode && humanTurn()) {
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+      if (!canPlaceWall(state, mode, r, c, state.current)) continue;
+      const sl = document.createElement('div'); sl.className = 'slot ' + mode;
+      if (mode === 'h') { sl.style.gridRow = 2 * r + 2; sl.style.gridColumn = `${2 * c + 1} / span 2`; }
+      else { sl.style.gridColumn = 2 * c + 2; sl.style.gridRow = `${2 * r + 1} / span 2`; }
+      sl.onclick = () => humanMove({ type: 'wall', t: mode, r, c });
+      frag.appendChild(sl);
+    }
+  }
+  board.appendChild(frag);
+
+  $('walls1').textContent = state.wallsLeft[0]; $('walls2').textContent = state.wallsLeft[1];
+  $('card1').classList.toggle('active', state.winner === null && state.current === 0);
+  $('card2').classList.toggle('active', state.winner === null && state.current === 1);
+  $('t-h').classList.toggle('on', mode === 'h'); $('t-v').classList.toggle('on', mode === 'v');
+  const canWall = humanTurn() && state.wallsLeft[state.current] > 0;
+  $('t-h').disabled = !canWall; $('t-v').disabled = !canWall;
+  $('g-undo').disabled = history.length === 0;
+  const log = $('log');
+  if (!state.moves.length) log.textContent = 'Ходов пока нет';
+  else {
+    log.innerHTML = state.moves.map((m, i) => `${i + 1}. <b style="color:var(--p${m.p + 1})">${players[m.p].name}</b>: ${m.text}`).join('<br>');
+    log.scrollTop = log.scrollHeight;
+  }
+  const st = $('status');
+  if (state.winner !== null) st.textContent = `${players[state.winner].name} — победа!`;
+  else if (players[state.current].ai) st.textContent = 'Компьютер думает…';
+  else if (mode) st.textContent = `Коснитесь зазора между клетками, чтобы поставить ${mode === 'h' ? 'горизонтальную' : 'вертикальную'} стену`;
+  else st.textContent = `${players[state.current].name}: сделайте ход фишкой или выберите стену`;
+}
+
+function applyMove(mv) {
+  history.push(clone(state));
+  doMove(state, mv);
+  beep(mv.type === 'pawn' ? 520 : 300);
+  mode = null;
+  render();
+  if (state.winner !== null) {
+    beep(780, 0.3);
+    $('win-title').textContent = `${players[state.winner].name} победил!`;
+    $('win-text').textContent = `Фишка дошла до края за ${Math.ceil(state.moves.length / 2)} ходов.`;
+    setTimeout(() => $('dlg-win').showModal(), 350);
+    return;
+  }
+  scheduleAI();
+}
+
+function humanMove(mv) { if (humanTurn()) applyMove(mv); }
+
+function scheduleAI() {
+  clearTimeout(aiTimer);
+  if (state.winner !== null || !players[state.current].ai) return;
+  aiTimer = setTimeout(() => { const mv = aiChoose(state); if (mv) applyMove(mv); }, 600);
+}
+
+function undo() {
+  if (!history.length) return;
+  clearTimeout(aiTimer);
+  state = history.pop();
+  // против компьютера откатываем и его ответ, чтобы ход снова был у человека
+  if (players[state.current].ai && history.length) state = history.pop();
+  mode = null; render(); scheduleAI();
+}
+
+// --- события ---
+$('m-ai').onclick = () => startGame([{ name: 'Вы', ai: false }, { name: 'Компьютер', ai: true }]);
+$('m-local').onclick = () => startGame([{ name: 'Игрок 1', ai: false }, { name: 'Игрок 2', ai: false }]);
+$('m-watch').onclick = () => startGame([{ name: 'Бот 1', ai: true }, { name: 'Бот 2', ai: true }]);
+$('g-back').onclick = () => { clearTimeout(aiTimer); show('menu'); };
+$('g-reset').onclick = () => startGame(players);
+$('g-undo').onclick = undo;
+$('t-h').onclick = () => { mode = mode === 'h' ? null : 'h'; render(); };
+$('t-v').onclick = () => { mode = mode === 'v' ? null : 'v'; render(); };
+$('g-theme').onclick = () => {
+  const root = document.documentElement;
+  const light = root.dataset.theme !== 'light';
+  root.dataset.theme = light ? 'light' : 'dark';
+  $('g-theme').textContent = light ? '☀️' : '🌙';
+};
+$('g-sound').onclick = () => { sound = !sound; $('g-sound').textContent = sound ? '🔊' : '🔇'; };
+$('dlg-win').addEventListener('close', () => {
+  if ($('dlg-win').returnValue === 'again') startGame(players); else show('menu');
+});
+document.addEventListener('keydown', (e) => {
+  if (!screens.game.classList.contains('active')) return;
+  if (e.key === 'h' || e.key === 'р') $('t-h').click();
+  if (e.key === 'v' || e.key === 'м') $('t-v').click();
+  if (e.key === 'Escape') { mode = null; render(); }
+  if (e.ctrlKey && e.key === 'z') undo();
+});
+// декоративные счётчики в меню
+$('online-count').textContent = 280 + Math.floor(Math.random() * 60);
+$('ingame-count').textContent = 150 + Math.floor(Math.random() * 60);
+})();
+</script>
+</body>
+</html>
