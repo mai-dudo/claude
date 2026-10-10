@@ -43,6 +43,14 @@ Sony Interactive Entertainment; это фанатская страница, с S
 | `game/hexgl/` — гонка HexGL. Убраны счётчик Google Analytics, appcache и исходники CoffeeScript | Thibaut Despoulain (BKcore) | MIT (`game/hexgl/LICENSE`) | https://github.com/BKcore/HexGL |
 | `game/astray/` — лабиринт Astray на Three.js и Box2D | Rye Terrell (wwwtyro) | Unlicense (`game/astray/License.md`) | https://github.com/wwwtyro/Astray |
 
+## Баннер
+
+| Что | Автор | Лицензия | Источник |
+| --- | --- | --- | --- |
+| `assets/banner/mai-teacher-banner.mp4`, `.gif` — фон из исходного ролика владельца сайта, палитра и подпись «Striver» с него убраны | владелец сайта | — | — |
+| Анимированный эмодзи 👨‍🏫 на баннере (перекрашен в цвета фона) | Telegram | © Telegram | набор Animated Emoji, https://t.me/addstickers/AnimatedEmojies |
+| Подпись «mai» на баннере набрана шрифтом Chango (сам шрифт в репозиторий не входит) | Fontstage | SIL OFL 1.1 | https://fonts.google.com/specimen/Chango |
+
 ## Шрифт
 
 | Шрифт | Автор | Лицензия |
