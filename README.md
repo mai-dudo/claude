@@ -40,6 +40,22 @@ python3 -m http.server 8080 --bind 127.0.0.1
 (бесплатный план): в настройках проекта Vercel задайте переменные `UPSTASH_REDIS_REST_URL`
 и `UPSTASH_REDIS_REST_TOKEN`. Без них на сайте показывается «—».
 
+## Бот «КД подарка»
+
+Функция `api/gift-bot.js` — Telegram-бот: ему присылают ссылку `t.me/nft/…`, он отвечает, сколько осталось
+до передачи подарка, или что КД нет. Telegram показывает КД только владельцу подарка, поэтому владелец
+подключает бота к своему аккаунту: Настройки → Telegram для бизнеса → Чат-боты (нужен Telegram Premium)
+и разрешает просмотр подарков и звёзд. По чужой ссылке бот показывает название и владельца без КД.
+
+1. Создайте бота у @BotFather и включите ему Business Mode (Bot Settings → Business Mode).
+2. В настройках проекта Vercel задайте `GIFT_BOT_TOKEN` (токен бота), `GIFT_BOT_SECRET` (любая строка из
+   латиницы, цифр, `_` и `-`, например `openssl rand -hex 32`) и те же `UPSTASH_REDIS_REST_URL` и
+   `UPSTASH_REDIS_REST_TOKEN`, что для счётчика. Часовой пояс дат — `GIFT_BOT_TZ`, по умолчанию `Europe/Moscow`.
+3. После деплоя направьте бота на функцию:
+   `GIFT_BOT_TOKEN=… GIFT_BOT_SECRET=… node scripts/set-gift-bot-webhook.mjs https://ваш-сайт.vercel.app`
+
+Тесты: `node --test tests/gift-bot.test.mjs`.
+
 ## Публикация
 
 Сайт выкладывается на Vercel как есть, без сборки. Из-за проверки автора коммитов
