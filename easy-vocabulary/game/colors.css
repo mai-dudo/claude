@@ -1,0 +1,69 @@
+:root {
+--marke: #066ef3;
+--marke-stark: #0558c9; 
+--marke-weich: color-mix(in srgb, #066ef3 9%, #ffffff); 
+--erfolg: #0bb281; --erfolg-text: #087a59;
+--fehler: #dc2626;
+--blau: var(--marke);
+--accent: var(--marke); --accent-text: #ffffff; 
+--gruen-voll: var(--erfolg); --gruen: var(--erfolg-text); 
+--green-border: var(--erfolg); --green-text: var(--erfolg-text);
+--green-bg: color-mix(in srgb, #0bb281 10%, #ffffff);
+--gruen-rand: var(--erfolg);
+}
+:root[data-theme="dark"] {
+--marke: #5aa5ff;
+--marke-stark: #8cc0ff;
+--marke-weich: color-mix(in srgb, #5aa5ff 14%, #131f35);
+--erfolg: #34d3a2; --erfolg-text: #34d3a2;
+--fehler: #f87171;
+--blau: var(--marke);
+--accent: var(--marke); --accent-text: #0d1627;
+--gruen-voll: var(--erfolg); --gruen: var(--erfolg-text);
+--green-border: var(--erfolg); --green-text: var(--erfolg-text);
+--green-bg: color-mix(in srgb, #34d3a2 14%, #131f35);
+--gruen-rand: var(--erfolg);
+}
+:root:root .bt-balken { background: var(--marke); }
+:root:root .sl .sl-z.sl-puls:not(.sl-rot) { color: var(--erfolg-text); }
+:root:root .sl .sl-z.sl-puls:not(.sl-rot) svg { color: var(--erfolg); }
+.games-preview .intro-label, .games-preview .games-intro h2 em { color: var(--marke); }
+:root:root .games-preview .kp-oben .ko-sp { --ko: var(--erfolg); }
+:root:root .games-preview .kp-oben .ko-fe { --ko: var(--fehler); }
+:root:root .games-preview .kp-oben .ko-st { --ko: var(--marke); }
+.games-preview .kp-karte.sp-easiest { --farbe: var(--marke); }
+.games-preview .kp-karte.sp-neu .sp-zeichen { background: var(--marke-weich); }
+.games-preview .kp-karte.sp-neu.sp-breit-karte { background: var(--marke-weich);
+border-color: color-mix(in srgb, var(--marke) 28%, var(--border));
+box-shadow: 0 4px 0 color-mix(in srgb, var(--marke) 22%, var(--bg)); }
+.games-preview .kp-karte.sp-breit-karte .sp-zeichen { background: none; }
+.games-preview .featured-tag { color: var(--marke); }
+:root:root .games-preview .sp-schild { --schild: var(--marke); color: var(--marke); }
+:root:root body.landing {
+--warm: var(--marke);
+--paper-shadow: color-mix(in srgb, var(--marke) 24%, var(--bg));
+--demo-spot: var(--marke-weich);
+}
+:root:root .st-zelle.l1 { background: color-mix(in srgb, var(--marke) 22%, var(--card)); }
+:root:root .st-zelle.l2 { background: color-mix(in srgb, var(--marke) 45%, var(--card)); }
+:root:root .st-zelle.l3 { background: color-mix(in srgb, var(--marke) 72%, var(--card)); }
+:root:root .st-zelle.l4 { background: var(--marke); }
+:root:root .st-zelle.zukunft { background: transparent; }
+:root:root .st-balken i:not(.null) { background: var(--marke); }
+:root:root .baum-balken i { background: linear-gradient(90deg, var(--marke), color-mix(in srgb, var(--marke) 70%, #ffffff)); }
+:root:root .einst-zeile[aria-checked='true'] .einst-schalter { background: var(--marke); }
+:root:root .einst-zeile[aria-checked='true'] .einst-wahl { border-color: var(--marke); }
+:root:root #ev-unten a:focus-visible, :root:root #ev-unten button:focus-visible { outline-color: var(--marke); }
+:root[data-theme='dark'] .bt-download.rund { color: var(--marke); }
+:root:root .ev-neu-los { background: var(--marke); color: var(--accent-text); }
+:root:root:not([data-theme="dark"]) .ez-spiel,
+:root:root:not([data-theme="dark"]) .up-spiel { color: var(--erfolg-text); } 
+:root:root:not([data-theme="dark"]) .sh-klein { color: #12863d; } 
+:root:root:not([data-theme="dark"]) .ez-stufe,
+:root:root:not([data-theme="dark"]) .bt-app[data-stufe="a"] .kp-stufe-marke { background: var(--erfolg-text); } 
+:root:root .sh-stufe { background: #12863d; } 
+:root:root .sh-stufe.hart { background: #ca4c0a; } 
+:root { --ak-der: #2f6fde; --ak-die: #e0272c; --ak-das: #188342; } 
+:root[data-theme="dark"] { --ak-der: #4780e2; --ak-die: #e5484d; --ak-das: #1fa855; } 
+:root:root[data-theme="dark"] main > .karte:not(.konto-neu) .klein a { color: var(--marke); } 
+:root:root[data-theme="dark"] .abo-band { background: #2563eb; }
