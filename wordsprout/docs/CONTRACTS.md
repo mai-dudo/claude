@@ -373,3 +373,24 @@ export async function makeMistake(page, h) {} // optional: one wrong answer, the
   (4× CPU slowdown: game ready ≤ 1500 ms after «Начать»; initial load without emoji ≤ 400 KB; each game JS ≤ 40 KB).
 - Playwright: `import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'`, launch with
   `executablePath: '/opt/pw-browsers/chromium'`.
+
+## 4. Decisions after the first planning round (binding)
+
+- **Verb forms equal to the base** (put/put/put, cut, read/read, run → pp run) are allowed in the `verb` object.
+  `forms` lists only the forms that differ from `en` (unique). The validator accepts a verb form equal to `en`.
+  The fixture still avoids such verbs.
+- **Session sizes** in `data/games.json`: `size: 10` for chapter games; `mistakes` 20; `srs` 30 (SPEC §4.11).
+- **finishSession summary** (shell → progress):
+  `{ game, level, setId, setKind, total, correct, score, stars, results: [{ id, ok, hint }], extra, ms }`.
+  It returns `{ learnedNow: [ids], stageUp: boolean, stage, stars, best }`.
+- **Extra DOM hooks:** ✕ in the game top bar `[data-ws=leave]`; on the results screen `[data-ws=again]`
+  («Ещё раз», goes straight to `data-state=play`, no intro), `[data-ws=exit]` («Другая игра», back to the chapter),
+  `[data-ws=next-game]`; confirm dialog `[data-ws=confirm-ok]` / `[data-ws=confirm-cancel]`; load-error retry
+  `[data-ws=retry]`; header back button `[data-ws=back]`.
+- **Shell DOM classes** (built by A1, styled by A2 in `kit.css`): `.ws-app`, `.ws-header`, `.ws-header__back`,
+  `.ws-header__logo`, `.ws-header__title`, `.ws-tabbar`, `.ws-tab` (`.is-active`), `.ws-badge`, `.ws-view`,
+  `.ws-toast`, `.ws-banner`, `.ws-confirm`, `.ws-game`, `.ws-game__bar`, `.ws-game__host`, `.ws-intro`,
+  `.ws-results`, `.ws-error`. A1 may add inline layout-only rules in `index.html` until A2's styles land.
+- **Test mode parsing** lives in `ns.js` (`WS.test` exists from the first script); boot only completes it.
+- **Empty global sets** (`mistakes` / `due` with no words) skip the intro and let the game show its own empty state.
+- `WS.ui.timing` returns zeros while `<html data-motion="reduce">`.
