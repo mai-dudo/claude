@@ -269,13 +269,18 @@
       className: 'ws-next' });
 
   /* ---------- Картинка слова ---------- */
+  // Код эмодзи без fe0f (CONTRACTS §2.2) → символ. Знакам, которые по умолчанию рисуются как текст
+  // (☀, ✏, 🖼, цифра в клавише), возвращаем U+FE0F, иначе система нарисует чёрный значок.
+  const EMOJI = /\p{Emoji}/u;
+  const EMOJI_PRES = /\p{Emoji_Presentation}/u;
   const emojiChar = (code) => {
     if (!code) return '';
     const cps = String(code).split('-').map((x) => parseInt(x, 16)).filter((n) => Number.isFinite(n) && n > 0);
-    if (!cps.length) return '';
-    if (cps.length === 1 && cps[0] < 0x1f000) cps.push(0xfe0f);
     try {
-      return String.fromCodePoint(...cps);
+      return cps.map((cp) => {
+        const ch = String.fromCodePoint(cp);
+        return EMOJI.test(ch) && !EMOJI_PRES.test(ch) ? `${ch}\u{fe0f}` : ch;
+      }).join('');
     } catch (e) {
       return '';
     }
@@ -290,21 +295,25 @@
   const PIC_SIZES = { xs: 'xs', s: 's', sm: 's', small: 's', m: 'm', md: 'm', l: 'l', lg: 'l', large: 'l', game: 'game',
     fill: 'fill', auto: 'fill' };
 
-  // size: 'xs' | 's' | 'm' | 'l' | 'game' (сжимается при открытой клавиатуре) | 'fill' (по контейнеру) | число px
+  // size: 'xs' | 's' | 'm' | 'l' | 'game' (сжимается при открытой клавиатуре) | 'fill' (по контейнеру) | число px.
+  // Плитка без эмодзи в маленьких размерах (xs, s, < 72 px) показывает только первую букву: слово не прочесть.
   const picture = (word, { size = 'm', letter = false, lazy = false, label = null } = {}) => {
     const w = word || {};
     const ru = String(w.ru || w.en || '');
     const alt = label == null ? ru : label;
     const named = typeof size === 'number' ? null : PIC_SIZES[size] || 'm';
+    const tiny = named === 'xs' || named === 's' || (typeof size === 'number' && size < 72);
     const box = h('span', {
       class: ['ws-pic', named && `ws-pic--${named}`],
       style: typeof size === 'number' ? `--pic: ${Math.max(16, size)}px` : null,
     });
     const tile = () => {
-      const text = letter ? ru.charAt(0).toUpperCase() : ru;
+      const one = letter || tiny;
+      const text = one ? ru.charAt(0).toUpperCase() : ru;
+      const chars = Math.max(4, ...text.split(/[\s-]+/).map((part) => part.length));
       return h('span', {
-        class: ['ws-pic__tile', letter && 'is-letter', !letter && text.length > 9 && 'is-long'],
-        style: `--hue: ${hueOf(w.id || ru)}`, role: 'img', 'aria-label': alt || null,
+        class: ['ws-pic__tile', one && 'is-letter'],
+        style: `--hue: ${hueOf(w.id || ru)}; --chars: ${chars}`, role: 'img', 'aria-label': alt || null,
       }, h('span', { class: 'ws-pic__word', text }));
     };
     const system = () => {
@@ -635,7 +644,7 @@
   Object.assign(ui, {
     button, iconButton, speakerButton, eyeButton, nextButton, picture, emoji, hint, sentence, choiceGrid,
     progressBar, stars, badge, chip, card, actions, spacer, stage, empty, segmented, modal, feedback, icon,
-    shortcut, keepFocus, isTouch,
+    shortcut, keepFocus, isTouch, emojiChar,
   });
   Object.defineProperty(ui, 'timing', {
     enumerable: true,

@@ -45,7 +45,9 @@ const GROUP_ORDER = ['Smileys & Emotion', 'People & Body', 'Component', 'Animals
 const CODE_RE = /^[0-9a-f]{4,6}(-[0-9a-f]{4,6})*$/;
 /* «Похоже на код»: U+1F34E, 1F34E, 1f34e_fe0f, a9 и т. п. — для подсказки, как записать правильно. */
 const LOOSE_RE = /^(u\+)?[0-9a-f]{2,8}([-_ ,.]+(u\+)?[0-9a-f]{2,8})*$/i;
-const EMOJI_KEY_RE = /^(emoji|icon)$|emoji$/i;
+/* Ключ emoji / …Emoji — там только код или null (строго); icon — код эмодзи или имя значка кита (мягко). */
+const STRICT_KEY_RE = /emoji$/i;
+const LOOSE_KEY_RE = /^icon$/i;
 const TONE_RE = /^1f3f[b-f]$/;
 const PICTO_RE = /[\p{Extended_Pictographic}\p{Regional_Indicator}\u20e3]/u;
 
@@ -114,8 +116,8 @@ const glyphOf = (code) => code.split('-').map((h) => {
 const codeOfGlyph = (s) => [...s].map((ch) => ch.codePointAt(0).toString(16).padStart(4, '0'))
   .filter((h) => h !== 'fe0f').join('-');
 
-/* Строка — сам символ эмодзи (кроме цифр, # и * в кейкапах, в ней нет ASCII). */
-const isGlyph = (s) => PICTO_RE.test(s) && !/[\x00-\x7f]/.test(s.replace(/[0-9#*]/g, ''));
+/* Строка — сам символ эмодзи: только символы эмодзи и их составные части (ZWJ, fe0f, 20e3, тоны кожи). */
+const isGlyph = (s) => PICTO_RE.test(s) && /^[\p{Emoji}\p{Emoji_Component}]+$/u.test(s);
 
 /* Строка, похожая на код, в нормальном виде: «U+1F34E» → 1f34e, «a9» → 00a9; иначе null. */
 const canonical = (s) => {
@@ -151,7 +153,8 @@ const HELP = `Использование: node wordsprout/tools/fetch-emoji.mjs 
   --json                 в --find: вывести найденные записи индекса как JSON
 
 Коды: шестнадцатеричные кодовые точки строчными буквами через «-», без fe0f (1f34e, 1f9d1-200d-1f3a8).
-Ссылкой считается значение ключа emoji / icon / …Emoji в любом JSON-файле и любая строка-код в data/ui-emoji.json.`;
+Ссылка — значение ключа emoji / …Emoji (только код или null) или icon (код; другие строки, например имя
+значка, пропускаются) в любом JSON-файле, а также любая строка-код в data/ui-emoji.json.`;
 
 const parseArgs = (argv) => {
   const env = process.env;
@@ -418,12 +421,14 @@ const scanSources = (o, index) => {
       errors.push(`${file}: не читается как JSON (${e.message}) — удаление лишних картинок пропущено`);
       continue;
     }
-    /* В data/ui-emoji.json ссылкой считается любая строка-код; в остальных файлах — значения ключей
-     * emoji / icon / …Emoji (строка или массив строк; null — «картинки нет»). */
+    /* Ссылки: значения ключей emoji / …Emoji (строка, массив строк или вложенный объект; null — «картинки
+     * нет») и icon; в data/ui-emoji.json — вообще любая строка-код. */
     const allStrings = path.basename(file) === 'ui-emoji.json' && path.dirname(file) === 'data';
     const named = (c) => (index.map.has(c) ? ` (${index.map.get(c).name})` : '');
-    const visit = (str, jp, emojiKey) => {
-      if (!emojiKey && !allStrings) return;
+    /* kind: 'strict' — под ключом emoji, 'loose' — под ключом icon, false — обычная строка. */
+    const visit = (str, jp, kind) => {
+      if (!kind && !allStrings) return;
+      const strict = kind === 'strict';
       const where = `${file} → ${jp || '(весь файл)'}`;
       const fixed = canonical(str);
       const wrongForm = (c) => errors.push(index.map.has(c)
@@ -431,12 +436,13 @@ const scanSources = (o, index) => {
         : `${where}: «${str}» — такого кода нет в индексе Fluent 3D; подберите: node wordsprout/tools/fetch-emoji.mjs --find <слово>`);
       if (CODE_RE.test(str)) {
         /* fe0f внутри или лишние ведущие нули: 1f34e-fe0f → 1f34e, 01f34e → 1f34e. */
-        if (fixed !== str && (emojiKey || index.map.has(fixed))) wrongForm(fixed);
-        /* Вне ключей emoji/icon не принимаем за код английские слова из букв a–f («face», «cafe»). */
-        else if (emojiKey || index.map.has(str) || /^[0-9]/.test(str)) addRef(str, where);
+        if (fixed !== str && (strict || index.map.has(fixed))) wrongForm(fixed);
+        /* Вне ключей emoji не принимаем за код английские слова из букв a–f («face», «cafe»). */
+        else if (strict || index.map.has(str) || /^[0-9]/.test(str)) addRef(str, where);
+        else if (o.verbose) say(o, `  пропущено ${where}: «${str}» — не похоже на код эмодзи`);
         return;
       }
-      if (fixed && (emojiKey || index.map.has(fixed))) { wrongForm(fixed); return; }
+      if (fixed && (strict || index.map.has(fixed))) { wrongForm(fixed); return; }
       const bare = str.replace(/\s/g, '');
       if (isGlyph(bare)) {
         const c = codeOfGlyph(bare);
@@ -446,19 +452,24 @@ const scanSources = (o, index) => {
             + 'node wordsprout/tools/fetch-emoji.mjs --find <слово>');
         return;
       }
-      if (emojiKey) {
+      if (strict) {
         errors.push(`${where}: «${str}» — не код эмодзи (нужен код вроде 1f34e или null); `
           + 'подберите: node wordsprout/tools/fetch-emoji.mjs --find <слово>');
-      }
+      } else if (kind && o.verbose) say(o, `  пропущено ${where}: «${str}» — не код эмодзи (имя значка?)`);
     };
-    const walk = (node, jp, emojiKey) => {
-      if (typeof node === 'string') visit(node, jp, emojiKey);
-      else if (typeof node === 'number' && emojiKey) errors.push(`${file} → ${jp}: ${node} — код должен быть строкой`);
-      else if (Array.isArray(node)) node.forEach((v, i) => walk(v, `${jp}[${i}]`, emojiKey));
+    const keyKind = (k, inherited) => {
+      if (STRICT_KEY_RE.test(k)) return 'strict';
+      if (LOOSE_KEY_RE.test(k)) return 'loose';
+      return inherited === 'strict' ? 'strict' : false;
+    };
+    const walk = (node, jp, kind) => {
+      if (typeof node === 'string') visit(node, jp, kind);
+      else if (typeof node === 'number' && kind === 'strict') errors.push(`${file} → ${jp}: ${node} — код должен быть строкой`);
+      else if (Array.isArray(node)) node.forEach((v, i) => walk(v, `${jp}[${i}]`, kind));
       else if (node && typeof node === 'object') {
         for (const [k, v] of Object.entries(node)) {
           if (allStrings && CODE_RE.test(k) && (index.map.has(k) || /^[0-9]/.test(k))) addRef(k, `${file} → ключ ${k}`);
-          walk(v, jp ? `${jp}.${k}` : k, EMOJI_KEY_RE.test(k));
+          walk(v, jp ? `${jp}.${k}` : k, keyKind(k, kind));
         }
       }
     };

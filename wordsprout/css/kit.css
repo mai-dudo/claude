@@ -509,12 +509,11 @@ button.ws-chip:active { transform: scale(0.96); }
   width: 80%;
   height: 80%;
   object-fit: contain;
-  filter: drop-shadow(0 3px 4px rgb(60 45 10 / 16%));
+  filter: var(--pic-shadow);
   user-select: none;
   -webkit-user-drag: none;
 }
 
-[data-look=simple] .ws-pic__img { filter: none; }
 
 .ws-pic__emoji {
   font-size: calc(var(--pic) * 0.62);
@@ -527,25 +526,22 @@ button.ws-chip:active { transform: scale(0.96); }
   place-items: center;
   width: 100%;
   height: 100%;
-  padding: 10%;
-  background: hsl(var(--hue, 90) 62% 88%);
-  color: hsl(var(--hue, 90) 50% 24%);
+  padding: 7%;
+  background: hsl(var(--hue, 90) var(--tile-bg-s) var(--tile-bg-l));
+  color: hsl(var(--hue, 90) var(--tile-ink-s) var(--tile-ink-l));
   text-align: center;
 }
 
-[data-theme=dark] .ws-pic__tile {
-  background: hsl(var(--hue, 90) 26% 27%);
-  color: hsl(var(--hue, 90) 70% 86%);
-}
 
 .ws-pic__word {
-  font-size: calc(var(--pic) * 0.17);
+  /* --chars — длина самого длинного слова: шрифт подбирается, чтобы слово не рвалось */
+  font-size: max(9px, calc(var(--pic) * min(0.2, 1.3 / var(--chars, 6))));
   font-weight: var(--fw-black);
   line-height: 1.05;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
-.ws-pic__tile.is-long .ws-pic__word { font-size: calc(var(--pic) * 0.13); }
 .ws-pic__tile.is-letter .ws-pic__word { font-size: calc(var(--pic) * 0.5); }
 
 .ws-hint {
@@ -604,6 +600,7 @@ button.ws-chip:active { transform: scale(0.96); }
 
 .ws-choice {
   position: relative;
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -645,7 +642,13 @@ button.ws-chip:active { transform: scale(0.96); }
   max-width: 100%;
   font-size: var(--fs-m);
   line-height: var(--lh-snug);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Узкая карточка (4 в ряд, телефон 360 px): подпись мельче, чтобы «наушники» не рвались */
+@container (max-width: 132px) {
+  .ws-choice__text { font-size: var(--fs-s); }
 }
 
 .ws-choice__key {
@@ -724,7 +727,7 @@ button.ws-chip:active { transform: scale(0.96); }
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-2);
   width: 100%;
   min-height: var(--tap);
 }
@@ -858,7 +861,7 @@ button.ws-chip:active { transform: scale(0.96); }
 
 .ws-toasts {
   position: fixed;
-  top: calc(env(safe-area-inset-top) + var(--space-3));
+  top: calc(env(safe-area-inset-top) + var(--header-h) + var(--space-2));
   left: 50%;
   z-index: var(--z-toast);
   display: flex;
@@ -873,7 +876,7 @@ button.ws-chip:active { transform: scale(0.96); }
 
 .ws-toast {
   position: fixed;
-  top: calc(env(safe-area-inset-top) + var(--space-3));
+  top: calc(env(safe-area-inset-top) + var(--header-h) + var(--space-2));
   left: 50%;
   z-index: var(--z-toast);
   width: max-content;
@@ -1516,6 +1519,37 @@ p.ws-error {
   display: block;
 }
 
+/* Открытая клавиатура телефона (окно ниже 560 px, например 390×430) и альбомная ориентация:
+   полоса игры ниже, отступы меньше, перевод встаёт справа от картинки — так на экране остаются
+   полоса, картинка (≥ 96 px), клеточки и ряд кнопок (docs/STYLE.md §7). */
+@media (max-height: 560px) {
+  .ws-game__bar { min-height: calc(48px + env(safe-area-inset-top)); }
+  .ws-game__host { padding-top: 0; }
+
+  .ws-stage {
+    gap: var(--space-2);
+    padding: var(--space-1) 0 var(--space-2);
+  }
+
+  .ws-stage__media {
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  .ws-stage__media > .ws-hint {
+    max-width: 50%;
+    text-align: left;
+  }
+
+  .ws-intro,
+  .ws-results,
+  .ws-error {
+    margin-block: var(--space-2);
+    padding: var(--space-4);
+  }
+}
+
 /* =========================================================================================
    Клеточки для букв (WS.ui.letterInput)
    Размер клетки: --n — длина самого длинного слова, --cell подбирается под ширину контейнера.
@@ -1572,10 +1606,8 @@ p.ws-error {
 
 .ws-letters--inline .ws-letters__field { padding: 2px 0; }
 
-.ws-letters__field:has(.ws-letters__input:focus-visible) {
-  outline: 3px solid var(--focus);
-  outline-offset: 4px;
-}
+/* Фокус показывает текущая клетка (кольцо и мигающая чёрточка), а не рамка вокруг всего поля:
+   у текстового поля :focus-visible срабатывает всегда, и рамка висела бы весь урок. */
 
 .ws-letters__cells {
   --cell: clamp(var(--cell-min), calc((100cqi - (var(--n) - 1) * var(--cell-gap)) / var(--n)), var(--cell-max));
@@ -1619,6 +1651,7 @@ p.ws-error {
 
 .ws-cell {
   position: relative;
+  scroll-margin: calc(var(--gamebar-h) + env(safe-area-inset-top) + var(--space-3)) 0 var(--space-4);
   display: inline-grid;
   place-items: center;
   flex: none;
@@ -1646,14 +1679,18 @@ p.ws-error {
   box-shadow: none;
 }
 
-/* Текущая клетка: зелёная рамка; мигающая чёрточка, когда поле в фокусе */
+/* Текущая клетка: зелёная рамка; когда поле в фокусе — ещё мягкое кольцо и мигающая чёрточка */
 .ws-cell.is-cur {
   border-color: var(--primary);
   background: var(--surface);
-  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
-.ws-letters--sentence .ws-cell.is-cur {
+.ws-letters.is-focused .ws-cell.is-cur {
+  box-shadow: 0 0 0 4px var(--primary-soft), 0 0 0 5px var(--primary-line);
+}
+
+.ws-letters--sentence .ws-cell.is-cur,
+.ws-letters--sentence.is-focused .ws-cell.is-cur {
   background: var(--primary-soft);
   box-shadow: none;
 }
@@ -1714,8 +1751,11 @@ p.ws-error {
 
 .ws-letters--sentence .ws-cell.is-hint { border-style: solid; }
 
-/* Показанный ответ (fillAll) */
+.ws-cell.is-hint.is-bad { color: transparent; }
+
+/* Показанный ответ (fillAll): зелёный, но пунктиром — так видно, что буквы не набраны */
 .ws-cell.is-given {
+  border-style: dashed;
   border-color: var(--primary-line);
   background: var(--primary-soft);
   box-shadow: none;

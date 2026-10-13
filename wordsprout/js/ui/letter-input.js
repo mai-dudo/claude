@@ -12,7 +12,13 @@
       значение поля не пишем никогда). Если клавиатура заменила слово (автоисправление),
       сверяемся с уже принятыми буквами и берём только новый хвост.
    На компьютере печатать можно где угодно на странице. Встроенная клавиатура WordSprout
-   (keyboard: 'builtin') — inputmode="none" и WS.ui.keypad под клетками. */
+   (keyboard: 'builtin') — inputmode="none" и WS.ui.keypad под клетками.
+
+   WS.ui.letterInput({ target, fixed, signal, keyboard, prefix: 'to' | null, size: 'word' | 'sentence',
+     onLetter(i, ok, ch), onComplete({ mistakes, hinted }), hints, autofocus: 'auto' | true | false })
+   → { el, input, focus(), setTarget(str, { prefix }), reveal(on), revealed, fillAll({ complete }),
+       destroy(), mistakes, hinted, done, type(text) }
+   hints по умолчанию — настройка «бледные подсказки-буквы» (буквы видны сразу, помощью не считаются). */
 (() => {
   'use strict';
 
@@ -60,6 +66,7 @@
   const CYR_TOAST_GAP = 30000;
   const TIP_KEY = 'wordsprout.v1.tips';
   const TIP_MS = 12000;
+  const ECHO_MS = 2000; // повтор только что набранного слова клавиатурой ждём не дольше 2 с
 
   const media = (q) => !!(window.matchMedia && window.matchMedia(q).matches);
   const isTouch = () => (typeof ui.isTouch === 'function' ? ui.isTouch()
@@ -113,6 +120,7 @@
     const o = opts || {};
     const isFixed = typeof o.fixed === 'function' ? o.fixed : (ch) => !/[a-z]/i.test(ch);
     const size = o.size === 'sentence' ? 'sentence' : 'word';
+    const hintsOn = () => (o.hints != null ? !!o.hints : settings().hints === true);
     const ac = new AbortController();
     const sig = ac.signal;
     const timers = new Set();
@@ -159,6 +167,8 @@
     let composing = false;
     let comp = null; // { base, seen, acc }: начало в поле, обработанный текст, принятые из него буквы
     let stale = ''; // текст, уже разобранный в compositionend, пока поле не очищено
+    let lastOkAt = -Infinity; // время последней принятой буквы
+    let echoPos = -1; // позиция, где повтор предыдущего слова уже пропускали (второй раз — печатаем)
     let clearTimer = 0;
     const flashTimers = new Map();
 
@@ -166,10 +176,21 @@
       while (pos < chars.length && (chars[pos].space || chars[pos].fixed)) pos++;
     };
 
+    // Длинное предложение на телефоне: текущая клетка не должна уйти под клавиатуру или за край.
+    const keepVisible = (cell) => {
+      if (!cell || document.activeElement !== input) return;
+      const vv = window.visualViewport;
+      const top = vv ? vv.offsetTop : 0;
+      const bottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      const r = cell.getBoundingClientRect();
+      if (r.bottom > bottom - 8 || r.top < top) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    };
+
     const markCur = () => {
       chars.forEach((c, i) => {
         if (c.cell) c.cell.classList.toggle('is-cur', !done && i === pos);
       });
+      if (!done && chars[pos]) keepVisible(chars[pos].cell);
     };
 
     const clearFlash = (cell) => {
@@ -197,6 +218,7 @@
       c.cell.classList.add('is-ok');
       pos++;
       skipFixed();
+      lastOkAt = Date.now();
       sfx('key');
       if (typeof o.onLetter === 'function') o.onLetter(i, true, raw);
       if (pos >= chars.length) complete();
@@ -264,7 +286,9 @@
     };
 
     // Кусок текста (вставка, слово целиком, замена): если он повторяет уже набранное начало слова
-    // (клавиатура заменила слово целиком), берём только хвост; повтор предыдущего слова пропускаем.
+    // (клавиатура заменила слово целиком), берём только хвост. Если сразу после слова (до 2 с)
+    // клавиатура присылает это же слово ещё раз (замена уже отправленного слова), пропускаем его —
+    // но только один раз на позицию, чтобы настоящий повтор («had had») можно было напечатать.
     const feedChunk = (text) => {
       if (!text || done || destroyed) return;
       const chunk = [...norm(text)];
@@ -279,7 +303,9 @@
             if (!SPACE.test(chunk[start]) && !isFixed(chunk[start])) count++;
             start++;
           }
-        } else if (!typedL && chunkL && chunkL === lettersOf(prev)) {
+        } else if (!typedL && chunkL && chunkL === lettersOf(prev) && echoPos !== pos
+          && Date.now() - lastOkAt < ECHO_MS) {
+          echoPos = pos;
           return;
         }
       }
@@ -343,7 +369,11 @@
 
     input.addEventListener('input', (e) => {
       if (composing || e.isComposing) {
-        if (!composing) beginComp();
+        if (!composing) {
+          // compositionstart пропущен (поле получило фокус посреди композиции): начало — по e.data
+          beginComp();
+          if (typeof e.data === 'string') comp.base = Math.max(0, input.value.length - e.data.length);
+        }
         processComp(compText());
         return;
       }
@@ -412,7 +442,7 @@
     };
 
     /* ---------- Встроенная клавиатура ---------- */
-    function applyKeyboard(kind) {
+    const applyKeyboard = (kind) => {
       const want = kind === 'builtin';
       if (want === builtin && (keypad || !want)) return;
       builtin = want;
@@ -438,7 +468,7 @@
         input.blur();
         input.focus({ preventScroll: true });
       }
-    }
+    };
 
     /* ---------- Слово или предложение ---------- */
     const setTarget = (str, opt = {}) => {
@@ -451,6 +481,7 @@
       mistakes = 0;
       hinted = false;
       revealed = false;
+      echoPos = -1;
       status.textContent = '';
       el.classList.remove('is-done', 'is-given');
       chars = [];
@@ -490,7 +521,8 @@
       cellsEl.replaceChildren(...groups);
       skipFixed();
       markCur();
-      if (revealed) reveal(true);
+      // Настройка «бледные подсказки-буквы в начале»: буквы видны сразу и помощью не считаются.
+      if (hintsOn()) reveal(true, { count: false });
       if (pos >= chars.length) queueMicrotask(() => {
         if (!destroyed && !done && pos >= chars.length) complete();
       });
@@ -604,12 +636,21 @@
     }
     if (o.target != null) setTarget(o.target);
 
-    // На компьютере поле получает фокус само; на телефоне — только по нажатию (клавиатура не прыгает).
-    if (!isTouch()) {
+    // Фокус сам. На компьютере — всегда (если не занято другое поле ввода). На телефоне — только сразу
+    // после нажатия («Начать», «Дальше»): тогда клавиатура открывается в том же касании; при autofocus
+    // 'auto' (по умолчанию) ещё и только внутри игры. Без нажатия на телефоне фокус не ставим никогда.
+    const autofocus = o.autofocus === undefined ? 'auto' : o.autofocus;
+    if (autofocus) {
       requestAnimationFrame(() => {
-        if (destroyed || !el.isConnected) return;
+        if (destroyed || !el.isConnected || !el.getClientRects().length) return;
+        if (isTouch()) {
+          const act = navigator.userActivation;
+          if (!act || !act.isActive) return;
+          if (autofocus !== true && !el.closest('[data-ws=game]')) return;
+        }
         const a = document.activeElement;
-        if (!a || a === document.body || a === document.documentElement || el.contains(a)) focus();
+        if (a && isField(a) && !el.contains(a)) return;
+        focus();
       });
     }
     return api;

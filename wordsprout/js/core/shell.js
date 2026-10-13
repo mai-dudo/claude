@@ -6,7 +6,7 @@
 
    WS.shell:
    - init() — строит каркас в [data-ws=app] (вызывает boot.js);
-   - toast(msg) — подсказка на 2,6 с (новая заменяет старую);
+   - toast(msg) — подсказка на 2,6 с (на экране не больше двух);
    - confirm({ title, text, ok, cancel, danger, safe }) → Promise<boolean>. safe: true делает главной
      кнопку «отмена» (на ней и фокус), danger: true красит кнопку «да» как опасную;
    - setTitle(s) — заголовок в шапке и во вкладке браузера; setBack(hash) — куда ведёт стрелка «назад»
@@ -49,8 +49,7 @@
   let backHash = null;
   let tabbarOn = true;
   let gameMode = false;
-  let toastNode = null;
-  let toastTimer = 0;
+  let toastBox = null;
   let openConfirm = null;
   let confirmSeq = 0;
   let badgeFrame = 0;
@@ -81,14 +80,17 @@
     String(className || '').split(/\s+/).filter(Boolean).forEach((c) => node.classList.add(c));
   };
 
-  const button = ({
-    text = '', kind = 'primary', ws = null, icon: iconName = '', size = '', onClick = null, className = '',
-    label = '', title = '', href = '', signal = null,
-  } = {}) => {
+  const button = (opts = {}) => {
+    const {
+      text = '', kind = 'primary', ws = null, icon: iconName = '', iconEnd = '', size = '', onClick = null,
+      className = '', label = '', title = '', href = '', key = '', signal = null,
+    } = opts;
     let b = null;
     if (typeof ui().button === 'function') {
       try {
-        b = ui().button({ text, kind, ws, icon: iconName, size, onClick, className, label, title, href, signal });
+        b = ui().button({
+          text, kind, ws, icon: iconName, iconEnd, size, onClick, className, label, title, href, key, signal,
+        });
       } catch (e) {
         b = null;
       }
@@ -98,7 +100,8 @@
         type: href ? null : 'button', href: href || null,
         class: ['ws-btn', `ws-btn--${kind}`, size && `ws-btn--${size}`],
         'aria-label': label || null, title: title || null,
-      }, iconName ? icon(iconName) : null, text ? el('span', { class: 'ws-btn__text', text }) : null);
+      }, iconName ? icon(iconName) : null, text ? el('span', { class: 'ws-btn__text', text }) : null,
+      iconEnd ? icon(iconEnd) : null);
       if (onClick) b.addEventListener('click', onClick, signal ? { signal } : undefined);
     }
     if (ws) b.dataset.ws = ws;
@@ -238,11 +241,12 @@
         if (onClose) onClose();
       },
     });
+    // Текст и ссылка — слева, ✕ — справа в первой строке.
     node.append(
       el('div', { class: 'ws-banner__body' },
         el('p', { class: 'ws-banner__text', text }),
-        help ? el('p', { class: 'ws-banner__help', text: help }) : null),
-      link ? button({ text: link.text, href: link.href, kind: 'ghost', className: 'ws-banner__link' }) : null,
+        help ? el('p', { class: 'ws-banner__help', text: help }) : null,
+        link ? button({ text: link.text, href: link.href, kind: 'ghost', size: 'sm', className: 'ws-banner__link' }) : null),
       close);
     if (old) old.replaceWith(node);
     else banners.append(node);
@@ -272,19 +276,22 @@
   };
 
   /* ---------- Подсказка и подтверждение ---------- */
+  // Не больше двух подсказок сразу; одинаковая подсказка не дублируется, а показывается заново.
   const toast = (msg, { ms = 2600 } = {}) => {
     if (!app || msg == null || msg === '') return;
     const text = String(msg);
     if (WS.test.enabled) WS.test.events.push({ type: 'toast', text });
-    clearTimeout(toastTimer);
-    if (toastNode) toastNode.remove();
-    const node = el('div', { class: 'ws-toast', role: 'status', dataset: { ws: 'toast' }, text });
-    toastNode = node;
-    app.append(node);
-    toastTimer = setTimeout(() => {
-      node.remove();
-      if (toastNode === node) toastNode = null;
-    }, Math.max(1200, Number(ms) || 2600));
+    if (!toastBox || !toastBox.isConnected) {
+      toastBox = el('div', { class: 'ws-toasts', role: 'status', 'aria-live': 'polite' });
+      app.append(toastBox);
+    }
+    Array.from(toastBox.children).forEach((n) => {
+      if (n.textContent === text) n.remove();
+    });
+    while (toastBox.children.length >= 2) toastBox.firstElementChild.remove();
+    const node = el('div', { class: 'ws-toast', dataset: { ws: 'toast' }, text });
+    toastBox.append(node);
+    setTimeout(() => node.remove(), Math.max(1200, Number(ms) || 2600));
   };
 
   const closeConfirm = (value) => {

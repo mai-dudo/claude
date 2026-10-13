@@ -15,7 +15,8 @@
      или с force (кнопка «Проверить» в настройках);
    - stop() — замолчать, все ожидающие обещания получают false;
    - voices() → [{ name, lang, local }] — английские голоса; voice() — выбранный голос или null.
-     Выбор: сохранённый в настройках → местный en-US → местный en-GB → любой en-US → en-GB → любой en-*;
+     Выбор (SPEC §9): сохранённый в настройках → местный en-US → en-GB (сначала местный) → любой en-*
+     (сначала en-US);
      «_» в коде языка заменяется на «-». Без голосов говорим с lang = 'en-US';
    - canListen(), listen({ timeout = 7000, lang, signal }) → Promise<{ transcript, alts } | null>.
      Распознавание выключается до конца сессии после ошибки network / not-allowed / service-not-allowed /
@@ -114,7 +115,7 @@
       if (v) return v;
     }
     const by = (lang, local) => en.find((v) => langOf(v) === lang && (!local || v.localService));
-    return by('en-us', true) || by('en-gb', true) || by('en-us', false) || by('en-gb', false)
+    return by('en-us', true) || by('en-gb', true) || by('en-gb', false) || by('en-us', false)
       || en.find((v) => v.localService) || en[0];
   };
 
@@ -263,6 +264,9 @@
       }
     };
 
+    // Последний сторож: обещание не висит никогда (фраза в очереди ждёт дольше — ей +30 с).
+    const cap = chunks.reduce((sum, c) => sum + estimate(c, rate), START_TIMEOUT + delay) + (interrupt ? 0 : 30000);
+    job.timers.push(setTimeout(() => job.finish(false), cap));
     if (delay) job.timers.push(setTimeout(speakChunk, delay));
     else speakChunk();
   };
