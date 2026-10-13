@@ -1,37 +1,87 @@
-/* Заглушка: иконки интерфейса — простые линейные SVG-строки 24×24 (WS.ui.icons.<имя>), цвет берут
-   из currentColor. Вставляются только через innerHTML. Окончательный набор нарисует владелец файла. */
+/* Иконки интерфейса WordSprout: свой набор простых линейных SVG 24×24 (контур 2px, скруглённые концы).
+   Цвет берут из currentColor, поэтому красятся токенами через color. WS.ui.icons.<имя> — строка
+   с разметкой <svg>; вставлять только так: span.innerHTML = WS.ui.icons.speaker (или WS.ui.icon(имя)
+   из kit.js, который делает это сам). Обязательный набор — CONTRACTS §3.4, ниже ещё несколько своих. */
 (() => {
   'use strict';
 
-  const svg = (body) => '<svg class="ws-svg" viewBox="0 0 24 24" width="24" height="24" fill="none" '
-    + 'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" '
-    + `focusable="false">${body}</svg>`;
+  const svg = (body) => '<svg class="ws-ico" viewBox="0 0 24 24" width="24" height="24" fill="none" '
+    + 'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+    + `aria-hidden="true" focusable="false">${body}</svg>`;
+
+  const STAR = 'M12 3L14.59 9.04L21.13 9.63L16.18 13.96L17.64 20.37L12 17L6.36 20.37L7.82 13.96L2.87 9.63L9.41 9.04z';
+  const GEAR = 'M10.31 5.21L10.47 2.83A9.3 9.3 0 0 1 13.53 2.83L13.69 5.21A7 7 0 0 1 15.61 6L17.41 4.43A9.3 9.3 0 0 1 '
+    + '19.57 6.59L18 8.39A7 7 0 0 1 18.79 10.31L21.17 10.47A9.3 9.3 0 0 1 21.17 13.53L18.79 13.69A7 7 0 0 1 18 15.61'
+    + 'L19.57 17.41A9.3 9.3 0 0 1 17.41 19.57L15.61 18A7 7 0 0 1 13.69 18.79L13.53 21.17A9.3 9.3 0 0 1 10.47 21.17'
+    + 'L10.31 18.79A7 7 0 0 1 8.39 18L6.59 19.57A9.3 9.3 0 0 1 4.43 17.41L6 15.61A7 7 0 0 1 5.21 13.69L2.83 13.53'
+    + 'A9.3 9.3 0 0 1 2.83 10.47L5.21 10.31A7 7 0 0 1 6 8.39L4.43 6.59A9.3 9.3 0 0 1 6.59 4.43L8.39 6A7 7 0 0 1 '
+    + '10.31 5.21z';
+  const RAYS = 'M18.8 12h2.4M16.81 16.81l1.7 1.7M12 18.8v2.4M7.19 16.81l-1.7 1.7M5.2 12H2.8M7.19 7.19l-1.7-1.7'
+    + 'M12 5.2V2.8M16.81 7.19l1.7-1.7';
+  const TRAY = '<path d="M4.5 15.5v2.7A1.8 1.8 0 0 0 6.3 20h11.4a1.8 1.8 0 0 0 1.8-1.8v-2.7"/>';
+  const SPEAKER_BODY = '<path d="M3.5 9.6v4.8a1 1 0 0 0 1 1h2.9l4.6 3.9V4.7L7.4 8.6H4.5a1 1 0 0 0-1 1z"/>';
 
   WS.ui.icons = {
-    back: svg('<path d="M15 5l-7 7 7 7"/>'),
+    // ----- обязательные (CONTRACTS §3.4) -----
+    back: svg('<path d="M19 12H5.5"/><path d="M11.5 18l-6-6 6-6"/>'),
     close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
-    speaker: svg('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9a4 4 0 0 1 0 6"/>'),
-    turtle: svg('<path d="M4 16a8 6 0 0 1 16 0z"/><circle cx="21" cy="14" r="1.5"/><path d="M7 16v3M17 16v3"/>'),
-    eye: svg('<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
-    'eye-off': svg('<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><path d="M4 4l16 16"/>'),
-    check: svg('<path d="M5 12l5 5 9-10"/>'),
+    speaker: svg(`${SPEAKER_BODY}<path d="M15.6 9.3a3.9 3.9 0 0 1 0 5.4"/><path d="M18.4 6.6a7.8 7.8 0 0 1 0 10.8"/>`),
+    turtle: svg('<path d="M3 15.5a7 7 0 0 1 14 0z"/><path d="M6.6 15.5l1.2-3.6h4.4l1.2 3.6M10 8.5v3.4"/>'
+      + '<path d="M17 14.2l1.4-1.1h1.4a1.9 1.9 0 0 1 0 3.8H17"/><path d="M5.8 15.5v2.7M14.2 15.5v2.7M3 15.5l-1.2 1.4"/>'),
+    eye: svg('<path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+    'eye-off': svg('<path d="M3.5 3.5l17 17"/><path d="M10.3 5.7A9.6 9.6 0 0 1 12 5.5c6.4 0 10 6.5 10 6.5a17.4 17.4 0 0 1-3 '
+      + '3.8M6.6 6.9C3.7 8.6 2 12 2 12s3.6 6.5 10 6.5a9.4 9.4 0 0 0 4.4-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'),
+    check: svg('<path d="M4.5 12.6l4.8 4.8L19.5 7"/>'),
     cross: svg('<path d="M7 7l10 10M17 7L7 17"/>'),
-    star: svg('<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'),
-    flame: svg('<path d="M12 21c-4 0-6-3-6-6 0-4 4-6 4-10 3 2 5 4 5 7 1-1 1-2 1-3 2 2 2 4 2 6 0 3-2 6-6 6z"/>'),
-    home: svg('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>'),
-    book: svg('<path d="M4 19V5a2 2 0 0 1 2-2h13v14H6a2 2 0 0 0-2 2zm0 0a2 2 0 0 0 2 2h13"/>'),
-    repeat: svg('<path d="M4 12a7 7 0 0 1 12-5l2 2M18 4v5h-5M20 12a7 7 0 0 1-12 5l-2-2M6 20v-5h5"/>'),
-    chart: svg('<path d="M5 20V11M11 20V5M17 20v-6M3 20h18"/>'),
-    gear: svg('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1'
-      + 'M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>'),
-    mic: svg('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
-    keyboard: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 14h10"/>'),
-    shuffle: svg('<path d="M3 7h4l10 10h4M3 17h4l3-3M14 10l3-3h4M18 4l3 3-3 3M18 14l3 3-3 3"/>'),
-    pause: svg('<path d="M9 5v14M15 5v14"/>'),
-    play: svg('<path d="M7 4l13 8-13 8z"/>'),
-    lightbulb: svg('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>'),
-    trash: svg('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
-    download: svg('<path d="M12 4v11M7 10l5 5 5-5M4 20h16"/>'),
-    upload: svg('<path d="M12 16V5M7 10l5-5 5 5M4 20h16"/>'),
+    star: svg(`<path d="${STAR}"/>`),
+    flame: svg('<path d="M12 21.5c-3.9 0-6.6-2.7-6.6-6.3 0-3.4 2.2-5.4 3.8-7.2.3 1.8 1.2 2.9 2.4 3.4.2-3.2 1.5-6.2 '
+      + '3.9-8.9.3 3.5 3.6 5.8 3.6 10.9 0 4.7-2.9 8.1-7.1 8.1z"/><path d="M12 21.5c-1.7 0-2.9-1.2-2.9-2.9 0-1.9 1.6-3 '
+      + '2.9-4.7 1.3 1.7 2.9 2.8 2.9 4.7 0 1.7-1.2 2.9-2.9 2.9z"/>'),
+    home: svg('<path d="M3.5 11.2L12 4l8.5 7.2"/><path d="M5.8 9.4V20h12.4V9.4"/><path d="M10 20v-5.2h4V20"/>'),
+    book: svg('<path d="M12 6.6C10.3 5.1 7.8 4.5 3.8 4.5v14c4 0 6.5.6 8.2 2.1 1.7-1.5 4.2-2.1 8.2-2.1v-14c-4 0-6.5.6-8.2 '
+      + '2.1z"/><path d="M12 6.6v14"/>'),
+    repeat: svg('<path d="M19.6 10.6a7.8 7.8 0 0 0-14-3.7L4.2 8.6"/><path d="M4.2 4.4v4.2h4.2"/>'
+      + '<path d="M4.4 13.4a7.8 7.8 0 0 0 14 3.7l1.4-1.7"/><path d="M19.8 19.6v-4.2h-4.2"/>'),
+    chart: svg('<path d="M3.5 20.5h17"/><rect x="5" y="12" width="3.4" height="5.5" rx="1"/>'
+      + '<rect x="10.3" y="5.5" width="3.4" height="12" rx="1"/><rect x="15.6" y="9" width="3.4" height="8.5" rx="1"/>'),
+    gear: svg(`<path d="${GEAR}"/><circle cx="12" cy="12" r="3"/>`),
+    mic: svg('<rect x="9" y="3" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"/>'),
+    keyboard: svg('<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 '
+      + '10h.01M8 14.2h8"/>'),
+    shuffle: svg('<path d="M3 7h3.4c2 0 3.2.9 4.3 2.6l2.6 4.8c1.1 1.7 2.3 2.6 4.3 2.6H21"/><path d="M3 17h3.4c1.4 0 '
+      + '2.4-.5 3.2-1.4M14.4 8.4c.8-.9 1.8-1.4 3.2-1.4H21"/><path d="M18 4l3 3-3 3M18 14l3 3-3 3"/>'),
+    pause: svg('<rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/>'),
+    play: svg('<path d="M7.5 5.3v13.4a1 1 0 0 0 1.5.9l10.4-6.7a1 1 0 0 0 0-1.8L9 4.4a1 1 0 0 0-1.5.9z"/>'),
+    lightbulb: svg('<path d="M9.2 18h5.6M10.2 21h3.6"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.3v.4h5v-.4c0'
+      + '-.9.4-1.7 1.1-2.3A6 6 0 0 0 12 3z"/>'),
+    trash: svg('<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 12.3A1.8 1.8 0 0 0 8.8 21h6.4a1.8 1.8 0 0 0 '
+      + '1.8-1.7L18 7"/><path d="M9 7V4.8a.8.8 0 0 1 .8-.8h4.4a.8.8 0 0 1 .8.8V7"/>'),
+    download: svg(`<path d="M12 3.8v11M7.2 10l4.8 4.8 4.8-4.8"/>${TRAY}`),
+    upload: svg(`<path d="M12 14.8v-11M7.2 8.6L12 3.8l4.8 4.8"/>${TRAY}`),
+
+    // ----- свои дополнительные -----
+    sprout: svg('<path d="M12 20.5v-8.3"/><path d="M12 12.2C12 7.9 9.2 5.3 4.6 5.3c0 4.3 2.9 6.9 7.4 6.9z"/>'
+      + '<path d="M12 14.6c0-3.9 2.7-6.4 7.4-6.4 0 3.9-2.8 6.4-7.4 6.4z"/><path d="M7.5 20.5h9"/>'),
+    mute: svg(`${SPEAKER_BODY}<path d="M16 9.5l5 5M21 9.5l-5 5"/>`),
+    restart: svg('<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3L4.5 9"/><path d="M4.5 4.5V9H9"/>'),
+    copy: svg('<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 '
+      + '0-2 2v7.5a2 2 0 0 0 2 2h2.5"/>'),
+    'chevron-right': svg('<path d="M9.5 5.5L16 12l-6.5 6.5"/>'),
+    'chevron-left': svg('<path d="M14.5 5.5L8 12l6.5 6.5"/>'),
+    'chevron-down': svg('<path d="M5.5 9.5L12 16l6.5-6.5"/>'),
+    'arrow-right': svg('<path d="M5 12h13.5"/><path d="M12.5 6l6 6-6 6"/>'),
+    info: svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7h.01"/>'),
+    plus: svg('<path d="M12 5v14M5 12h14"/>'),
+    minus: svg('<path d="M5 12h14"/>'),
+    sun: svg(`<circle cx="12" cy="12" r="3.8"/><path d="${RAYS}"/>`),
+    moon: svg('<path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/>'),
+    clock: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/>'),
+    calendar: svg('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
+    target: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>'),
+    trophy: svg('<path d="M7.5 4h9v5.5a4.5 4.5 0 0 1-9 0z"/><path d="M7.5 6H4.8a.8.8 0 0 0-.8.9 4 4 0 0 0 3.7 3.6M16.5 '
+      + '6h2.7a.8.8 0 0 1 .8.9 4 4 0 0 1-3.7 3.6M12 14v3.5M8.5 20.5h7M9.5 20.5l.6-3h3.8l.6 3"/>'),
+    list: svg('<path d="M9 6.5h11M9 12h11M9 17.5h11M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01"/>'),
+    external: svg('<path d="M14 4.5h5.5V10M19.5 4.5L11 13"/><path d="M17.5 13.5v4.8a1.7 1.7 0 0 1-1.7 1.7H5.7A1.7 1.7 0 0 '
+      + '1 4 18.3V8.2a1.7 1.7 0 0 1 1.7-1.7h4.8"/>'),
   };
 })();

@@ -1,30 +1,38 @@
 #!/usr/bin/env node
 /*
- * Проверка данных курса WordSprout (правила CONTRACTS §2.4).
+ * Проверка данных курса WordSprout (правила CONTRACTS §2.4 и решения §4).
  *
  * Читает data/chapters.json, data/words/<глава>.json, tools/wordplan.json (сверка части речи — только
- * предупреждения), tools/emoji-index.json (есть ли эмодзи; если индекса нет — предупреждение вместо ошибки)
- * и, с флагом --images, img/emoji/<код>.webp. Ошибки блокируют (код выхода 1), предупреждения — нет.
+ * предупреждения), tools/emoji-index.json (есть ли эмодзи; если индекса нет — предупреждение вместо ошибки),
+ * data/games.json (какие игры останутся у главы) и, с флагом --images, img/emoji/<код>.webp.
+ * Ошибки блокируют (код выхода 1), предупреждения — нет. Строка отчёта: «error  food/apple: easy.en has
+ * 9 tokens (max 8): "…"», в конце — сводка: главы, слова, глаголы, картинки, предложения, счётчики по правилам.
  *
  * Запуск (из корня репозитория):
  *   node wordsprout/tools/validate-data.mjs [--skeleton] [--chapter <id>]… [--allow-missing] [--json]
  *        [--file <путь>] [--images] [--quiet] [--stats] [--root <папка wordsprout>]
  *
  *   --skeleton       проверить chapters.json, план и индекс эмодзи; файлы слов необязательны, а в имеющихся
- *                    проверяются только поля слов (без предложений и упражнений на времена)
+ *                    проверяются только поля слов (без предложений и упражнений на времена); минимумы главы
+ *                    (≥ 14 картинок, ≥ 4 глагола) для недописанного файла — предупреждения
  *   --chapter <id>   проверить слова только этих глав (можно повторять или писать через запятую);
  *                    уникальность id и предложений всё равно считается по всем файлам
  *   --allow-missing  отсутствующий файл главы — предупреждение, а не ошибка
  *   --file <путь>    проверить один файл слов отдельно (например tests/fixtures/fixture.json):
- *                    без плана глав и правил «20 слов / 600 слов»
- *   --images         проверить, что для каждого кода есть img/emoji/<код>.webp (≤ 25 КБ)
+ *                    без плана глав и правил «20 слов / 600 слов»; файл в формате chapters.json
+ *                    проверяется как chapters.json
+ *   --images         проверить, что для каждого кода есть img/emoji/<код>.webp (WebP, ≤ 25 КБ)
  *   --json           вывести результат в JSON: { ok, errors, warnings, summary }
  *   --quiet          не печатать строки предупреждений (только счётчики)
  *   --stats          таблица по главам: слова, глаголы, картинки, короткие слова
  *
+ * Предупреждения: британское написание, одна картинка в нескольких главах, отношение длины ru/en вне
+ * 0,5–2,5, слова длиннее 9 букв (не попадут в «Найди слова»), игры, которые скроются у главы, кавычки
+ * и дефис вместо тире в русском тексте, неизвестные ключи, подсказки согласования в упражнениях.
+ *
  * Токен предложения — слово из латинских букв; апостроф или дефис между буквами не разрывают токен,
  * поэтому «don't» и «T-shirt» — один токен. Ответ (answer) ищется как целая последовательность токенов
- * без учёта регистра.
+ * без учёта регистра. Форма глагола, совпадающая с en (put / put / put), допустима (CONTRACTS §4).
  *
  * Только встроенные модули Node 22, без зависимостей.
  */
@@ -341,28 +349,38 @@ const loadWordplan = (root, chapterIds) => {
   const data = readJson(abs, { file: rel });
   if (data === undefined) return null;
   const plan = new Map();
+  const record = (id, node, chapter) => {
+    const ch = typeof node.chapter === 'string' ? node.chapter : chapter;
+    const prev = plan.get(id);
+    if (prev && prev.pos && prev.chapter && ch && prev.chapter !== ch) {
+      warn('wordplan', { file: rel }, `id ${q(id)} is listed twice (${prev.chapter} and ${ch})`);
+    }
+    plan.set(id, { id, pos: node.pos ?? prev?.pos, en: node.en ?? prev?.en, emoji: node.emoji, chapter: ch ?? prev?.chapter });
+  };
+  // Понимает: { chapters: [{ id, words: [{ id, pos }] }] }, { <глава>: [{ id, pos }] }, { <глава>: { <id>: { pos } } },
+  // [{ id, chapter, pos }] и { id|chapter, words: ['id', …] } (только состав главы, без pos).
   const walk = (node, chapter) => {
     if (Array.isArray(node)) {
       node.forEach((n) => walk(n, chapter));
       return;
     }
     if (!isObj(node)) return;
-    if (typeof node.id === 'string' && Array.isArray(node.words)) {
+    const chapterKey = typeof node.id === 'string' ? node.id : (typeof node.chapter === 'string' ? node.chapter : null);
+    if (chapterKey && Array.isArray(node.words)) {
       node.words.forEach((w) => {
-        if (typeof w === 'string') plan.set(w, { ...(plan.get(w) ?? {}), id: w, chapter: node.id });
-        else walk(w, node.id);
+        if (typeof w === 'string') plan.set(w, { ...(plan.get(w) ?? {}), id: w, chapter: chapterKey });
+        else walk(w, chapterKey);
       });
       return;
     }
     if (typeof node.id === 'string' && (typeof node.pos === 'string' || typeof node.en === 'string')) {
-      const prev = plan.get(node.id);
-      if (prev && prev.pos && prev.chapter !== chapter) {
-        warn('wordplan', { file: rel }, `id ${q(node.id)} is listed twice (${prev.chapter ?? '?'} and ${chapter ?? '?'})`);
-      }
-      plan.set(node.id, { id: node.id, pos: node.pos, en: node.en, emoji: node.emoji, chapter: chapter ?? prev?.chapter });
+      record(node.id, node, chapter);
       return;
     }
-    for (const [k, v] of Object.entries(node)) walk(v, chapterIds.has(k) ? k : chapter);
+    for (const [k, v] of Object.entries(node)) {
+      if (isObj(v) && v.id === undefined && typeof v.pos === 'string' && ID_RE.test(k) && !chapterIds.has(k)) record(k, v, chapter);
+      else walk(v, chapterIds.has(k) ? k : chapter);
+    }
   };
   walk(data, null);
   if (!plan.size) warn('wordplan', { file: rel }, `${rel}: no word entries with "id" and "pos" found`);
@@ -421,6 +439,8 @@ const checkRuSentence = (text, at, label) => {
   if (!/[.!?]$/.test(text)) error('ru', at, `${label} must end with . ! or ?: ${q(text)}`);
   if (text !== text.trim() || / {2}/.test(text)) warn('style', at, `${label} has extra spaces: ${q(text)}`);
   if (text !== text.normalize('NFC')) warn('style', at, `${label} is not NFC-normalized`);
+  if (/["„“”]/.test(text)) warn('style', at, `${label}: use «ёлочки» instead of other quotes: ${q(text)}`);
+  if (/ [-–] /.test(text)) warn('style', at, `${label}: use an em dash « — » between words: ${q(text)}`);
 };
 
 // Английское предложение: возвращает токены (или null, если проверять нечего).
@@ -895,9 +915,10 @@ const crossChecks = (groups, { mode, skeleton, sentences }) => {
     if (mode === 'file') {
       const need = Math.ceil(0.7 * g.words.length);
       if (withEmoji < need) warn('emoji', { chapter: g.chapter, file: g.file }, `only ${withEmoji} of ${g.words.length} words have emoji (want ≥ ${need})`);
-      if (used.size < 4) warn('emoji', { chapter: g.chapter, file: g.file }, `only ${used.size} distinct emoji (the pick game needs ≥ 4)`);
     } else if (withEmoji < MIN_EMOJI) {
-      error('emoji', { chapter: g.chapter, file: g.file }, `only ${withEmoji} of ${g.words.length} words have emoji (need ≥ ${MIN_EMOJI})`);
+      // в --skeleton недописанный файл главы (< 20 слов) — только предупреждение
+      const level = skeleton && g.words.length < N_WORDS ? 'warning' : 'error';
+      add(level, 'emoji', { chapter: g.chapter, file: g.file }, `only ${withEmoji} of ${g.words.length} words have emoji (need ≥ ${MIN_EMOJI} of ${N_WORDS})`);
     }
   }
   for (const [code, refs] of emojiChapters) {
@@ -912,7 +933,54 @@ const crossChecks = (groups, { mode, skeleton, sentences }) => {
     if (!g.selected || !g.words.length) continue;
     const verbs = g.words.filter(({ info }) => info.isVerb).length;
     g.verbs = verbs;
-    if (verbs < MIN_VERBS) error('verbs-count', { chapter: g.chapter, file: g.file }, `has ${verbs} verbs (need ≥ ${MIN_VERBS})`);
+    const level = skeleton && mode !== 'file' && g.words.length < N_WORDS ? 'warning' : 'error';
+    if (verbs < MIN_VERBS) add(level, 'verbs-count', { chapter: g.chapter, file: g.file }, `has ${verbs} verbs (need ≥ ${MIN_VERBS})`);
+  }
+};
+
+// Игры главы по data/games.json: needs + minWords (как WS.data.eligible). Не хватает слов — игра скрыта.
+const NEEDS = {
+  picture: (w) => typeof w.emoji === 'string' && w.emoji !== '',
+  sentence: (w) => isObj(w.easy) && isObj(w.hard),
+  verb: (w) => w.pos === 'verb' && Array.isArray(w.drills) && w.drills.length > 0,
+  short: (w) => typeof w.en === 'string' && /^[a-z]{1,9}$/.test(w.en),
+};
+const NEED_LABEL = {
+  picture: 'with a picture', sentence: 'with sentences', verb: 'verbs with drills',
+  short: 'short (≤ 9 letters, letters only)',
+};
+
+const loadGames = (root) => {
+  const abs = path.join(root, 'data/games.json');
+  if (!existsSync(abs)) return null;
+  let data;
+  try {
+    data = JSON.parse(readFileSync(abs, 'utf8'));
+  } catch {
+    return null; // о битом games.json сообщает collectUiEmoji (полная проверка набора), здесь просто пропускаем
+  }
+  const list = Array.isArray(data) ? data : (isObj(data) && Array.isArray(data.games) ? data.games : null);
+  return list ? list.filter((g) => isObj(g) && typeof g.id === 'string' && g.scope === 'chapter' && g.enabled !== false) : null;
+};
+
+const checkGames = (groups, games) => {
+  if (!games || !games.length) return;
+  for (const g of groups) {
+    if (!g.selected || !g.words.length) continue;
+    const words = g.words.map(({ raw }) => raw).filter(isObj);
+    const off = [];
+    for (const game of games) {
+      const needs = Array.isArray(game.needs) ? game.needs.filter((n) => typeof n === 'string') : [];
+      const ok = words.filter((w) => needs.every((n) => !NEEDS[n] || NEEDS[n](w)));
+      const min = Number.isInteger(game.minWords) && game.minWords > 0 ? game.minWords : 1;
+      const what = needs.map((n) => NEED_LABEL[n] ?? n).join(', ') || 'any';
+      if (ok.length < min) off.push(`${game.id} (${ok.length} word${ok.length === 1 ? '' : 's'} ${what}, needs ${min})`);
+      else if (needs.includes('picture') && game.id === 'pick') {
+        const distinct = uniq(ok.map((w) => w.emoji)).length;
+        if (distinct < 4) off.push(`pick (${distinct} distinct pictures, needs 4)`);
+      }
+    }
+    if (off.length) warn('games', { chapter: g.chapter, file: g.file }, `game${off.length > 1 ? 's' : ''} hidden for this chapter: ${off.join('; ')}`);
   }
 };
 
@@ -1149,6 +1217,7 @@ const runDataset = (opts, index) => {
   }
 
   crossChecks(groups, { mode: 'dataset', skeleton: opts.skeleton, sentences });
+  if (!opts.skeleton) checkGames(groups, loadGames(root));
 
   // pos против плана
   if (plan) {
@@ -1251,6 +1320,7 @@ const runFile = (opts, index) => {
   group.selected = true;
   validateGroup(group, { index, skeleton: opts.skeleton, sentences, stats });
   crossChecks([group], { mode: 'file', skeleton: opts.skeleton, sentences });
+  if (!opts.skeleton) checkGames([group], loadGames(opts.root));
   for (const { info } of group.words) if (info.emoji) addUse(used, info.emoji, { chapter: group.chapter, word: info.id ?? '?' });
   if (opts.images) checkImages(opts.root, used, { reportUnused: false });
   return { stats, groups: [group], mode: 'file' };

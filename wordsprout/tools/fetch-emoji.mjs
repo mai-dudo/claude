@@ -6,7 +6,8 @@
  *     Собирает коды эмодзи из data/*.json, data/words/*.json и tests/fixtures/*.json, скачивает нужные
  *     3D-PNG с jsDelivr (с кэшем и проверкой контрольной суммы git), сжимает их в WebP 160×160
  *     (Pillow через python3 -I), кладёт в img/emoji/<код>.webp, удаляет лишние файлы и пишет
- *     LICENSES/fluent-emoji/LICENSE в корне репозитория. Повторный запуск ничего не меняет.
+ *     LICENSES/fluent-emoji/LICENSE и README.md в корне репозитория. Повторный запуск ничего не меняет.
+ *     Кэш PNG/WebP: --cache, иначе $WS_EMOJI_CACHE, иначе $SCR/emoji-cache, иначе <tmp>/wordsprout-emoji-cache.
  *   --check            только проверить, ничего не писать и не скачивать (код 1, если есть что делать).
  *   --find <слова…>    поиск по индексу: коды и названия (например, --find apple).
  *   --build-index      пересобрать tools/emoji-index.json из sparse-checkout репозитория fluentui-emoji.
@@ -40,11 +41,13 @@ const LOCK_WAIT_MS = 180000;
 
 const GROUP_ORDER = ['Smileys & Emotion', 'People & Body', 'Component', 'Animals & Nature', 'Food & Drink',
   'Travel & Places', 'Activities', 'Objects', 'Symbols', 'Flags'];
-const CODE_RE = /^[0-9][0-9a-f]{1,5}(-[0-9a-f]{2,6})*$/;
-const LOOSE_RE = /^(u\+)?[0-9][0-9a-f]{1,5}([-_ ,]+(u\+)?[0-9a-f]{2,6})*$/i;
+/* Нормальный код: 4–6 hex-цифр на кодовую точку, строчные буквы, через «-», без fe0f (как в validate-data). */
+const CODE_RE = /^[0-9a-f]{4,6}(-[0-9a-f]{4,6})*$/;
+/* «Похоже на код»: U+1F34E, 1F34E, 1f34e_fe0f, a9 и т. п. — для подсказки, как записать правильно. */
+const LOOSE_RE = /^(u\+)?[0-9a-f]{2,8}([-_ ,.]+(u\+)?[0-9a-f]{2,8})*$/i;
 const EMOJI_KEY_RE = /^(emoji|icon)$|emoji$/i;
 const TONE_RE = /^1f3f[b-f]$/;
-const PICTO_RE = /[\p{Extended_Pictographic}\p{Regional_Indicator}]/u;
+const PICTO_RE = /[\p{Extended_Pictographic}\p{Regional_Indicator}\u20e3]/u;
 
 const TOOLS_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SELF = fileURLToPath(import.meta.url);
@@ -100,28 +103,38 @@ const goodWebp = (buf) => {
   return Boolean(info && info.w === SIZE && info.h === SIZE && buf.length <= MAX_BYTES);
 };
 
-/* Символ эмодзи для печати в терминале (только для --find). */
+/* Символ эмодзи для печати в терминале (только для --find). В коде нет fe0f, поэтому он возвращается
+ * после символов, которые по умолчанию рисуются как текст (☀, ©, цифра в 1️⃣). */
 const glyphOf = (code) => code.split('-').map((h) => {
-  const cp = parseInt(h, 16);
-  const ch = String.fromCodePoint(cp);
-  return cp >= 0x203c && cp <= 0x3299 && cp !== 0x200d && cp !== 0x20e3 ? `${ch}️` : ch;
+  const ch = String.fromCodePoint(parseInt(h, 16));
+  return /\p{Emoji}/u.test(ch) && !/\p{Emoji_Presentation}/u.test(ch) ? `${ch}\u{fe0f}` : ch;
 }).join('');
 
-/* Код из самого символа: «🍎» → 1f34e. */
+/* Код из самого символа: «🍎» → 1f34e, «1️⃣» → 0031-20e3. */
 const codeOfGlyph = (s) => [...s].map((ch) => ch.codePointAt(0).toString(16).padStart(4, '0'))
   .filter((h) => h !== 'fe0f').join('-');
 
-const normalizeLoose = (s) => s.toLowerCase().replace(/u\+/g, '').split(/[-_ ,]+/)
-  .filter((h) => h && h !== 'fe0f').join('-');
+/* Строка — сам символ эмодзи (кроме цифр, # и * в кейкапах, в ней нет ASCII). */
+const isGlyph = (s) => PICTO_RE.test(s) && !/[\x00-\x7f]/.test(s.replace(/[0-9#*]/g, ''));
+
+/* Строка, похожая на код, в нормальном виде: «U+1F34E» → 1f34e, «a9» → 00a9; иначе null. */
+const canonical = (s) => {
+  const t = s.trim();
+  if (!LOOSE_RE.test(t)) return null;
+  const parts = t.toLowerCase().split(/[-_ ,.]+/).map((h) => h.replace(/^u\+/, '').replace(/^0+(?=[0-9a-f]{4})/, ''))
+    .filter((h) => h !== 'fe0f');
+  if (!parts.length || parts.some((h) => h.length > 6)) return null;
+  return parts.map((h) => h.padStart(4, '0')).join('-');
+};
 
 /* ---------- аргументы ---------- */
 
 const HELP = `Использование: node wordsprout/tools/fetch-emoji.mjs [режим] [ключи]
 
 Режимы:
-  (без режима)           синхронизировать img/emoji с данными и записать лицензию
+  (без режима)           синхронизировать img/emoji с данными и записать LICENSES/fluent-emoji/{LICENSE,README.md}
   --check                только проверить: что скачать, обновить, удалить (ничего не пишет)
-  --find <слова…>        найти эмодзи в индексе (все слова должны совпасть)
+  --find <слова…>        найти эмодзи в индексе (все слова должны совпасть; можно вставить сам символ или код)
   --build-index          пересобрать tools/emoji-index.json из репозитория fluentui-emoji
   --help                 эта справка
 
@@ -145,6 +158,7 @@ const parseArgs = (argv) => {
   const o = {
     mode: 'sync', terms: [], root: path.resolve(TOOLS_DIR, '..'), index: null,
     cache: env.WS_EMOJI_CACHE || (env.SCR ? path.join(env.SCR, 'emoji-cache') : path.join(os.tmpdir(), 'wordsprout-emoji-cache')),
+    cacheIsTmp: !env.WS_EMOJI_CACHE && !env.SCR,
     repo: env.WS_EMOJI_REPO || (env.SCR ? path.join(env.SCR, 'fluentui-emoji') : path.join(os.tmpdir(), 'wordsprout-fluentui-emoji')),
     offline: false, force: false, verbose: false, quiet: false, limit: 20, group: '', json: false,
   };
@@ -162,8 +176,10 @@ const parseArgs = (argv) => {
       if (o.mode !== 'sync' && o.mode !== modes[flag]) throw new Error(`режимы ${o.mode} и ${flag} несовместимы`);
       o.mode = modes[flag];
     } else if (flag === '--root') o.root = path.resolve(value());
-    else if (flag === '--cache') o.cache = path.resolve(value());
-    else if (flag === '--index') o.index = path.resolve(value());
+    else if (flag === '--cache') {
+      o.cache = path.resolve(value());
+      o.cacheIsTmp = false;
+    } else if (flag === '--index') o.index = path.resolve(value());
     else if (flag === '--repo') o.repo = path.resolve(value());
     else if (flag === '--offline') o.offline = true;
     else if (flag === '--force') o.force = true;
@@ -180,6 +196,7 @@ const parseArgs = (argv) => {
   }
   o.index = o.index || path.join(TOOLS_DIR, 'emoji-index.json');
   o.licenseFile = path.resolve(o.root, '..', 'LICENSES', 'fluent-emoji', 'LICENSE');
+  o.readmeFile = path.join(path.dirname(o.licenseFile), 'README.md');
   return o;
 };
 
@@ -298,7 +315,8 @@ const buildIndex = (o) => {
   }
   const counts = {};
   for (const e of entries) counts[e.group] = (counts[e.group] || 0) + 1;
-  say(o, `  тонов кожи (папка Default): ${entries.filter((e) => e.tone).length}; по группам: ${Object.entries(counts).map(([g, n]) => `${g} ${n}`).join(', ')}`);
+  const byGroup = Object.entries(counts).map(([g, n]) => `${g} ${n}`).join(', ');
+  say(o, `  тонов кожи (папка Default): ${entries.filter((e) => e.tone).length}; по группам: ${byGroup}`);
   for (const s of skipped) say(o, `  пропущено: ${s}`);
   return 0;
 };
@@ -330,7 +348,9 @@ const scoreWithPlural = (e, t) => {
 };
 
 const find = (o) => {
-  const terms = fold(o.terms.join(' ')).split(/\s+/).filter(Boolean);
+  /* Вставленный символ («🍎», «1️⃣») ищем по его коду; fold() стёр бы fe0f и 20e3. */
+  const terms = o.terms.join(' ').split(/\s+/).filter(Boolean)
+    .map((t) => (isGlyph(t) ? codeOfGlyph(t) : fold(t)));
   if (terms.length === 0) throw new Error('--find: укажите слово, например --find apple');
   const { list } = readIndex(o);
   const group = fold(o.group);
@@ -382,7 +402,6 @@ const scanSources = (o, index) => {
   }
   const refs = new Map();
   const errors = [];
-  const notes = [];
   let parseFailed = false;
 
   const addRef = (code, where) => {
@@ -399,28 +418,46 @@ const scanSources = (o, index) => {
       errors.push(`${file}: не читается как JSON (${e.message}) — удаление лишних картинок пропущено`);
       continue;
     }
+    /* В data/ui-emoji.json ссылкой считается любая строка-код; в остальных файлах — значения ключей
+     * emoji / icon / …Emoji (строка или массив строк; null — «картинки нет»). */
     const allStrings = path.basename(file) === 'ui-emoji.json' && path.dirname(file) === 'data';
+    const named = (c) => (index.map.has(c) ? ` (${index.map.get(c).name})` : '');
     const visit = (str, jp, emojiKey) => {
       if (!emojiKey && !allStrings) return;
       const where = `${file} → ${jp || '(весь файл)'}`;
-      const s = str.trim();
-      if (CODE_RE.test(s) && !s.split('-').includes('fe0f') && s === str) { addRef(s, where); return; }
-      if (LOOSE_RE.test(s) && CODE_RE.test(normalizeLoose(s))) {
-        errors.push(`${where}: «${str}» — код не нормализован, нужно «${normalizeLoose(s)}»`);
+      const fixed = canonical(str);
+      const wrongForm = (c) => errors.push(index.map.has(c)
+        ? `${where}: «${str}» — код записан не так, нужно «${c}»${named(c)}`
+        : `${where}: «${str}» — такого кода нет в индексе Fluent 3D; подберите: node wordsprout/tools/fetch-emoji.mjs --find <слово>`);
+      if (CODE_RE.test(str)) {
+        /* fe0f внутри или лишние ведущие нули: 1f34e-fe0f → 1f34e, 01f34e → 1f34e. */
+        if (fixed !== str && (emojiKey || index.map.has(fixed))) wrongForm(fixed);
+        /* Вне ключей emoji/icon не принимаем за код английские слова из букв a–f («face», «cafe»). */
+        else if (emojiKey || index.map.has(str) || /^[0-9]/.test(str)) addRef(str, where);
         return;
       }
-      if (s && !/[\x00-\x7f]/.test(s.replace(/\s/g, '')) && PICTO_RE.test(s)) {
-        errors.push(`${where}: «${str}» — нужен код, а не символ: «${codeOfGlyph(s.replace(/\s/g, ''))}»`);
+      if (fixed && (emojiKey || index.map.has(fixed))) { wrongForm(fixed); return; }
+      const bare = str.replace(/\s/g, '');
+      if (isGlyph(bare)) {
+        const c = codeOfGlyph(bare);
+        errors.push(index.map.has(c)
+          ? `${where}: «${str}» — нужен код, а не сам символ: «${c}»${named(c)}`
+          : `${where}: «${str}» — нужен код, а не символ; к тому же «${c}» нет в Fluent 3D, подберите другой: `
+            + 'node wordsprout/tools/fetch-emoji.mjs --find <слово>');
         return;
       }
-      if (emojiKey && o.verbose) notes.push(`${where}: «${str}» — не код эмодзи, пропущено`);
+      if (emojiKey) {
+        errors.push(`${where}: «${str}» — не код эмодзи (нужен код вроде 1f34e или null); `
+          + 'подберите: node wordsprout/tools/fetch-emoji.mjs --find <слово>');
+      }
     };
     const walk = (node, jp, emojiKey) => {
       if (typeof node === 'string') visit(node, jp, emojiKey);
+      else if (typeof node === 'number' && emojiKey) errors.push(`${file} → ${jp}: ${node} — код должен быть строкой`);
       else if (Array.isArray(node)) node.forEach((v, i) => walk(v, `${jp}[${i}]`, emojiKey));
       else if (node && typeof node === 'object') {
         for (const [k, v] of Object.entries(node)) {
-          if (allStrings && CODE_RE.test(k)) addRef(k, `${file} → ключ ${k}`);
+          if (allStrings && CODE_RE.test(k) && (index.map.has(k) || /^[0-9]/.test(k))) addRef(k, `${file} → ключ ${k}`);
           walk(v, jp ? `${jp}.${k}` : k, EMOJI_KEY_RE.test(k));
         }
       }
@@ -436,7 +473,7 @@ const scanSources = (o, index) => {
       : 'подберите код: node wordsprout/tools/fetch-emoji.mjs --find <слово>';
     errors.push(`код «${code}» не найден в индексе Fluent 3D (${where.slice(0, 5).join('; ')}${where.length > 5 ? '; …' : ''}) — ${hint}`);
   }
-  return { files, refs, errors, notes, parseFailed };
+  return { files, refs, errors, parseFailed };
 };
 
 /* ---------- скачивание и конвертация ---------- */
@@ -483,6 +520,7 @@ except Exception as exc:
 if not features.check('webp'):
     sys.stderr.write('Pillow has no WebP support\n')
     sys.exit(3)
+LANCZOS = getattr(Image, 'Resampling', Image).LANCZOS
 task = json.load(sys.stdin)
 size = task['size']
 results = []
@@ -497,7 +535,7 @@ for job in task['jobs']:
             canvas.paste(img, ((side - img.width) // 2, (side - img.height) // 2))
             img = canvas
         if img.size != (size, size):
-            img = img.resize((size, size), Image.Resampling.LANCZOS)
+            img = img.resize((size, size), LANCZOS)
         tmp = '%s.%d.tmp' % (job['dst'], os.getpid())
         img.save(tmp, 'WEBP', quality=task['quality'], method=task['method'])
         os.replace(tmp, job['dst'])
@@ -529,6 +567,15 @@ const convert = (jobs, cwd) => new Promise((resolve, reject) => {
   child.stdin.end(JSON.stringify({ size: SIZE, quality: QUALITY, method: METHOD, jobs }));
 });
 
+/* WebP с method 6 жмётся ~0,4 с на картинку — раздаём задания по кругу нескольким процессам python3. */
+const convertAll = async (jobs, cwd) => {
+  const cpus = typeof os.availableParallelism === 'function' ? os.availableParallelism() : os.cpus().length;
+  const n = Math.max(1, Math.min(jobs.length, cpus || 1, 8));
+  const chunks = Array.from({ length: n }, (_, i) => jobs.filter((_, j) => j % n === i));
+  const parts = await Promise.all(chunks.map((chunk) => convert(chunk, cwd)));
+  return parts.flat();
+};
+
 /* Текст лицензии: из кэша, из sparse-checkout или с jsDelivr; всегда сверяется с LICENSE_SHA. */
 const licenseText = async (o, allowNet) => {
   const cached = path.join(o.cache, `LICENSE-${LICENSE_SHA}`);
@@ -541,6 +588,21 @@ const licenseText = async (o, allowNet) => {
   writeAtomic(cached, buf);
   return buf;
 };
+
+/* README рядом с лицензией: откуда картинки и что с ними сделано (собирается из констант скрипта). */
+const readmeText = () => Buffer.from(`# Fluent Emoji (Microsoft) в WordSprout
+
+Картинки слов и значки в \`wordsprout/img/emoji/*.webp\` взяты из набора **Fluent Emoji** компании Microsoft
+(стиль «3D»). Набор распространяется по лицензии MIT, её текст — в файле \`LICENSE\` рядом.
+
+- Источник: https://github.com/microsoft/fluentui-emoji, коммит \`${COMMIT}\`.
+- Что изменено: исходные PNG (256 px; неквадратные сначала дополнены прозрачными полями до квадрата) уменьшены
+  до ${SIZE}×${SIZE} (Lanczos) и пересохранены в WebP (качество ${QUALITY}), прозрачность сохранена. Файлы названы
+  по кодовым точкам Unicode: \`1f34e.webp\` и т. п.
+- Кладутся в репозиторий только картинки, которые реально используются в данных приложения.
+- Как обновить: \`node wordsprout/tools/fetch-emoji.mjs\` (индекс набора — \`wordsprout/tools/emoji-index.json\`,
+  поиск кода — \`node wordsprout/tools/fetch-emoji.mjs --find apple\`).
+`, 'utf8');
 
 /* ---------- блокировка (два запуска одновременно не мешают друг другу) ---------- */
 
@@ -582,11 +644,11 @@ const sync = async (o) => {
   const index = readIndex(o);
   const scan = scanSources(o, index);
   const errors = [...scan.errors];
-  for (const n of scan.notes) say(o, `  ${n}`);
 
   const outDir = path.join(o.root, 'img', 'emoji');
   const pngDir = path.join(o.cache, 'png');
-  const webpDir = path.join(o.cache, VARIANT);
+  /* В имени папки кэша — параметры и хэш кода конвертера: правка конвертера не смешает старые и новые WebP. */
+  const webpDir = path.join(o.cache, `${VARIANT}-${shortHash(PY_CONVERT).slice(0, 8)}`);
   const codes = [...scan.refs.keys()].filter((c) => index.map.has(c)).sort();
   const items = codes.map((code) => {
     const e = index.map.get(code);
@@ -632,13 +694,16 @@ const sync = async (o) => {
     show('Без проверки по кэшу (лежат в img/emoji)', o.verbose ? items.filter((it) => it.action === 'keep').map((it) => it.code) : []);
     show(canPrune ? 'Лишние в img/emoji' : 'Лишние в img/emoji (удаление сейчас невозможно)', unusedFiles.map((d) => d.name));
     show('Нужно скачать PNG', toDownload.map((it) => it.code));
-    const lic = await licenseText(o, false);
     const licNow = readOrNull(o.licenseFile);
-    const licBad = lic ? !(licNow && licNow.equals(lic)) : !licNow;
-    if (licBad) say(o, `Лицензия ${rel(o, o.licenseFile)} отсутствует или отличается.`);
+    const licBad = !(licNow && blobSha(licNow) === LICENSE_SHA);
+    if (licBad) say(o, `Лицензия ${rel(o, o.licenseFile)} отсутствует или отличается от текста в репозитории fluentui-emoji.`);
+    const readmeBad = !(readOrNull(o.readmeFile) || Buffer.alloc(0)).equals(readmeText());
+    if (readmeBad) say(o, `${rel(o, o.readmeFile)} отсутствует или отличается.`);
     for (const e of errors) warn(`ошибка: ${e}`);
-    const pending = items.filter((it) => it.action === 'convert' || it.action === 'copy').length + unusedFiles.length + (licBad ? 1 : 0);
-    say(o, `Проверка: файлов данных ${scan.files.length}, кодов ${scan.refs.size}, в порядке ${items.filter((it) => it.action === 'same' || it.action === 'keep').length}, `
+    const pending = items.filter((it) => it.action === 'convert' || it.action === 'copy').length + unusedFiles.length
+      + (licBad ? 1 : 0) + (readmeBad ? 1 : 0);
+    const fine = items.filter((it) => it.action === 'same' || it.action === 'keep').length;
+    say(o, `Проверка: файлов данных ${scan.files.length}, кодов ${scan.refs.size}, в порядке ${fine}, `
       + `нужно сделать ${pending}, ошибок ${errors.length}.`);
     return errors.length || pending ? 1 : 0;
   }
@@ -650,7 +715,8 @@ const sync = async (o) => {
     if (o.offline) {
       for (const it of toDownload) { errors.push(`${it.code}: нет PNG в кэше, а включён --offline`); failed.add(it.e.sha); }
     } else {
-      say(o, `Скачиваю ${toDownload.length} PNG с jsDelivr…`);
+      say(o, `Скачиваю ${toDownload.length} PNG с jsDelivr в кэш ${o.cache}…`);
+      if (o.cacheIsTmp) say(o, '  (общий кэш можно указать: --cache DIR, WS_EMOJI_CACHE=DIR или SCR=DIR → DIR/emoji-cache)');
       await runPool(toDownload, PARALLEL, async (it) => {
         try {
           writeAtomic(it.png, await download(urlOf(it.e.file), it.e.sha));
@@ -668,7 +734,7 @@ const sync = async (o) => {
     say(o, `Конвертирую ${jobs.length} PNG → WebP ${SIZE}×${SIZE}…`);
     fs.mkdirSync(webpDir, { recursive: true });
     try {
-      const results = await convert(jobs.map((it) => ({ src: it.png, dst: it.cachedWebp })), o.cache);
+      const results = await convertAll(jobs.map((it) => ({ src: it.png, dst: it.cachedWebp })), o.cache);
       const bySrc = new Map(results.map((r) => [r.dst, r]));
       for (const it of jobs) {
         const r = bySrc.get(it.cachedWebp);
@@ -714,6 +780,11 @@ const sync = async (o) => {
     }
   } catch (e) {
     errors.push(`лицензия: ${e.message}`);
+  }
+  const readme = readmeText();
+  if (!(readOrNull(o.readmeFile) || Buffer.alloc(0)).equals(readme)) {
+    writeAtomic(o.readmeFile, readme);
+    say(o, `Записан ${pretty(o.readmeFile)}.`);
   }
 
   let total = 0;

@@ -1,25 +1,29 @@
 #!/usr/bin/env node
 /*
- * Проверка соглашений кода WordSprout (CONTRACTS §1.1).
+ * Проверка соглашений кода WordSprout (CONTRACTS §1.1, §1.2, §3.1).
  *
  * Браузерный JS (wordsprout/**.js, кроме tools/ и tests/):
  *   - синтаксис через `node --check`;
- *   - русский заголовочный комментарий в начале файла, затем (() => { 'use strict'; … })();
- *   - запреты: запись в window (кроме js/core/ns.js — и там только window.WS), localStorage вне
- *     js/core/store.js, speechSynthesis/SpeechRecognition вне js/core/speech.js, AudioContext вне
- *     js/core/sfx.js, Math.random в js/games и js/screens, абсолютные http(s)-адреса вне
- *     js/screens/about.js, eval / new Function / document.write, import/export;
- *   - файлы игр (js/games/<id>.js) обязаны вызвать WS.games.register( и больше ничего в WS не пишут;
+ *   - русский заголовочный комментарий в начале файла, затем (() => { 'use strict'; … })(); и ничего после;
+ *   - запреты (ошибки): запись в window / globalThis / self (кроме js/core/ns.js — и там только window.WS),
+ *     localStorage вне js/core/store.js, speechSynthesis / SpeechRecognition вне js/core/speech.js,
+ *     AudioContext вне js/core/sfx.js, Math.random в js/games и js/screens, абсолютные http(s)-адреса вне
+ *     js/screens/about.js, eval / new Function / строка в setTimeout, document.write, debugger, import/export;
+ *   - файлы игр (js/games/<id>.js) обязаны вызвать WS.games.register( с id = имени файла и больше ничего
+ *     в WS не пишут; чтение WS кроме ui/util/t и addEventListener без { signal } — предупреждения;
  *   - предупреждения: var, function, двойные кавычки, отступы, innerHTML не из иконок, console.log,
- *     запись в чужие объекты WS.
+ *     запись в чужие объекты WS, sessionStorage / indexedDB / cookie, alert / prompt.
  * CSS: каждый селектор css/games/<id>.css начинается с .g-<id>, css/screens/<name>.css — с .s-<name>
  * (learn.css ещё и .s-chapter); «сырые» цвета (#hex, rgb(), hsl()) там — предупреждение (нужны токены);
- * внешние url() и @import — ошибка. index.html: внешние src/href — ошибка.
+ * внешние url() и @import — ошибка; @keyframes без префикса — предупреждение.
+ * index.html: внешние src/href — ошибка; локальные файлы должны существовать; встроенные <script>
+ * компилируются (без запуска); список и порядок <script defer> и стилей — как в CONTRACTS §1.2; viewport.
  *
  * Запуск (из корня репозитория):
  *   node wordsprout/tools/check-code.mjs [--files <glob|путь>…] [--owner <A1|A2|A5|E1|E2|E3|D-<id>|D|A0>]…
  *        [--json] [--quiet] [--root <папка wordsprout>]
  * Шаблоны --files считаются от wordsprout/ (префикс «wordsprout/» можно писать): ** * ? {a,b} [abc].
+ * Вывод: «error  wordsprout/js/games/spell.js:12:5  сообщение», в конце — сводка по правилам.
  * Код выхода: 0 — нет ошибок, 1 — есть ошибки, 2 — неверные аргументы.
  *
  * Только встроенные модули Node 22, без зависимостей.
@@ -28,6 +32,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -401,7 +406,8 @@ const lexJs = (src) => {
       i = j;
       continue;
     }
-    last = c;
+    // после постфиксного a++ / a-- косая черта — деление, а не начало регулярного выражения
+    last = (c === '+' || c === '-') && src[i - 1] === c ? '#num' : c;
     i++;
   }
   return { code: code.join(''), text: text.join(''), strings, comments };
@@ -422,11 +428,11 @@ const lineIndex = (src) => {
   };
 };
 
-const matchBrace = (code, at) => {
+const matchBrace = (code, at, open = '{', close = '}') => {
   let depth = 0;
   for (let i = at; i < code.length; i++) {
-    if (code[i] === '{') depth++;
-    else if (code[i] === '}') {
+    if (code[i] === open) depth++;
+    else if (code[i] === close) {
       depth--;
       if (depth === 0) return i;
     }
@@ -527,36 +533,47 @@ const checkJs = (rel, src, add) => {
   });
   each(/(?<![.\w$])import\s*\(/g, code, (m) => add('error', 'module', at(m.index).line, at(m.index).col, 'dynamic import() is not allowed (classic scripts)'));
 
-  // window / globalThis
+  // window / globalThis / self (self — только если в файле нет своей переменной self)
   const isNs = rel === 'js/core/ns.js';
-  each(new RegExp(String.raw`(?<![.\w$])(window|globalThis)(${MEMBERS})\s*(?:${ASSIGN}|\+\+|--)`, 'g'), code, (m) => {
-    const prop = m[2].replace(/[\s.[\]'"]/g, '');
-    if (isNs && prop === 'WS') return;
+  const globals = /(?<![.\w$])(?:const|let|var)\s+self\b|[(,]\s*self\s*[,)=]|(?<![.\w$])self\s*=>/.test(code) ? 'window|globalThis' : 'window|globalThis|self';
+  // имена свойств берём из text: в code содержимое строк (window['WS']) затёрто пробелами
+  const original = (m, from, len) => text.substr(m.index + from, len);
+  each(new RegExp(String.raw`(?<![.\w$])(${globals})(${MEMBERS})\s*(?:${ASSIGN}|\+\+|--)`, 'g'), code, (m) => {
+    const prop = original(m, m[1].length, m[2].length).replace(/[\s.[\]'"`]/g, '');
+    if (isNs && m[1] === 'window' && prop === 'WS') return;
     const where = at(m.index);
     add('error', 'window', where.line, where.col, isNs
       ? `ns.js may assign only window.WS (found ${m[1]}.${prop})`
       : `assignment to ${m[1]}.${prop}: only js/core/ns.js writes to window (and only window.WS)`);
   });
-  each(/\bObject\s*\.\s*(assign|defineProperty|defineProperties)\s*\(\s*(window|globalThis)\b/g, code, (m) => {
+  each(new RegExp(String.raw`\bObject\s*\.\s*(assign|defineProperty|defineProperties)\s*\(\s*(${globals})\b`, 'g'), code, (m) => {
     if (isNs) return;
     add('error', 'window', at(m.index).line, at(m.index).col, `Object.${m[1]}(${m[2]}, …): only js/core/ns.js writes to window`);
   });
 
-  // ограниченные API
+  // ограниченные API (в code строки и комментарии уже затёрты, поэтому ищем любые упоминания)
   const restricted = [
-    [/(?<![.\w$'"])(?:window\s*\.\s*)?localStorage\b/g, 'js/core/store.js', 'localStorage', 'use WS.store'],
-    [/\b(?:speechSynthesis|SpeechSynthesisUtterance|webkitSpeechRecognition|SpeechRecognition|webkitSpeechGrammarList|SpeechGrammarList)\b/g, 'js/core/speech.js', null, 'use WS.speech / ctx.speak'],
-    [/\b(?:webkitAudioContext|OfflineAudioContext|AudioContext)\b/g, 'js/core/sfx.js', null, 'use WS.sfx / ctx.sfx'],
+    [/(?<![\w$])localStorage(?![\w$])/g, 'js/core/store.js', 'use WS.store'],
+    [/(?<![\w$])(?:speechSynthesis|SpeechSynthesisUtterance|webkitSpeechRecognition|SpeechRecognition|webkitSpeechGrammarList|SpeechGrammarList)(?![\w$])/g, 'js/core/speech.js', 'use WS.speech / ctx.speak'],
+    [/(?<![\w$])(?:webkitAudioContext|OfflineAudioContext|AudioContext)(?![\w$])/g, 'js/core/sfx.js', 'use WS.sfx / ctx.sfx'],
   ];
-  for (const [re, owner, label, hint] of restricted) {
+  for (const [re, owner, hint] of restricted) {
     if (rel === owner) continue;
-    each(re, code, (m) => {
-      const name = label ?? m[0];
-      add('error', 'api', at(m.index).line, at(m.index).col, `${name} is only allowed in ${owner} (${hint})`);
-    });
+    each(re, code, (m) => add('error', 'api', at(m.index).line, at(m.index).col, `${m[0]} is only allowed in ${owner} (${hint})`));
+    // обход через строку: window['localStorage']
+    for (const s of strings) {
+      re.lastIndex = 0;
+      const m = re.exec(s.value);
+      if (!m || m[0] !== s.value) continue;
+      if (!/\[\s*$/.test(code.slice(Math.max(0, s.start - 20), s.start))) continue;
+      add('error', 'api', at(s.start).line, at(s.start).col, `[${JSON.stringify(s.value)}] is only allowed in ${owner} (${hint})`);
+    }
   }
   if (isGameOrScreen) {
-    each(/\bMath\s*\.\s*random\b/g, code, (m) => add('error', 'random', at(m.index).line, at(m.index).col, 'Math.random in js/games or js/screens (use ctx.rng / WS.util.rng)'));
+    each(/\bMath\s*(?:\.\s*random|\[\s*['"`]random)\b/g, text, (m) => {
+      if (code[m.index] !== 'M') return; // внутри строки или шаблона
+      add('error', 'random', at(m.index).line, at(m.index).col, 'Math.random in js/games or js/screens (use ctx.rng / WS.util.rng)');
+    });
     each(/\bcrypto\s*\.\s*getRandomValues\b/g, code, (m) => add('warning', 'random', at(m.index).line, at(m.index).col, 'crypto.getRandomValues is not seeded (use ctx.rng / WS.util.rng)'));
   }
   if (rel !== 'js/screens/about.js') {
@@ -570,23 +587,39 @@ const checkJs = (rel, src, add) => {
       }
     }
   }
-  each(/(?<![.\w$])eval\s*\(/g, code, (m) => add('error', 'eval', at(m.index).line, at(m.index).col, 'eval() is forbidden'));
+  each(/(?<![\w$])eval\s*\(/g, code, (m) => add('error', 'eval', at(m.index).line, at(m.index).col, 'eval() is forbidden'));
   each(/(?<![.\w$])(?:new\s+)?Function\s*\(/g, code, (m) => add('error', 'eval', at(m.index).line, at(m.index).col, 'new Function() is forbidden'));
   each(/\b(?:setTimeout|setInterval)\s*\(\s*['"`]/g, code, (m) => add('error', 'eval', at(m.index).line, at(m.index).col, 'string code in setTimeout/setInterval is forbidden'));
-  each(/\bdocument\s*\.\s*write(?:ln)?\s*\(/g, code, (m) => add('error', 'document-write', at(m.index).line, at(m.index).col, 'document.write is forbidden'));
+  each(/\bdocument\s*(?:\.\s*write(?:ln)?|\[\s*['"`]writel?n?['"`]\s*\])\s*\(/g, text, (m) => {
+    if (code[m.index] !== 'd') return;
+    add('error', 'document-write', at(m.index).line, at(m.index).col, 'document.write is forbidden');
+  });
   each(/(?<![.\w$])debugger\b/g, code, (m) => add('error', 'debugger', at(m.index).line, at(m.index).col, 'debugger statement'));
 
   // WS: записи и (в играх) чтения
   const wsWrites = [];
   each(new RegExp(String.raw`(?<![.\w$])WS(${MEMBERS}*)\s*(?:${ASSIGN}|\+\+|--)`, 'g'), code, (m) => {
-    const first = /^\s*(?:\.\s*([A-Za-z_$][\w$]*)|\[\s*['"]?([^\]'"]*))/.exec(m[1]);
-    wsWrites.push({ index: m.index, key: first ? (first[1] ?? first[2]) : null, chain: m[1].replace(/\s+/g, '') });
+    const chain = original(m, 2, m[1].length);
+    const first = /^\s*(?:\.\s*([A-Za-z_$][\w$]*)|\[\s*['"`]?([^\]'"`]*))/.exec(chain);
+    wsWrites.push({ index: m.index, key: first ? (first[1] ?? first[2]).trim() : null, chain: chain.replace(/\s+/g, '') });
   });
   each(/\bObject\s*\.\s*(?:assign|defineProperty|defineProperties)\s*\(\s*WS\b((?:\s*\.\s*[A-Za-z_$][\w$]*)?)/g, code, (m) => {
     const key = m[1] ? m[1].replace(/[\s.]/g, '') : null;
     wsWrites.push({ index: m.index, key, chain: m[1] ? `.${key}` : '' });
   });
   if (isGame) {
+    // слушатели игры должны умирать вместе с сессией: { signal: ctx.signal } (CONTRACTS §3.1)
+    each(/\.\s*addEventListener\s*\(/g, code, (m) => {
+      const open = m.index + m[0].length - 1;
+      const close = matchBrace(code, open, '(', ')');
+      if (close < 0) return;
+      // делим по запятым в code (строки и regex затёрты), а текст аргументов берём из text
+      const args = splitTopLevel(code.slice(open + 1, close), ',')
+        .map((a) => text.substr(open + 1 + a.offset, a.text.length).trim()).filter(Boolean);
+      const third = args[2] ?? '';
+      if (/\bsignal\b/.test(third) || (third && !/^(?:true|false)$/.test(third) && !third.startsWith('{'))) return;
+      add('warning', 'signal', at(m.index).line, at(m.index).col, 'addEventListener without { signal: ctx.signal } (listeners must stop when the game is left)');
+    });
     const reg = [...code.matchAll(/(?<![.\w$])WS\s*\.\s*games\s*\.\s*register\s*\(/g)];
     if (!reg.length) add('error', 'game', 1, 1, 'a game file must call WS.games.register({ id, howto, start })');
     if (reg.length > 1) add('warning', 'game', at(reg[1].index).line, at(reg[1].index).col, 'WS.games.register is called more than once');
@@ -686,9 +719,9 @@ const splitTopLevel = (s, sep) => {
       else if (c === quote) quote = null;
       continue;
     }
-    if (c === '"' || c === '\'') quote = c;
-    else if (c === '(' || c === '[') depth++;
-    else if (c === ')' || c === ']') depth--;
+    if (c === '"' || c === '\'' || c === '`') quote = c;
+    else if (c === '(' || c === '[' || c === '{') depth++;
+    else if (c === ')' || c === ']' || c === '}') depth--;
     else if (c === sep && depth === 0) {
       parts.push({ text: s.slice(start, i), offset: start });
       start = i + 1;
@@ -866,19 +899,156 @@ const checkCss = (rel, src, add) => {
 // index.html
 // ---------------------------------------------------------------------------------------------------------
 
-const checkHtml = (rel, src, add) => {
-  const pos = lineIndex(src);
-  const s = src.replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n]/g, ' '));
-  const re = /\b(src|href|action|poster|data)\s*=\s*(["']?)\s*((?:https?:)?\/\/[^"'\s>]*)/gi;
+// CONTRACTS §1.2: фиксированный список и порядок скриптов, порядок стилей, viewport.
+const INDEX_SCRIPTS = ['core/ns', 'core/i18n', 'core/store', 'core/settings', 'core/data', 'core/progress',
+  'core/speech', 'core/sfx', 'ui/icons', 'ui/kit', 'ui/letter-input', 'ui/keypad', 'core/router', 'core/shell',
+  'core/games', 'screens/home', 'screens/learn', 'screens/review', 'screens/progress', 'screens/tree',
+  'screens/settings', 'screens/about', 'screens/lab', 'core/boot'].map((n) => `js/${n}.js`);
+const INDEX_CSS_HEAD = ['css/tokens.css', 'css/base.css', 'css/kit.css'];
+const VIEWPORT = ['width=device-width', 'initial-scale=1', 'viewport-fit=cover', 'interactive-widget=resizes-content'];
+
+const attrsOf = (tag) => {
+  const out = {};
+  const body = tag.replace(/^<[\w-]+/, '').replace(/\/?>$/, '');
+  const re = /([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g;
   let m;
-  while ((m = re.exec(s))) {
-    const where = pos(m.index);
-    add('error', 'url', where.line, where.col, `external ${m[1]}=${m[3].slice(0, 60)} (everything must be local)`);
-  }
+  while ((m = re.exec(body))) out[m[1].toLowerCase()] = m[2] ?? m[3] ?? m[4] ?? '';
+  return out;
+};
+
+// Локальная ссылка без ./, ?query и #hash; null — внешняя, data:, mailto: и т. п.
+const localRef = (v) => {
+  if (typeof v !== 'string' || !v.trim() || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(v.trim())) return null;
+  return v.trim().replace(/^\.\//, '').replace(/[?#].*$/, '');
+};
+
+const checkHtml = (rel, src, add, root) => {
+  const pos = lineIndex(src);
+  const addAt = (level, rule, index, msg) => {
+    const p = pos(index);
+    add(level, rule, p.line, p.col, msg);
+  };
+  const s = src.replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n]/g, ' '));
+  const re = /\b(src|href|action|poster|data|srcset)\s*=\s*(["']?)\s*((?:https?:)?\/\/[^"'\s>]*)/gi;
+  let m;
+  while ((m = re.exec(s))) addAt('error', 'url', m.index, `external ${m[1]}=${m[3].slice(0, 60)} (everything must be local)`);
   const css = /url\(\s*['"]?((?:https?:)?\/\/[^'")\s]*)/gi;
-  while ((m = css.exec(s))) {
-    const where = pos(m.index);
-    add('error', 'url', where.line, where.col, `external url(${m[1].slice(0, 60)})`);
+  while ((m = css.exec(s))) addAt('error', 'url', m.index, `external url(${m[1].slice(0, 60)})`);
+
+  const tags = [];
+  const tagRe = /<(script|link|img|source|meta|html|iframe)\b[^>]*>/gi;
+  while ((m = tagRe.exec(s))) tags.push({ name: m[1].toLowerCase(), attrs: attrsOf(m[0]), index: m.index, end: m.index + m[0].length });
+
+  // локальные файлы существуют
+  const base = path.dirname(path.join(root, rel));
+  for (const t of tags) {
+    if (t.name === 'html' || t.name === 'meta') continue;
+    for (const key of ['src', 'href']) {
+      const ref = localRef(t.attrs[key]);
+      if (!ref) continue;
+      if (!existsSync(path.join(base, ref))) addAt('error', 'missing-file', t.index, `${key}="${t.attrs[key]}": file not found`);
+    }
+  }
+
+  // встроенные скрипты: синтаксис (только компиляция, без запуска)
+  const inlineRe = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+  const inline = [];
+  while ((m = inlineRe.exec(s))) {
+    const attrs = attrsOf(`<script${m[1]}>`);
+    if (attrs.src !== undefined) continue;
+    if (attrs.type && !/^(?:text\/javascript|application\/javascript|module)$/i.test(attrs.type)) continue;
+    const bodyStart = m.index + m[0].indexOf('>') + 1;
+    const body = src.slice(bodyStart, bodyStart + m[2].length);
+    inline.push({ index: m.index, body });
+    try {
+      new vm.Script(body, { filename: rel, lineOffset: pos(bodyStart).line - 1 });
+    } catch (e) {
+      const line = Number((new RegExp(`^${escapeRe(rel)}:(\\d+)`, 'm').exec(String(e.stack)) ?? [])[1]) || pos(bodyStart).line;
+      add('error', 'syntax', line, 1, `inline <script>: ${e.name}: ${e.message}`);
+    }
+  }
+
+  if (path.basename(rel) !== 'index.html' || rel.includes('/')) return;
+
+  // скрипты: полный список, defer, порядок
+  const scripts = tags.filter((t) => t.name === 'script' && t.attrs.src !== undefined)
+    .map((t) => ({ ...t, ref: localRef(t.attrs.src) })).filter((t) => t.ref);
+  for (const want of INDEX_SCRIPTS) {
+    if (!scripts.some((t) => t.ref === want)) add('error', 'html-scripts', 1, 1, `index.html must load <script defer src="${want}"> (CONTRACTS §1.2)`);
+  }
+  const seen = new Set();
+  for (const t of scripts) {
+    if (seen.has(t.ref)) addAt('error', 'html-scripts', t.index, `${t.ref} is loaded twice`);
+    seen.add(t.ref);
+    if (!('defer' in t.attrs)) addAt('error', 'html-scripts', t.index, `<script src="${t.ref}"> must have defer`);
+    if ('async' in t.attrs || /module/i.test(t.attrs.type ?? '')) addAt('error', 'html-scripts', t.index, `<script src="${t.ref}">: no async / type="module" (classic deferred scripts)`);
+    if (INDEX_SCRIPTS.includes(t.ref)) continue;
+    if (t.ref.startsWith('js/games/')) addAt('warning', 'html-scripts', t.index, `${t.ref}: games are loaded lazily by the shell, not from index.html`);
+    else addAt('warning', 'html-scripts', t.index, `${t.ref} is not in the CONTRACTS §1.2 script list`);
+  }
+  const listed = scripts.filter((t) => INDEX_SCRIPTS.includes(t.ref));
+  for (let k = 1; k < listed.length; k++) {
+    const a = listed[k - 1];
+    const b = listed[k];
+    if (INDEX_SCRIPTS.indexOf(b.ref) < INDEX_SCRIPTS.indexOf(a.ref)) {
+      addAt('error', 'html-scripts', b.index, `${b.ref} must come before ${a.ref} (CONTRACTS §1.2 script order)`);
+    }
+  }
+  // файлы js/ (кроме игр), которые никто не загружает
+  const jsDir = path.join(root, 'js');
+  if (existsSync(jsDir)) {
+    const orphans = listFiles(jsDir).filter((f) => f.endsWith('.js') && !f.startsWith('games/')).map((f) => `js/${f}`)
+      .filter((f) => !scripts.some((t) => t.ref === f));
+    orphans.forEach((f) => add('warning', 'html-scripts', 1, 1, `${f} is not loaded by index.html`));
+  }
+
+  // стили: tokens, base, kit, затем все css/screens/*
+  const sheets = tags.filter((t) => t.name === 'link' && /(?:^|\s)stylesheet(?:\s|$)/i.test(t.attrs.rel ?? ''))
+    .map((t) => ({ ...t, ref: localRef(t.attrs.href) })).filter((t) => t.ref);
+  const order = (ref) => {
+    const k = INDEX_CSS_HEAD.indexOf(ref);
+    if (k >= 0) return k;
+    return ref.startsWith('css/screens/') ? INDEX_CSS_HEAD.length : -1;
+  };
+  INDEX_CSS_HEAD.forEach((want) => {
+    if (!sheets.some((t) => t.ref === want)) add('error', 'html-css', 1, 1, `index.html must link ${want} (CONTRACTS §1.2)`);
+  });
+  let maxSeen = -1;
+  let maxRef = '';
+  for (const t of sheets) {
+    const o = order(t.ref);
+    if (t.ref.startsWith('css/games/')) addAt('warning', 'html-css', t.index, `${t.ref}: games CSS is injected by the shell on demand`);
+    if (o < 0) continue;
+    if (o < maxSeen) addAt('error', 'html-css', t.index, `${t.ref} must come before ${maxRef} (CSS order: tokens, base, kit, screens/*)`);
+    if (o > maxSeen) {
+      maxSeen = o;
+      maxRef = t.ref;
+    }
+  }
+  const screensDir = path.join(root, 'css/screens');
+  if (existsSync(screensDir)) {
+    readdirSync(screensDir).filter((f) => f.endsWith('.css')).sort().forEach((f) => {
+      if (!sheets.some((t) => t.ref === `css/screens/${f}`)) add('warning', 'html-css', 1, 1, `css/screens/${f} is not linked from index.html`);
+    });
+  }
+
+  // viewport, язык, защита от адреса без слэша, тема до отрисовки
+  const vp = tags.find((t) => t.name === 'meta' && (t.attrs.name ?? '').toLowerCase() === 'viewport');
+  if (!vp) add('error', 'html-meta', 1, 1, `missing <meta name="viewport" content="${VIEWPORT.join(', ')}">`);
+  else {
+    const parts = (vp.attrs.content ?? '').split(',').map((x) => x.trim().replace(/\s*=\s*/, '='));
+    VIEWPORT.forEach((want) => {
+      if (!parts.includes(want)) addAt('error', 'html-meta', vp.index, `viewport meta needs ${want} (CONTRACTS §1.2)`);
+    });
+  }
+  const htmlTag = tags.find((t) => t.name === 'html');
+  if (!htmlTag || htmlTag.attrs.lang !== 'ru') add('warning', 'html-meta', htmlTag ? pos(htmlTag.index).line : 1, 1, '<html lang="ru"> expected');
+  const firstScript = /<script\b[^>]*>([\s\S]*?)<\/script\s*>/i.exec(s);
+  if (!firstScript || /\bsrc\s*=/.test(firstScript[0].slice(0, firstScript[0].indexOf('>'))) || !/location\.replace\(/.test(firstScript[1])) {
+    add('warning', 'html-guard', firstScript ? pos(firstScript.index).line : 1, 1, 'the first <script> in <head> should be the slash guard from CONTRACTS §1.2 (location.replace(… + \'/\' …))');
+  }
+  if (!inline.some((x) => /wordsprout\.v1\.settings/.test(x.body))) {
+    add('warning', 'html-guard', 1, 1, 'no inline pre-paint script reading wordsprout.v1.settings (data-theme / data-look / data-motion)');
   }
 };
 
@@ -915,7 +1085,7 @@ const checkFile = async (root, rel) => {
   } else if (rel.endsWith('.css')) {
     checkCss(rel, src, add);
   } else if (rel.endsWith('.html')) {
-    checkHtml(rel, src, add);
+    checkHtml(rel, src, add, root);
   }
   // ограничить шум: не больше WARN_CAP предупреждений одного правила на файл
   const out = [];

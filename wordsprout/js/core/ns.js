@@ -5,7 +5,8 @@
    WS.util:
    - q(sel, root), qa(sel, root) — querySelector и querySelectorAll (qa возвращает массив);
    - el(tag, props, ...kids) — создаёт элемент. Ключи props: class/className (строка или массив),
-     text (textContent), html (только строки из WS.ui.icons), dataset, style (объект или строка),
+     text (textContent), html (только SVG-строки из WS.ui.icons, любой другой текст попадёт в
+     textContent), dataset, style (объект или строка),
      attrs (атрибуты как есть), on<событие> (функция → addEventListener). Остальные ключи: свойство
      элемента, если оно есть, иначе атрибут. null/undefined пропускаются; false снимает логическое
      свойство (spellcheck: false → spellcheck="false"). Дети: строки, числа, узлы, вложенные массивы;
@@ -50,6 +51,13 @@
     }
   };
 
+  // Разметку через innerHTML пропускаем только для SVG-строк из WS.ui.icons.
+  const setIcons = (node, icons) => {
+    const markup = String(icons);
+    if (/^\s*<svg[\s>]/i.test(markup)) node.innerHTML = icons;
+    else node.textContent = markup;
+  };
+
   const setProp = (node, key, value) => {
     if (value == null) return;
     if (key === 'class' || key === 'className') {
@@ -58,7 +66,7 @@
     } else if (key === 'text') {
       node.textContent = String(value);
     } else if (key === 'html') {
-      node.innerHTML = String(value);
+      setIcons(node, value);
     } else if (key === 'dataset') {
       for (const [name, v] of Object.entries(value)) {
         if (v != null && v !== false) node.dataset[name] = v === true ? '' : String(v);
