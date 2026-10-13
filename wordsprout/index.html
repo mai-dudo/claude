@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<script>if (!location.pathname.endsWith('/') && !/\.html$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+<meta charset="utf-8">
+<script>
+  /* Тема, стиль и анимации до первой отрисовки: из сохранённых настроек и prefers-*. */
+  (() => {
+    'use strict';
+    const root = document.documentElement;
+    let s = {};
+    try {
+      s = JSON.parse(localStorage.getItem('wordsprout.v1.settings')) || {};
+    } catch (e) {
+      s = {};
+    }
+    const media = (q) => window.matchMedia && window.matchMedia(q).matches;
+    const test = /[?&]test=1(&|$)/.test(location.search);
+    const dark = s.theme === 'dark' || (s.theme !== 'light' && media('(prefers-color-scheme: dark)'));
+    root.dataset.theme = dark ? 'dark' : 'light';
+    root.dataset.look = s.look === 'simple' ? 'simple' : 'illustrated';
+    root.dataset.motion = test || s.motion === 'reduce' || media('(prefers-reduced-motion: reduce)') ? 'reduce' : 'full';
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>WordSprout</title>
+<meta name="description" content="WordSprout — английские слова по картинкам: смотри, слушай и печатай.">
+<meta name="theme-color" content="#fbf6ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1c16" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="img/app/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/app/icon-192.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/kit.css">
+<link rel="stylesheet" href="css/screens/home.css">
+<link rel="stylesheet" href="css/screens/learn.css">
+<link rel="stylesheet" href="css/screens/review.css">
+<link rel="stylesheet" href="css/screens/progress.css">
+<link rel="stylesheet" href="css/screens/tree.css">
+<link rel="stylesheet" href="css/screens/settings.css">
+<link rel="stylesheet" href="css/screens/about.css">
+<link rel="stylesheet" href="css/screens/lab.css">
+<style>
+  /* Временная раскладка каркаса, пока нет kit.css и base.css. */
+  [hidden] { display: none !important; }
+  body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); }
+  .ws-app { min-height: 100dvh; display: flex; flex-direction: column; }
+  .ws-header { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: env(safe-area-inset-top) 12px 0; }
+  .ws-header__back, .ws-game__leave { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--text); }
+  .ws-header__logo { min-height: 44px; display: inline-flex; align-items: center; font-weight: 700; color: var(--primary); text-decoration: none; }
+  .ws-header__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); }
+  .ws-view { flex: 1; box-sizing: border-box; width: 100%; max-width: 760px; margin: 0 auto; padding: 8px 16px calc(var(--tabbar-h) + 24px + env(safe-area-inset-bottom)); }
+  .ws-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; background: var(--surface); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
+  .ws-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: var(--tabbar-h); font-size: 12px; color: var(--text-muted); text-decoration: none; }
+  .ws-tab.is-active { color: var(--primary); font-weight: 600; }
+  .ws-icon { display: inline-flex; }
+  .ws-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; min-height: 44px; padding: 0 18px; margin: 4px 4px 4px 0; border: 0; border-radius: var(--radius-m); font: inherit; text-decoration: none; cursor: pointer; }
+  .ws-btn--primary { background: var(--primary); color: var(--primary-ink); }
+  .ws-btn--secondary { background: var(--surface-2); color: var(--text); }
+  .ws-toast { position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + 24px); transform: translateX(-50%); z-index: 30; padding: 10px 16px; border-radius: var(--radius-m); background: var(--text); color: var(--bg); }
+  .ws-confirm { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; background: rgb(0 0 0 / 45%); }
+  .ws-confirm__box { max-width: 360px; padding: 20px; border-radius: var(--radius-l); background: var(--surface); }
+  .ws-game__bar { display: flex; align-items: center; gap: 10px; min-height: 52px; }
+  .ws-game__title { font-weight: 600; }
+  .ws-game__progress { flex: 1; height: 8px; overflow: hidden; border-radius: 4px; background: var(--surface-2); }
+  .ws-game__progress-fill { display: block; height: 100%; background: var(--primary); }
+  .ws-pic { display: inline-grid; place-items: center; width: var(--size, 120px); height: var(--size, 120px); }
+  .ws-pic__emoji { font-size: calc(var(--size, 120px) * 0.7); line-height: 1; }
+  .ws-pic__tile { display: grid; place-items: center; width: 100%; height: 100%; border-radius: var(--radius-m); background: hsl(var(--hue, 90) 45% 75%); color: var(--accent-ink); }
+  [data-ws=chapter-tile], [data-ws=game-card] { display: inline-flex; align-items: center; min-height: 44px; }
+  .ws-cell { display: inline-grid; place-items: center; width: 1.6em; height: 2em; margin: 1px; border-bottom: 2px solid var(--border); }
+  @media (min-width: 720px) {
+    .ws-tabbar { position: static; order: 1; justify-content: center; border-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+    .ws-view { order: 2; }
+    .ws-tab { flex: 0 0 auto; flex-direction: row; gap: 6px; padding: 0 16px; min-height: 48px; font-size: 14px; }
+    .ws-view { padding-bottom: 32px; }
+  }
+</style>
+<script defer src="js/core/ns.js"></script>
+<script defer src="js/core/i18n.js"></script>
+<script defer src="js/core/store.js"></script>
+<script defer src="js/core/settings.js"></script>
+<script defer src="js/core/data.js"></script>
+<script defer src="js/core/progress.js"></script>
+<script defer src="js/core/speech.js"></script>
+<script defer src="js/core/sfx.js"></script>
+<script defer src="js/ui/icons.js"></script>
+<script defer src="js/ui/kit.js"></script>
+<script defer src="js/ui/letter-input.js"></script>
+<script defer src="js/ui/keypad.js"></script>
+<script defer src="js/core/router.js"></script>
+<script defer src="js/core/shell.js"></script>
+<script defer src="js/core/games.js"></script>
+<script defer src="js/screens/home.js"></script>
+<script defer src="js/screens/learn.js"></script>
+<script defer src="js/screens/review.js"></script>
+<script defer src="js/screens/progress.js"></script>
+<script defer src="js/screens/tree.js"></script>
+<script defer src="js/screens/settings.js"></script>
+<script defer src="js/screens/about.js"></script>
+<script defer src="js/screens/lab.js"></script>
+<script defer src="js/core/boot.js"></script>
+</head>
+<body>
+<noscript><p>Для WordSprout нужен JavaScript. Включи его в настройках браузера.</p></noscript>
+</body>
+</html>

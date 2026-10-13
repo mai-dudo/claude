@@ -1,0 +1,64 @@
+/* Заглушка: дизайн-токены WordSprout — цвета, отступы, скругления, размеры шрифта, тени и длительности
+   для светлой и тёмной темы, простого стиля и режима без анимаций. Палитра: тёплый кремовый фон,
+   листовой зелёный и подсолнечный акцент. Полный набор токенов сделает владелец файла. */
+:root {
+  color-scheme: light;
+  --bg: #fbf6ea;
+  --surface: #ffffff;
+  --surface-2: #f2ead6;
+  --text: #2d2b22;
+  --text-muted: #6d6754;
+  --border: #e4d9bf;
+  --primary: #3d8b37;
+  --primary-ink: #ffffff;
+  --accent: #f3b724;
+  --accent-ink: #3a2c00;
+  --ok: #2f9a44;
+  --bad: #d4501c;
+  --shadow: 0 2px 10px rgb(70 55 20 / 14%);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius-s: 8px;
+  --radius-m: 14px;
+  --radius-l: 22px;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-s: 0.875rem;
+  --fs-m: 1rem;
+  --fs-l: 1.25rem;
+  --fs-xl: 1.75rem;
+  --dur-fast: 150ms;
+  --dur: 250ms;
+  --dur-slow: 450ms;
+  --tabbar-h: 60px;
+}
+
+[data-theme=dark] {
+  color-scheme: dark;
+  --bg: #1a1c16;
+  --surface: #25281f;
+  --surface-2: #30342a;
+  --text: #f0ecdf;
+  --text-muted: #b3ad99;
+  --border: #3d4234;
+  --primary: #6cbf5f;
+  --primary-ink: #10200d;
+  --accent: #f6c445;
+  --accent-ink: #2c2100;
+  --ok: #5cc46f;
+  --bad: #f07a4a;
+  --shadow: 0 2px 10px rgb(0 0 0 / 40%);
+}
+
+[data-look=simple] {
+  --shadow: none;
+}
+
+[data-motion=reduce] {
+  --dur-fast: 0ms;
+  --dur: 0ms;
+  --dur-slow: 0ms;
+}

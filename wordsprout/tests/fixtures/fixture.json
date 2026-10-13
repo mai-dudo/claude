@@ -1,0 +1,189 @@
+{
+  "chapter": "_fixture",
+  "words": [
+    {
+      "id": "cat", "en": "cat", "ru": "кошка", "pos": "noun", "emoji": "1f431",
+      "forms": ["cats"],
+      "easy": { "en": "My cat sleeps on the sofa.", "ru": "Моя кошка спит на диване.", "answer": "cat" },
+      "hard": {
+        "en": "Every morning our old cat waits by the kitchen door for breakfast.",
+        "ru": "Каждое утро наша старая кошка ждёт завтрака у кухонной двери.", "answer": "cat"
+      }
+    },
+    {
+      "id": "apple", "en": "apple", "ru": "яблоко", "pos": "noun", "emoji": "1f34e",
+      "forms": ["apples"],
+      "easy": { "en": "She eats a red apple.", "ru": "Она ест красное яблоко.", "answer": "apple" },
+      "hard": {
+        "en": "He packed two apples and a sandwich for the long trip.",
+        "ru": "Он взял в долгую поездку два яблока и бутерброд.", "answer": "apples"
+      }
+    },
+    {
+      "id": "car", "en": "car", "ru": "машина", "ruAlt": ["автомобиль"], "pos": "noun", "emoji": "1f697",
+      "forms": ["cars"],
+      "easy": { "en": "Our car is very small.", "ru": "Наша машина совсем маленькая.", "answer": "car" },
+      "hard": {
+        "en": "My uncle washes his blue car in the yard every Sunday.",
+        "ru": "Мой дядя моет свою синюю машину во дворе каждое воскресенье.", "answer": "car"
+      }
+    },
+    {
+      "id": "tea", "en": "tea", "ru": "чай", "pos": "noun", "emoji": "2615",
+      "forms": [],
+      "easy": { "en": "I drink hot tea.", "ru": "Я пью горячий чай.", "answer": "tea" },
+      "hard": {
+        "en": "Grandma always makes sweet tea with lemon when guests come over.",
+        "ru": "Бабушка всегда заваривает сладкий чай с лимоном, когда приходят гости.", "answer": "tea"
+      }
+    },
+    {
+      "id": "book", "en": "book", "ru": "книга", "pos": "noun", "emoji": "1f4da",
+      "forms": ["books"],
+      "easy": { "en": "This book is about space.", "ru": "Эта книга о космосе.", "answer": "book" },
+      "hard": {
+        "en": "We borrowed three books from the library before summer break.",
+        "ru": "Перед летними каникулами мы взяли в библиотеке три книги.", "answer": "books"
+      }
+    },
+    {
+      "id": "house", "en": "house", "ru": "дом", "pos": "noun", "emoji": "1f3e0",
+      "forms": ["houses"],
+      "easy": { "en": "Their house has a red door.", "ru": "У их дома красная дверь.", "answer": "house" },
+      "hard": {
+        "en": "The house at the end of our street has a tiny garden.",
+        "ru": "У дома в конце нашей улицы есть крошечный сад.", "answer": "house"
+      }
+    },
+    {
+      "id": "sunny", "en": "sunny", "ru": "солнечный", "pos": "adj", "emoji": "2600",
+      "forms": [],
+      "easy": { "en": "It is sunny today.", "ru": "Сегодня солнечно.", "answer": "sunny" },
+      "hard": {
+        "en": "It was a sunny afternoon, so we had a picnic by the river.",
+        "ru": "День был солнечный, и мы устроили пикник у реки.", "answer": "sunny"
+      }
+    },
+    {
+      "id": "dog", "en": "dog", "ru": "собака", "pos": "noun", "emoji": "1f436",
+      "forms": ["dogs"],
+      "easy": { "en": "Our dog loves the snow.", "ru": "Наша собака обожает снег.", "answer": "dog" },
+      "hard": {
+        "en": "A big friendly dog lives next door and plays with my little brother.",
+        "ru": "По соседству живёт большая добрая собака, она играет с моим младшим братом.", "answer": "dog"
+      }
+    },
+    {
+      "id": "cook", "en": "cook", "ru": "готовить", "pos": "verb", "emoji": "1f373",
+      "forms": ["cooks", "cooked", "cooking"],
+      "verb": { "base": "cook", "s": "cooks", "past": "cooked", "pp": "cooked", "ing": "cooking" },
+      "drills": [
+        {
+          "tense": "present-simple", "en": "My grandpa ___ breakfast every Sunday.",
+          "ru": "Мой дедушка готовит завтрак каждое воскресенье.", "answer": "cooks"
+        },
+        {
+          "tense": "past-simple", "en": "Yesterday we ___ rice with vegetables.",
+          "ru": "Вчера мы приготовили рис с овощами.", "answer": "cooked"
+        },
+        {
+          "tense": "present-continuous", "en": "Mom ___ dinner right now.",
+          "ru": "Мама сейчас готовит ужин.", "answer": "is cooking"
+        },
+        {
+          "tense": "present-perfect", "en": "Tom ___ lunch for all of us.",
+          "ru": "Том приготовил обед для всех нас.", "answer": "has cooked"
+        }
+      ],
+      "easy": { "en": "Dad likes to cook pasta.", "ru": "Папа любит готовить пасту.", "answer": "cook" },
+      "hard": {
+        "en": "On rainy weekends my sister and I cook soup together for the whole family.",
+        "ru": "В дождливые выходные мы с сестрой вместе варим суп для всей семьи.", "answer": "cook"
+      }
+    },
+    {
+      "id": "swim", "en": "swim", "ru": "плавать", "pos": "verb", "emoji": "1f3ca",
+      "forms": ["swims", "swam", "swum", "swimming"],
+      "verb": { "base": "swim", "s": "swims", "past": "swam", "pp": "swum", "ing": "swimming" },
+      "drills": [
+        {
+          "tense": "present-simple", "en": "Anna ___ in the pool after school.",
+          "ru": "Анна плавает в бассейне после школы.", "answer": "swims"
+        },
+        {
+          "tense": "past-simple", "en": "We ___ across the river last summer.",
+          "ru": "Прошлым летом мы переплыли реку.", "answer": "swam"
+        },
+        {
+          "tense": "present-continuous", "en": "Look, the dog ___ after the ball!",
+          "ru": "Смотри, собака плывёт за мячом!", "answer": "is swimming"
+        },
+        {
+          "tense": "present-perfect", "en": "She ___ in the ocean many times.",
+          "ru": "Она много раз плавала в океане.", "answer": "has swum"
+        }
+      ],
+      "easy": { "en": "Ducks swim in the pond.", "ru": "Утки плавают в пруду.", "answer": "swim" },
+      "hard": {
+        "en": "In July the children swim in the lake until the sun goes down.",
+        "ru": "В июле дети плавают в озере, пока не сядет солнце.", "answer": "swim"
+      }
+    },
+    {
+      "id": "study", "en": "study", "ru": "учиться", "ruAlt": ["изучать"], "pos": "verb", "emoji": "1f4d6",
+      "forms": ["studies", "studied", "studying"],
+      "verb": { "base": "study", "s": "studies", "past": "studied", "pp": "studied", "ing": "studying" },
+      "drills": [
+        {
+          "tense": "present-simple", "en": "My brother ___ math at college.",
+          "ru": "Мой брат изучает математику в колледже.", "answer": "studies"
+        },
+        {
+          "tense": "past-simple", "en": "They ___ hard for the exam.",
+          "ru": "Они усердно готовились к экзамену.", "answer": "studied"
+        },
+        {
+          "tense": "present-continuous", "en": "Kate ___ in her room now.",
+          "ru": "Кейт сейчас занимается у себя в комнате.", "answer": "is studying"
+        },
+        {
+          "tense": "present-perfect", "en": "Ben ___ French for two years.",
+          "ru": "Бен учит французский уже два года.", "answer": "has studied"
+        }
+      ],
+      "easy": { "en": "I study English every evening.", "ru": "Я учу английский каждый вечер.", "answer": "study" },
+      "hard": {
+        "en": "Before every test my best friend and I study together at the library.",
+        "ru": "Перед каждой контрольной мы с лучшим другом вместе занимаемся в библиотеке.", "answer": "study"
+      }
+    },
+    {
+      "id": "walk", "en": "walk", "ru": "гулять", "ruAlt": ["ходить пешком"], "pos": "verb", "emoji": "1f6b6",
+      "forms": ["walks", "walked", "walking"],
+      "verb": { "base": "walk", "s": "walks", "past": "walked", "pp": "walked", "ing": "walking" },
+      "drills": [
+        {
+          "tense": "present-simple", "en": "Lily ___ her puppy twice a day.",
+          "ru": "Лили выгуливает щенка два раза в день.", "answer": "walks"
+        },
+        {
+          "tense": "past-simple", "en": "I ___ home in the rain.",
+          "ru": "Я шёл домой под дождём.", "answer": "walked"
+        },
+        {
+          "tense": "present-continuous", "en": "Grandpa ___ along the beach.",
+          "ru": "Дедушка гуляет по пляжу.", "answer": "is walking"
+        },
+        {
+          "tense": "present-perfect", "en": "He ___ ten miles today!",
+          "ru": "Сегодня он прошёл десять миль!", "answer": "has walked"
+        }
+      ],
+      "easy": { "en": "We walk to school together.", "ru": "Мы вместе ходим в школу пешком.", "answer": "walk" },
+      "hard": {
+        "en": "After dinner my parents like to walk slowly around the quiet park.",
+        "ru": "После ужина мои родители любят медленно гулять по тихому парку.", "answer": "walk"
+      }
+    }
+  ]
+}
