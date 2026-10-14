@@ -1,0 +1,165 @@
+{
+  "chapter": "home",
+  "words": [
+    {
+      "id": "house", "en": "house", "ru": "дом", "pos": "noun", "emoji": "1f3e0",
+      "forms": ["houses"],
+      "easy": { "en": "Our house has a green roof.", "ru": "У нашего дома зелёная крыша.", "answer": "house" },
+      "hard": { "en": "Last spring Rosa and Adam bought an old house near the forest.", "ru": "Прошлой весной Роза и Адам купили старый дом у леса.", "answer": "house" }
+    },
+    {
+      "id": "door", "en": "door", "ru": "дверь", "pos": "noun", "emoji": "1f6aa",
+      "forms": ["doors"],
+      "easy": { "en": "Someone is knocking on the door.", "ru": "Кто-то стучит в дверь.", "answer": "door" },
+      "hard": { "en": "Max painted our front door blue, and now the neighbors love it.", "ru": "Макс покрасил нашу входную дверь в синий цвет, и теперь соседи от неё в восторге.", "answer": "door" }
+    },
+    {
+      "id": "window", "en": "window", "ru": "окно", "pos": "noun", "emoji": "1fa9f",
+      "forms": ["windows"],
+      "easy": { "en": "Kate looks out the window.", "ru": "Кейт смотрит в окно.", "answer": "window" },
+      "hard": { "en": "From the window of her new office, Nina can see the whole park.", "ru": "Из окна своего нового офиса Нина видит весь парк.", "answer": "window" }
+    },
+    {
+      "id": "bed", "en": "bed", "ru": "кровать", "pos": "noun", "emoji": "1f6cf",
+      "forms": ["beds"],
+      "easy": { "en": "Leo makes his bed every morning.", "ru": "Лео каждое утро заправляет кровать.", "answer": "bed" },
+      "hard": { "en": "Our guests can sleep on the big bed, and we will take the couch.", "ru": "Гости могут спать на большой кровати, а мы ляжем на диване.", "answer": "bed" }
+    },
+    {
+      "id": "open", "en": "open", "ru": "открывать", "pos": "verb", "emoji": "1f513",
+      "forms": ["opens", "opened", "opening"],
+      "verb": { "base": "open", "s": "opens", "past": "opened", "pp": "opened", "ing": "opening" },
+      "drills": [
+        { "tense": "present-simple", "en": "Ella usually ___ the cafe at seven.", "ru": "Элла обычно открывает кафе в семь.", "answer": "opens" },
+        { "tense": "past-simple", "en": "Yesterday Ben ___ all his birthday presents at once.", "ru": "Вчера Бен разом открыл все подарки ко дню рождения.", "answer": "opened" },
+        { "tense": "present-continuous", "en": "Look, the baby ___ her eyes!", "ru": "Смотри, малышка открывает глазки!", "answer": "is opening" },
+        { "tense": "present-perfect", "en": "Sam ___ the fridge five times since lunch!", "ru": "После обеда Сэм открывал холодильник уже пять раз!", "answer": "has opened" }
+      ],
+      "easy": { "en": "Can you open this jar?", "ru": "Можешь открыть эту банку?", "answer": "open" },
+      "hard": { "en": "When Lisa opened the box, a tiny kitten looked up at her.", "ru": "Когда Лиза открыла коробку, оттуда на неё посмотрел крошечный котёнок.", "answer": "opened" }
+    },
+    {
+      "id": "room", "en": "room", "ru": "комната", "pos": "noun", "emoji": null,
+      "forms": ["rooms"],
+      "easy": { "en": "My room is small but bright.", "ru": "Моя комната маленькая, но светлая.", "answer": "room" },
+      "hard": { "en": "Our apartment has three rooms, and the biggest one gets the morning sun.", "ru": "В нашей квартире три комнаты, и в самую большую по утрам заглядывает солнце.", "answer": "rooms" }
+    },
+    {
+      "id": "chair", "en": "chair", "ru": "стул", "pos": "noun", "emoji": "1fa91",
+      "forms": ["chairs"],
+      "easy": { "en": "Alex fixes the old chair.", "ru": "Алекс чинит старый стул.", "answer": "chair" },
+      "hard": { "en": "We need two more chairs, because Grandma and Grandpa are coming for dinner.", "ru": "Нам нужны ещё два стула, потому что к ужину придут бабушка и дедушка.", "answer": "chairs" }
+    },
+    {
+      "id": "table", "en": "table", "ru": "стол", "pos": "noun", "emoji": null,
+      "forms": ["tables"],
+      "easy": { "en": "Lucy sets the table for lunch.", "ru": "Люси накрывает на стол к обеду.", "answer": "table" },
+      "hard": { "en": "Our new table was too wide for the door, so we took off its legs.", "ru": "Наш новый стол не проходил в дверь, поэтому мы открутили у него ножки.", "answer": "table" }
+    },
+    {
+      "id": "close", "en": "close", "ru": "закрывать", "pos": "verb", "emoji": null,
+      "forms": ["closes", "closed", "closing"],
+      "verb": { "base": "close", "s": "closes", "past": "closed", "pp": "closed", "ing": "closing" },
+      "drills": [
+        { "tense": "present-simple", "en": "The library ___ at six on Saturdays.", "ru": "По субботам библиотека закрывается в шесть.", "answer": "closes" },
+        { "tense": "past-simple", "en": "Last night Emma ___ her laptop at midnight.", "ru": "Прошлой ночью Эмма закрыла ноутбук в полночь.", "answer": "closed" },
+        { "tense": "present-continuous", "en": "Hurry, the store ___ right now!", "ru": "Скорее, магазин прямо сейчас закрывается!", "answer": "is closing" },
+        { "tense": "present-perfect", "en": "Grandpa ___ the garden gate three times since breakfast.", "ru": "С завтрака дедушка уже три раза закрывал калитку.", "answer": "has closed" }
+      ],
+      "easy": { "en": "Close your eyes and listen.", "ru": "Закрой глаза и послушай.", "answer": "close" },
+      "hard": { "en": "When the storm started, Jake ran around the house and closed every window.", "ru": "Когда началась гроза, Джейк обежал весь дом и закрыл все окна.", "answer": "closed" }
+    },
+    {
+      "id": "key", "en": "key", "ru": "ключ", "pos": "noun", "emoji": "1f511",
+      "forms": ["keys"],
+      "easy": { "en": "The key is under the mat.", "ru": "Ключ лежит под ковриком.", "answer": "key" },
+      "hard": { "en": "If you find my key, please leave it on the kitchen table.", "ru": "Если найдёшь мой ключ, оставь его, пожалуйста, на кухонном столе.", "answer": "key" }
+    },
+    {
+      "id": "sleep", "en": "sleep", "ru": "спать", "pos": "verb", "emoji": "1f634",
+      "forms": ["sleeps", "slept", "sleeping"],
+      "verb": { "base": "sleep", "s": "sleeps", "past": "slept", "pp": "slept", "ing": "sleeping" },
+      "drills": [
+        { "tense": "present-simple", "en": "Our dog ___ under my bed every night.", "ru": "Наша собака каждую ночь спит под моей кроватью.", "answer": "sleeps" },
+        { "tense": "past-simple", "en": "I ___ for ten hours last night.", "ru": "Этой ночью я спал десять часов.", "answer": "slept" },
+        { "tense": "present-continuous", "en": "Be quiet, the baby ___ right now.", "ru": "Не шуми, малыш сейчас спит.", "answer": "is sleeping" },
+        { "tense": "present-perfect", "en": "This is the first time Adam ___ in a tent.", "ru": "Адам впервые ночует в палатке.", "answer": "has slept" }
+      ],
+      "easy": { "en": "Bears sleep all winter.", "ru": "Медведи спят всю зиму.", "answer": "sleep" },
+      "hard": { "en": "After the long trip, the children slept all the way home in the back seat.", "ru": "После долгой поездки дети всю дорогу домой проспали на заднем сиденье.", "answer": "slept" }
+    },
+    {
+      "id": "couch", "en": "couch", "ru": "диван", "pos": "noun", "emoji": "1f6cb",
+      "forms": ["couches"],
+      "ruAlt": ["софа"],
+      "easy": { "en": "Dad naps on the couch.", "ru": "Папа дремлет на диване.", "answer": "couch" },
+      "hard": { "en": "Who put a wet towel on the new couch in the living room?", "ru": "Кто положил мокрое полотенце на новый диван в гостиной?", "answer": "couch" }
+    },
+    {
+      "id": "lamp", "en": "lamp", "ru": "лампа", "pos": "noun", "emoji": "1f4a1",
+      "forms": ["lamps"],
+      "easy": { "en": "Turn on the lamp, please.", "ru": "Включи, пожалуйста, лампу.", "answer": "lamp" },
+      "hard": { "en": "Eva reads in bed every night, so she bought a small lamp with warm light.", "ru": "Ева каждый вечер читает в постели, поэтому купила маленькую лампу с тёплым светом.", "answer": "lamp" }
+    },
+    {
+      "id": "floor", "en": "floor", "ru": "пол", "pos": "noun", "emoji": null,
+      "forms": ["floors"],
+      "easy": { "en": "The kids play on the floor.", "ru": "Дети играют на полу.", "answer": "floor" },
+      "hard": { "en": "Be careful, the floor in the hall is still wet because Dad just washed it.", "ru": "Осторожно, пол в коридоре ещё мокрый — папа только что его помыл.", "answer": "floor" }
+    },
+    {
+      "id": "sit", "en": "sit", "ru": "сидеть", "pos": "verb", "emoji": null,
+      "forms": ["sits", "sat", "sitting"],
+      "verb": { "base": "sit", "s": "sits", "past": "sat", "pp": "sat", "ing": "sitting" },
+      "drills": [
+        { "tense": "present-simple", "en": "Tom always ___ next to the window in class.", "ru": "На уроках Том всегда сидит у окна.", "answer": "sits" },
+        { "tense": "past-simple", "en": "Yesterday we ___ on the porch until midnight.", "ru": "Вчера мы сидели на крыльце до полуночи.", "answer": "sat" },
+        { "tense": "present-continuous", "en": "Look, a bird ___ on our fence!", "ru": "Смотри, на нашем заборе сидит птица!", "answer": "is sitting" },
+        { "tense": "present-perfect", "en": "Max ___ in the same seat at every game since May.", "ru": "С мая Макс на каждом матче сидит на одном и том же месте.", "answer": "has sat" }
+      ],
+      "easy": { "en": "Sit here, next to me.", "ru": "Садись сюда, рядом со мной.", "answer": "sit" },
+      "hard": { "en": "At the movies we sat in the last row and shared a huge bag of popcorn.", "ru": "В кино мы сидели в последнем ряду и вместе съели огромный пакет попкорна.", "answer": "sat" }
+    },
+    {
+      "id": "wall", "en": "wall", "ru": "стена", "pos": "noun", "emoji": "1f9f1",
+      "forms": ["walls"],
+      "easy": { "en": "Our bed stands against the wall.", "ru": "Наша кровать стоит у стены.", "answer": "wall" },
+      "hard": { "en": "This weekend we are going to paint the walls in the bedroom light yellow.", "ru": "В эти выходные мы собираемся покрасить стены в спальне в светло-жёлтый цвет.", "answer": "walls" }
+    },
+    {
+      "id": "picture", "en": "picture", "ru": "картина", "pos": "noun", "emoji": "1f5bc",
+      "forms": ["pictures"],
+      "ruAlt": ["картинка"],
+      "easy": { "en": "A big picture hangs above the couch.", "ru": "Над диваном висит большая картина.", "answer": "picture" },
+      "hard": { "en": "Omar paints pictures of the sea and sells them at the market on weekends.", "ru": "Омар пишет картины с морем и по выходным продаёт их на рынке.", "answer": "pictures" }
+    },
+    {
+      "id": "garden", "en": "garden", "ru": "сад", "pos": "noun", "emoji": null,
+      "forms": ["gardens"],
+      "easy": { "en": "Our garden is full of flowers.", "ru": "В нашем саду полно цветов.", "answer": "garden" },
+      "hard": { "en": "Every summer Leo and his dad pick apples and cherries in their small garden.", "ru": "Каждое лето Лео с папой собирают яблоки и вишню в своём маленьком саду.", "answer": "garden" }
+    },
+    {
+      "id": "apartment", "en": "apartment", "ru": "квартира", "pos": "noun", "emoji": "1f3e2",
+      "forms": ["apartments"],
+      "note": "в Британии — flat",
+      "easy": { "en": "Their apartment has a big balcony.", "ru": "В их квартире большой балкон.", "answer": "apartment" },
+      "hard": { "en": "Mia has seen five apartments this week, but all of them were too noisy.", "ru": "На этой неделе Мия посмотрела пять квартир, но все они оказались слишком шумными.", "answer": "apartments" }
+    },
+    {
+      "id": "clean", "en": "clean", "ru": "убирать", "pos": "verb", "emoji": "1f9f9",
+      "forms": ["cleans", "cleaned", "cleaning"],
+      "ruAlt": ["чистить"],
+      "note": "наводить чистоту",
+      "verb": { "base": "clean", "s": "cleans", "past": "cleaned", "pp": "cleaned", "ing": "cleaning" },
+      "drills": [
+        { "tense": "present-simple", "en": "Dan ___ the bathroom every Friday.", "ru": "Дэн убирает ванную по пятницам.", "answer": "cleans" },
+        { "tense": "past-simple", "en": "Two days ago the kids ___ their rooms all by themselves.", "ru": "Два дня назад дети сами убрали свои комнаты.", "answer": "cleaned" },
+        { "tense": "present-continuous", "en": "Rosa ___ her room right now, and it already looks better.", "ru": "Роза сейчас убирает свою комнату, и там уже стало чище.", "answer": "is cleaning" },
+        { "tense": "present-perfect", "en": "We ___ the beach twice since June.", "ru": "С июня мы уже дважды убирали пляж.", "answer": "have cleaned" }
+      ],
+      "easy": { "en": "Let's clean the kitchen together.", "ru": "Давай вместе уберём кухню.", "answer": "clean" },
+      "hard": { "en": "Our friends are coming over tonight, so we are cleaning the whole apartment.", "ru": "Вечером к нам придут друзья, поэтому мы убираем всю квартиру.", "answer": "cleaning" }
+    }
+  ]
+}

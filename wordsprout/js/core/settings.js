@@ -1,42 +1,96 @@
-/* Заглушка: настройки (ключ 'wordsprout.v1.settings'). get() — копия настроек, set(patch) сохраняет
-   и сообщает подписчикам, on(fn) возвращает функцию отписки. Тему, стиль и анимации применяет к <html>. */
+/* Настройки WordSprout (ключ 'wordsprout.v1.settings'), хранятся отдельно от прогресса: сброс прогресса
+   их не трогает. get() — копия настроек; set(patch) проверяет значения (чужие ключи и неверные значения
+   отбрасываются), сохраняет и сообщает подписчикам; on(fn) → функция отписки, fn(настройки, [изменённые
+   ключи]). Изменения из другой вкладки тоже доходят до подписчиков. Тему, стиль и анимации на <html>
+   выставляет boot.js — он подписан на эти изменения. defaults() — копия настроек по умолчанию. */
 (() => {
   'use strict';
 
   const KEY = 'wordsprout.v1.settings';
-  const DEFAULTS = {
+  const DEFAULTS = Object.freeze({
     level: 'easy', sound: true, autoplay: true, rate: 0.9, voice: '', theme: 'auto', look: 'illustrated',
     motion: 'auto', hints: false, translate: true, keyboard: 'system',
+  });
+  const RATE_MIN = 0.6;
+  const RATE_MAX = 1.2;
+
+  const oneOf = (...values) => (v) => (values.includes(v) ? v : undefined);
+  const bool = (v) => (typeof v === 'boolean' ? v : undefined);
+  const CHECK = {
+    level: oneOf('easy', 'hard'),
+    sound: bool,
+    autoplay: bool,
+    rate: (v) => {
+      const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v;
+      if (typeof n !== 'number' || !Number.isFinite(n)) return undefined;
+      return Math.round(Math.min(RATE_MAX, Math.max(RATE_MIN, n)) * 100) / 100;
+    },
+    voice: (v) => (typeof v === 'string' ? v.slice(0, 200) : undefined),
+    theme: oneOf('auto', 'light', 'dark'),
+    look: oneOf('illustrated', 'simple'),
+    motion: oneOf('auto', 'reduce'),
+    hints: bool,
+    translate: bool,
+    keyboard: oneOf('system', 'builtin'),
   };
 
-  const saved = WS.store.get(KEY, {});
-  let current = { ...DEFAULTS, ...(saved && typeof saved === 'object' ? saved : {}) };
+  // Только известные ключи с допустимыми значениями.
+  const clean = (obj) => {
+    const out = {};
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return out;
+    Object.keys(CHECK).forEach((k) => {
+      if (!Object.prototype.hasOwnProperty.call(obj, k)) return;
+      const v = CHECK[k](obj[k]);
+      if (v !== undefined) out[k] = v;
+    });
+    return out;
+  };
+
+  const load = () => ({ ...DEFAULTS, ...clean(WS.store.get(KEY, null)) });
+
+  let current = load();
   const listeners = new Set();
 
-  const media = (query) => window.matchMedia && window.matchMedia(query).matches;
+  const get = () => ({ ...current });
+  const defaults = () => ({ ...DEFAULTS });
 
-  const apply = () => {
-    const root = document.documentElement;
-    const dark = current.theme === 'dark' || (current.theme === 'auto' && media('(prefers-color-scheme: dark)'));
-    root.dataset.theme = dark ? 'dark' : 'light';
-    root.dataset.look = current.look === 'simple' ? 'simple' : 'illustrated';
-    const reduce = WS.test.enabled || current.motion === 'reduce' || media('(prefers-reduced-motion: reduce)');
-    root.dataset.motion = reduce ? 'reduce' : 'full';
+  const notify = (changed) => {
+    const snapshot = get();
+    listeners.forEach((fn) => {
+      try {
+        fn(snapshot, changed.slice());
+      } catch (e) {
+        console.error('WordSprout: ошибка в подписчике настроек', e);
+      }
+    });
   };
 
-  const get = () => ({ ...current });
+  const diff = (a, b) => Object.keys(DEFAULTS).filter((k) => a[k] !== b[k]);
 
   const set = (patch) => {
-    current = { ...current, ...patch };
+    const next = { ...current, ...clean(patch) };
+    const changed = diff(current, next);
+    if (!changed.length) return get();
+    current = next;
     WS.store.set(KEY, current);
-    apply();
-    listeners.forEach((fn) => fn(get()));
+    notify(changed);
+    return get();
   };
 
   const on = (fn) => {
+    if (typeof fn !== 'function') return () => {};
     listeners.add(fn);
     return () => listeners.delete(fn);
   };
 
-  WS.settings = { get, set, on };
+  // Другая вкладка поменяла настройки (или очистила хранилище) — перечитываем.
+  WS.store.onExternalChange((key) => {
+    if (key !== null && key !== KEY) return;
+    const next = load();
+    const changed = diff(current, next);
+    current = next;
+    if (changed.length) notify(changed);
+  });
+
+  WS.settings = { get, set, on, defaults };
 })();

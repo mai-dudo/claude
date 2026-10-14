@@ -1,0 +1,240 @@
+{
+  "chapter": "fruit",
+  "words": [
+    {
+      "id": "apple",
+      "en": "apple",
+      "ru": "яблоко",
+      "pos": "noun",
+      "emoji": "1f34e",
+      "forms": ["apples"],
+      "easy": { "en": "Lucy puts an apple in her bag.", "ru": "Люси кладёт яблоко в сумку.", "answer": "apple" },
+      "hard": { "en": "Every fall our neighbor brings us a bag of apples from his garden.", "ru": "Каждую осень сосед приносит нам пакет яблок из своего сада.", "answer": "apples" }
+    },
+    {
+      "id": "banana",
+      "en": "banana",
+      "ru": "банан",
+      "pos": "noun",
+      "emoji": "1f34c",
+      "forms": ["bananas"],
+      "easy": { "en": "Mia takes a banana to school.", "ru": "Мия берёт банан в школу.", "answer": "banana" },
+      "hard": { "en": "These bananas are still green, so let's wait two more days before we eat them.", "ru": "Эти бананы пока зелёные, так что давай подождём ещё два дня, прежде чем их есть.", "answer": "bananas" }
+    },
+    {
+      "id": "orange-fruit",
+      "en": "orange",
+      "ru": "апельсин",
+      "pos": "noun",
+      "emoji": "1f34a",
+      "forms": ["oranges"],
+      "note": "фрукт",
+      "easy": { "en": "The baby holds a big orange.", "ru": "Малыш держит большой апельсин.", "answer": "orange" },
+      "hard": { "en": "In winter the market sells oranges, and the whole street smells like summer.", "ru": "Зимой на рынке продают апельсины, и вся улица пахнет летом.", "answer": "oranges" }
+    },
+    {
+      "id": "lemon",
+      "en": "lemon",
+      "ru": "лимон",
+      "pos": "noun",
+      "emoji": "1f34b",
+      "forms": ["lemons"],
+      "easy": { "en": "Anna adds lemon to her tea.", "ru": "Анна добавляет в чай лимон.", "answer": "lemon" },
+      "hard": { "en": "The lemon was so sour that little Leo made a very funny face.", "ru": "Лимон был такой кислый, что маленький Лео скорчил очень смешную рожицу.", "answer": "lemon" }
+    },
+    {
+      "id": "sweet",
+      "en": "sweet",
+      "ru": "сладкий",
+      "pos": "adj",
+      "emoji": "1f36d",
+      "forms": [],
+      "easy": { "en": "The tea is too sweet.", "ru": "Чай слишком сладкий.", "answer": "sweet" },
+      "hard": { "en": "Grandpa grows small sweet tomatoes that taste better than any candy.", "ru": "Дедушка выращивает маленькие сладкие помидоры, которые вкуснее любых конфет.", "answer": "sweet" }
+    },
+    {
+      "id": "pear",
+      "en": "pear",
+      "ru": "груша",
+      "pos": "noun",
+      "emoji": "1f350",
+      "forms": ["pears"],
+      "easy": { "en": "A yellow pear lies on the plate.", "ru": "На тарелке лежит жёлтая груша.", "answer": "pear" },
+      "hard": { "en": "The pear tree near our house gives so much fruit that we share it with everyone.", "ru": "Груша возле нашего дома даёт столько плодов, что мы делимся ими со всеми.", "answer": "pear" }
+    },
+    {
+      "id": "pick",
+      "en": "pick",
+      "ru": "срывать",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["picks", "picked", "picking"],
+      "ruAlt": ["собирать"],
+      "note": "фрукты, ягоды, цветы",
+      "verb": { "base": "pick", "s": "picks", "past": "picked", "pp": "picked", "ing": "picking" },
+      "drills": [
+        { "tense": "present-simple", "en": "Every August Grandpa ___ plums in his garden.", "ru": "Каждый август дедушка собирает сливы у себя в саду.", "answer": "picks" },
+        { "tense": "past-simple", "en": "We ___ cherries at the farm last Sunday.", "ru": "В прошлое воскресенье мы собирали вишню на ферме.", "answer": "picked" },
+        { "tense": "present-continuous", "en": "Look, Nina ___ flowers by the river!", "ru": "Смотри, Нина рвёт цветы у реки!", "answer": "is picking" },
+        { "tense": "present-perfect", "en": "Sam ___ three buckets of berries since this morning.", "ru": "С утра Сэм уже собрал три ведра ягод.", "answer": "has picked" }
+      ],
+      "easy": { "en": "Lisa picks a red apple from the tree.", "ru": "Лиза срывает с дерева красное яблоко.", "answer": "picks" },
+      "hard": { "en": "Last summer we picked blueberries in the forest and came home with purple hands.", "ru": "Прошлым летом мы собирали чернику в лесу и вернулись домой с фиолетовыми руками.", "answer": "picked" }
+    },
+    {
+      "id": "cherry",
+      "en": "cherry",
+      "ru": "вишня",
+      "pos": "noun",
+      "emoji": "1f352",
+      "forms": ["cherries"],
+      "easy": { "en": "Ella puts a cherry on the cake.", "ru": "Элла кладёт вишенку на торт.", "answer": "cherry" },
+      "hard": { "en": "The birds ate half of the cherries before we could reach the top branches.", "ru": "Птицы склевали половину вишни, прежде чем мы добрались до верхних веток.", "answer": "cherries" }
+    },
+    {
+      "id": "grapes",
+      "en": "grapes",
+      "ru": "виноград",
+      "pos": "noun",
+      "emoji": "1f347",
+      "forms": [],
+      "note": "одна ягода — grape",
+      "easy": { "en": "Omar buys green grapes.", "ru": "Омар покупает зелёный виноград.", "answer": "grapes" },
+      "hard": { "en": "On the way to the lake, the kids ate a whole bunch of grapes.", "ru": "По дороге на озеро дети съели целую гроздь винограда.", "answer": "grapes" }
+    },
+    {
+      "id": "peach",
+      "en": "peach",
+      "ru": "персик",
+      "pos": "noun",
+      "emoji": "1f351",
+      "forms": ["peaches"],
+      "easy": { "en": "Max bites into a soft peach.", "ru": "Макс надкусывает мягкий персик.", "answer": "peach" },
+      "hard": { "en": "Peaches are soft, so we always carry them on top of the shopping bag.", "ru": "Персики мягкие, поэтому мы всегда кладём их в сумку с покупками сверху.", "answer": "peaches" }
+    },
+    {
+      "id": "peel",
+      "en": "peel",
+      "ru": "чистить",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["peels", "peeled", "peeling"],
+      "note": "снимать кожуру",
+      "verb": { "base": "peel", "s": "peels", "past": "peeled", "pp": "peeled", "ing": "peeling" },
+      "drills": [
+        { "tense": "present-simple", "en": "Dad usually ___ the apples for my little sister.", "ru": "Папа обычно чистит яблоки для моей младшей сестрёнки.", "answer": "peels" },
+        { "tense": "past-simple", "en": "Yesterday I ___ ten potatoes for the soup.", "ru": "Вчера я почистил десять картофелин для супа.", "answer": "peeled" },
+        { "tense": "present-continuous", "en": "Look, Tom ___ a banana for his son!", "ru": "Смотри, Том чистит банан для сына!", "answer": "is peeling" },
+        { "tense": "present-perfect", "en": "Lucy ___ five oranges since breakfast.", "ru": "Люси с завтрака почистила уже пять апельсинов.", "answer": "has peeled" }
+      ],
+      "easy": { "en": "Please peel the carrots.", "ru": "Почисти, пожалуйста, морковку.", "answer": "peel" },
+      "hard": { "en": "Grandpa can peel an apple so carefully that the skin stays in one long piece.", "ru": "Дедушка умеет чистить яблоко так аккуратно, что кожура остаётся одной длинной лентой.", "answer": "peel" }
+    },
+    {
+      "id": "strawberry",
+      "en": "strawberry",
+      "ru": "клубника",
+      "pos": "noun",
+      "emoji": "1f353",
+      "forms": ["strawberries"],
+      "easy": { "en": "Eva loves strawberry ice cream.", "ru": "Ева обожает клубничное мороженое.", "answer": "strawberry" },
+      "hard": { "en": "We grow strawberries on the balcony, and the neighbors often ask us for some.", "ru": "Мы выращиваем клубнику на балконе, и соседи часто просят нас поделиться.", "answer": "strawberries" }
+    },
+    {
+      "id": "watermelon",
+      "en": "watermelon",
+      "ru": "арбуз",
+      "pos": "noun",
+      "emoji": "1f349",
+      "forms": ["watermelons"],
+      "easy": { "en": "Sam carries a heavy watermelon.", "ru": "Сэм несёт тяжёлый арбуз.", "answer": "watermelon" },
+      "hard": { "en": "On hot days we keep a watermelon in the fridge and eat it on the porch.", "ru": "В жаркие дни мы держим арбуз в холодильнике и едим его на крыльце.", "answer": "watermelon" }
+    },
+    {
+      "id": "juicy",
+      "en": "juicy",
+      "ru": "сочный",
+      "pos": "adj",
+      "emoji": null,
+      "forms": [],
+      "easy": { "en": "These oranges are very juicy.", "ru": "Эти апельсины очень сочные.", "answer": "juicy" },
+      "hard": { "en": "Be careful with that juicy mango, or your white shirt will need a wash.", "ru": "Осторожнее с этим сочным манго, а то твою белую рубашку придётся стирать.", "answer": "juicy" }
+    },
+    {
+      "id": "squeeze",
+      "en": "squeeze",
+      "ru": "выжимать",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["squeezes", "squeezed", "squeezing"],
+      "verb": { "base": "squeeze", "s": "squeezes", "past": "squeezed", "pp": "squeezed", "ing": "squeezing" },
+      "drills": [
+        { "tense": "present-simple", "en": "Ben ___ fresh juice every morning.", "ru": "Бен каждое утро выжимает свежий сок.", "answer": "squeezes" },
+        { "tense": "past-simple", "en": "Last night Anna ___ two lemons for the salad.", "ru": "Вчера вечером Анна выжала два лимона для салата.", "answer": "squeezed" },
+        { "tense": "present-continuous", "en": "The kids ___ lemons for lemonade right now.", "ru": "Дети сейчас выжимают лимоны для лимонада.", "answer": "are squeezing" },
+        { "tense": "present-perfect", "en": "So far I ___ eight oranges for the party.", "ru": "Пока что я выжала восемь апельсинов для праздника.", "answer": "have squeezed" }
+      ],
+      "easy": { "en": "Squeeze some juice for me, please.", "ru": "Выжми мне, пожалуйста, немного сока.", "answer": "squeeze" },
+      "hard": { "en": "If you squeeze half a lemon into the water, it tastes much fresher.", "ru": "Если выжать в воду половинку лимона, она станет гораздо свежее на вкус.", "answer": "squeeze" }
+    },
+    {
+      "id": "pineapple",
+      "en": "pineapple",
+      "ru": "ананас",
+      "pos": "noun",
+      "emoji": "1f34d",
+      "forms": ["pineapples"],
+      "easy": { "en": "We have pineapple for dessert.", "ru": "На десерт у нас ананас.", "answer": "pineapple" },
+      "hard": { "en": "It took Adam ten minutes to cut the pineapple, but it was worth it.", "ru": "Адам целых десять минут разрезал ананас, но оно того стоило.", "answer": "pineapple" }
+    },
+    {
+      "id": "mango",
+      "en": "mango",
+      "ru": "манго",
+      "pos": "noun",
+      "emoji": "1f96d",
+      "forms": ["mangoes"],
+      "note": "мн. ч. mangoes",
+      "easy": { "en": "Nina drinks mango juice.", "ru": "Нина пьёт сок манго.", "answer": "mango" },
+      "hard": { "en": "The market had cheap mangoes today, so I bought a big box.", "ru": "Сегодня на рынке были дешёвые манго, так что я купил большую коробку.", "answer": "mangoes" }
+    },
+    {
+      "id": "coconut",
+      "en": "coconut",
+      "ru": "кокос",
+      "pos": "noun",
+      "emoji": "1f965",
+      "forms": ["coconuts"],
+      "easy": { "en": "A coconut is hard and brown.", "ru": "Кокос твёрдый и коричневый.", "answer": "coconut" },
+      "hard": { "en": "Dan needed a hammer to open the coconut, and the milk inside was delicious.", "ru": "Дэну понадобился молоток, чтобы расколоть кокос, а молоко внутри оказалось очень вкусным.", "answer": "coconut" }
+    },
+    {
+      "id": "kiwi",
+      "en": "kiwi",
+      "ru": "киви",
+      "pos": "noun",
+      "emoji": "1f95d",
+      "forms": ["kiwis"],
+      "easy": { "en": "Leo eats a kiwi with a spoon.", "ru": "Лео ест киви ложкой.", "answer": "kiwi" },
+      "hard": { "en": "At first my brother did not like kiwi, but now he eats two a day.", "ru": "Сначала мой брат не любил киви, а теперь съедает по две штуки в день.", "answer": "kiwi" }
+    },
+    {
+      "id": "slice",
+      "en": "slice",
+      "ru": "резать ломтиками",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["slices", "sliced", "slicing"],
+      "ruAlt": ["нарезать"],
+      "verb": { "base": "slice", "s": "slices", "past": "sliced", "pp": "sliced", "ing": "slicing" },
+      "drills": [
+        { "tense": "present-simple", "en": "Grandma always ___ the bread very thin.", "ru": "Бабушка всегда нарезает хлеб очень тонко.", "answer": "slices" },
+        { "tense": "past-simple", "en": "Two days ago Jake ___ a melon for his friends.", "ru": "Два дня назад Джейк нарезал дыню для друзей.", "answer": "sliced" },
+        { "tense": "present-continuous", "en": "Mom ___ apples for the pie at the moment.", "ru": "Мама сейчас нарезает яблоки для пирога.", "answer": "is slicing" },
+        { "tense": "present-perfect", "en": "Alex ___ six pineapples since noon.", "ru": "С полудня Алекс нарезал уже шесть ананасов.", "answer": "has sliced" }
+      ],
+      "easy": { "en": "Kate slices a kiwi for the kids.", "ru": "Кейт нарезает киви для детей.", "answer": "slices" },
+      "hard": { "en": "Could you slice the strawberries while I whip the cream for the cake?", "ru": "Нарежешь клубнику, пока я взбиваю сливки для торта?", "answer": "slice" }
+    }
+  ]
+}
