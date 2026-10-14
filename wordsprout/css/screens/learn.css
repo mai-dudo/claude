@@ -1,1 +1,385 @@
-/* Заглушка: стили экранов «Учить» и главы (.s-learn). Каждый селектор начинается с .s-learn. */
+/* Экраны «Учить» (.s-learn) и «Глава» (.s-chapter): переключатель уровня, плитки глав (с полоской
+   «выучено», звёздами, значком «Начни здесь» / «Продолжить» и видом «Скоро»), шапка главы, карточки
+   игр и список слов с галочкой «выучено». Каждый селектор начинается с .s-learn или .s-chapter;
+   цвета, отступы, шрифты и длительности — только токены. Телефон — один столбец, шире — два-три. */
+
+/* =========================================================================================
+   «Учить»: уровень и список глав
+   ========================================================================================= */
+.s-learn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.s-learn__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.s-learn__title {
+  font-size: var(--fs-xl);
+}
+
+.s-learn__levels {
+  max-width: 420px;
+}
+
+.s-learn__note {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  line-height: var(--lh-snug);
+}
+
+.s-learn__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.s-learn__item {
+  display: flex;
+  min-width: 0;
+}
+
+.s-learn__tile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+@media (hover: hover) {
+  .s-learn__tile:not(.is-soon):hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-line);
+    box-shadow: var(--shadow-l);
+  }
+}
+
+.s-learn__tile:not(.is-soon):active {
+  transform: scale(0.99);
+}
+
+/* Первая незавершённая глава: подсолнечная рамка и значок над названием */
+.s-learn__tile.is-next {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent), var(--shadow);
+}
+
+/* Главы без файла слов: плоские и приглушённые, не нажимаются */
+.s-learn__tile.is-soon {
+  border-style: dashed;
+  border-color: var(--border-strong);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.s-learn__tile.is-soon .s-learn__pic {
+  opacity: 0.55;
+}
+
+.s-learn__pic {
+  display: flex;
+  flex: none;
+}
+
+.s-learn__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.s-learn__badge {
+  align-self: flex-start;
+  margin-bottom: 2px;
+}
+
+.s-learn__ru,
+.s-learn__en {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+
+.s-learn__ru {
+  font-size: var(--fs-ml);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.s-learn__en {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+}
+
+.s-learn__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.s-learn__bar {
+  display: block;
+  flex: 1 0 100%;
+}
+
+.s-learn__count {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-snug);
+}
+
+.s-learn__meta > .ws-stars {
+  margin-left: auto;
+}
+
+@media (min-width: 600px) {
+  .s-learn__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .s-learn__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================================================
+   Глава: шапка, игры, слова
+   ========================================================================================= */
+.s-chapter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.s-chapter__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.s-chapter__pic {
+  display: flex;
+  flex: none;
+}
+
+.s-chapter__pic .ws-pic {
+  --pic: 96px;
+}
+
+.s-chapter__titles {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.s-chapter__title {
+  font-size: var(--fs-xl);
+  overflow-wrap: anywhere;
+}
+
+.s-chapter__sub {
+  color: var(--text-muted);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+}
+
+.s-chapter__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.s-chapter__level {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-tight);
+  white-space: nowrap;
+}
+
+.s-chapter__level--easy {
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.s-chapter__level--hard {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.s-chapter__count {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-semi);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-chapter__bar {
+  display: block;
+  max-width: 320px;
+  margin-top: var(--space-1);
+}
+
+.s-chapter__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.s-chapter__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.s-chapter__h2 {
+  font-size: var(--fs-l);
+}
+
+.s-chapter__note {
+  color: var(--text-muted);
+}
+
+/* ---------- Карточки игр ---------- */
+.s-chapter__games {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.s-chapter__item {
+  display: flex;
+  min-width: 0;
+}
+
+/* Значок слева на две строки; в первой строке — название и звёзды, во второй — описание */
+.s-chapter__game {
+  display: grid;
+  grid-template-areas:
+    'icon title stars'
+    'icon blurb blurb';
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-content: center;
+  align-items: center;
+  gap: 2px var(--space-3);
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-3);
+}
+
+.s-chapter__icon {
+  display: grid;
+  grid-area: icon;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-m);
+  background: var(--surface-2);
+}
+
+.s-chapter__game-title {
+  grid-area: title;
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.s-chapter__stars {
+  display: flex;
+  grid-area: stars;
+}
+
+.s-chapter__game-blurb {
+  grid-area: blurb;
+  align-self: start;
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  line-height: var(--lh-snug);
+}
+
+/* ---------- Слова главы ---------- */
+.s-chapter__words {
+  max-width: var(--maxw-text);
+}
+
+.s-chapter__word {
+  gap: var(--space-3);
+}
+
+.s-chapter__en {
+  font-size: var(--fs-l);
+  font-weight: var(--fw-black);
+  overflow-wrap: anywhere;
+}
+
+.s-chapter__ru {
+  font-size: var(--fs-m);
+  font-weight: var(--fw-semi);
+  overflow-wrap: anywhere;
+}
+
+.s-chapter__tick {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  color: var(--ok);
+}
+
+.s-chapter__tick.is-on {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
+}
+
+.s-chapter__tick .ws-icon {
+  --icon-size: 18px;
+}
+
+@media (min-width: 600px) {
+  .s-chapter__games {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .s-chapter__pic .ws-pic {
+    --pic: var(--pic-m);
+  }
+}
+

@@ -1,1 +1,124 @@
-/* Заглушка: стили игры «Найди пары» (match). Каждый селектор этого файла начинается с .g-match. */
+/* Игра «Найди пары» (match). Карточки — кнопки с видом кита (.ws-choice: рамка, заливка, состояния
+   is-ok / is-bad), доска — .ws-choices с --cols: 2. Здесь — только своё: порядок по колонкам
+   (сначала все картинки, потом все слова), размер картинки (меньше на низком экране), перевод под
+   картинкой (на широкой карточке — справа), шрифт слова по его длине, заметный выбор, значки
+   «верно / неверно» и строка-подсказка рядом с «Дальше». Каждый селектор начинается с .g-match;
+   значения — только токены. */
+.g-match {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Карточки идут по колонкам: строка высока ровно настолько, насколько нужно её паре. */
+.g-match__board {
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--rows, 5), auto);
+}
+
+.g-match__card {
+  min-height: var(--tap);
+}
+
+/* Выбранная карточка — с толстой зелёной обводкой и чуть приподнята; найденная пара — с зелёной
+   заливкой и галочкой (.is-ok), так что их не спутать. */
+.g-match__card.is-picked {
+  box-shadow: 0 0 0 3px var(--primary), var(--shadow-l);
+  transform: translateY(-2px);
+}
+
+.g-match__card[aria-disabled='true'] {
+  cursor: default;
+}
+
+/* Картинка и перевод: друг под другом, а на широкой карточке (компьютер) — в ряд. */
+.g-match__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+}
+
+.g-match__media {
+  display: grid;
+  place-items: center;
+}
+
+/* Картинка: 44–72 px, меньше на низком экране, чтобы пять пар помещались без прокрутки. */
+.g-match__media .ws-pic {
+  --pic: clamp(44px, 7.5dvh, 72px);
+}
+
+.g-match__ru {
+  max-width: 100%;
+  font-size: var(--fs-s);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@container (min-width: 220px) {
+  .g-match__inner {
+    flex-direction: row;
+    gap: var(--space-3);
+  }
+
+  .g-match__ru {
+    text-align: left;
+  }
+}
+
+/* Английское слово: 20 px, а длинное — мельче, чтобы целиком помещалось в карточку. */
+.g-match__en {
+  max-width: 100%;
+  font-size: min(var(--fs-l), calc(160cqi / var(--chars, 6)));
+  font-weight: var(--fw-black);
+  line-height: var(--lh-snug);
+  overflow-wrap: break-word;
+}
+
+.g-match__mark {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  color: var(--surface);
+  pointer-events: none;
+}
+
+.g-match__mark .ws-icon {
+  --icon-size: 16px;
+}
+
+.g-match__mark--ok {
+  background: var(--ok);
+}
+
+.g-match__mark--bad {
+  background: var(--bad);
+}
+
+.g-match__note {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  text-align: center;
+}
+
+.g-match__note--ok {
+  color: var(--ok-ink);
+}
+
+.g-match__note--bad {
+  color: var(--bad-ink);
+}

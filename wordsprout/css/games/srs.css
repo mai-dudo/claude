@@ -1,1 +1,103 @@
-/* Заглушка: стили игры «Повторение» (srs). Каждый селектор этого файла начинается с .g-srs. */
+/* Игра «Повторение» (srs). Колонку рисует WS.ui.stage, кнопки — WS.ui (kit.css); здесь только своё:
+   слово и предложение карточки, спрятанный перевод, ряд «послушать / показать перевод», две кнопки
+   оценки поровну на всю ширину (с цифрами 1 и 2 на компьютере), въезд новой карточки и пустое состояние.
+   Каждый селектор начинается с .g-srs; значения — только токены. */
+.g-srs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-srs__word {
+  margin: 0;
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.g-srs__line {
+  width: 100%;
+  max-width: var(--maxw-text);
+}
+
+.g-srs__tr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: var(--maxw-text);
+  margin-top: var(--space-2);
+  text-align: center;
+}
+
+.g-srs__ru {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-l);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+}
+
+.g-srs__ru-line {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-m);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  text-wrap: balance;
+}
+
+.g-srs__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Две оценки делят ряд поровну */
+.g-srs__grade {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.g-srs__key {
+  display: none;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  line-height: 22px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .g-srs__key { display: inline-block; }
+}
+
+/* Новая карточка мягко въезжает снизу (при «меньше движения» base.css выключает анимацию) */
+.g-srs__card.is-in .ws-stage__media,
+.g-srs__card.is-in .ws-stage__prompt {
+  animation: g-srs-in var(--dur-slow) var(--ease) both;
+}
+
+@keyframes g-srs-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.g-srs__empty {
+  width: 100%;
+}
+
+.g-srs__empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}

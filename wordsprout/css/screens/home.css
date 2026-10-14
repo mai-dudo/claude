@@ -1,1 +1,377 @@
-/* Заглушка: стили главного экрана (.s-home). Каждый селектор начинается с .s-home. */
+/* Главный экран (.s-home). Первый визит: приветствие с кнопкой «Начать», мини-игра «кошка» (после
+   ответа рамка зеленеет) и три блока о приложении. Вернувшийся ученик: «Продолжить», серия и минуты
+   сегодня, карточки «Повторение» и «Твоё дерево». Внизу — «← на сайт». Каждый селектор начинается
+   с .s-home; цвета, отступы, шрифты и длительности — только токены. Телефон — один столбец,
+   от 720 px — два. */
+.s-home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+/* =========================================================================================
+   Первый визит
+   ========================================================================================= */
+.s-home__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.s-home__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  text-align: center;
+}
+
+.s-home__logo {
+  width: 88px;
+  height: 88px;
+}
+
+.s-home__name {
+  color: var(--primary-strong);
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
+  line-height: var(--lh-tight);
+}
+
+.s-home__promise {
+  max-width: 32ch;
+  font-size: var(--fs-ml);
+  line-height: var(--lh-snug);
+}
+
+.s-home__cta {
+  min-width: min(100%, 240px);
+  margin-top: var(--space-2);
+}
+
+.s-home__note {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  line-height: var(--lh-snug);
+}
+
+/* ---------- Мини-игра ---------- */
+.s-home__demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border: 2px solid var(--card-line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: border-color var(--dur) var(--ease);
+}
+
+.s-home__demo.is-solved {
+  border-color: var(--ok-line);
+}
+
+.s-home__demo-title {
+  font-size: var(--fs-l);
+  text-align: center;
+}
+
+.s-home__demo-media {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.s-home__demo-cells {
+  width: 100%;
+  max-width: 240px;
+}
+
+.s-home__demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.s-home__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  text-align: center;
+}
+
+.s-home__status .ws-icon {
+  --icon-size: 20px;
+  color: var(--ok);
+}
+
+.s-home__demo.is-solved .s-home__status {
+  color: var(--ok-ink);
+}
+
+/* ---------- Три блока ---------- */
+.s-home__about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.s-home__h2 {
+  font-size: var(--fs-l);
+  text-align: center;
+}
+
+.s-home__features {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.s-home__feature {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+
+.s-home__feature-icons {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.s-home__feature-title {
+  font-size: var(--fs-m);
+  line-height: var(--lh-snug);
+}
+
+.s-home__feature-text {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  line-height: var(--lh);
+}
+
+/* =========================================================================================
+   Вернувшийся ученик
+   ========================================================================================= */
+.s-home__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.s-home__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.s-home__welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  text-align: center;
+}
+
+.s-home__title {
+  font-size: var(--fs-2xl);
+}
+
+.s-home__lead {
+  color: var(--text-muted);
+  font-size: var(--fs-ml);
+  line-height: var(--lh-snug);
+}
+
+.s-home__resume {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+}
+
+.s-home__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.s-home__stat {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.s-home__stat--accent {
+  border-color: transparent;
+  background: var(--accent-soft);
+  box-shadow: none;
+}
+
+.s-home__stat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.s-home__stat-value {
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+}
+
+.s-home__stat-value b {
+  display: block;
+  color: var(--text);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-black);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-tight);
+}
+
+.s-home__stat-note {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+}
+
+/* ---------- Карточки «Повторение» и «Твоё дерево» ---------- */
+.s-home__review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.s-home__card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.s-home__card-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.s-home__card-title {
+  font-size: var(--fs-l);
+}
+
+.s-home__card-line {
+  color: var(--text-muted);
+  line-height: var(--lh-snug);
+}
+
+.s-home__more {
+  align-self: flex-start;
+}
+
+.s-home__tree {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.s-home__tree-art {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 120px;
+  min-height: 120px;
+}
+
+.s-home__stage {
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+}
+
+/* =========================================================================================
+   Низ экрана
+   ========================================================================================= */
+.s-home__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-5);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+
+.s-home__site,
+.s-home__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: var(--fw-semi);
+}
+
+/* =========================================================================================
+   Шире 720 px: два столбца
+   ========================================================================================= */
+@media (min-width: 720px) {
+  .s-home__top {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  .s-home__hero {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .s-home__features {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .s-home__grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-5);
+  }
+
+  .s-home__welcome {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .s-home__tree {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .s-home__tree-art {
+    align-self: center;
+  }
+}

@@ -1,1 +1,44 @@
-/* Заглушка: стили игры «Диктант» (dictation). Каждый селектор этого файла начинается с .g-dictation. */
+/* Игра «Диктант» (dictation). Колонку игры рисует WS.ui.stage, клеточки — WS.ui.letterInput (kit.css);
+   здесь только своё: ширина перевода предложения под картинкой, строка «Запомни и напиши» в режиме без
+   голоса и пустое состояние. Каждый селектор начинается с .g-dictation; значения — только токены. */
+.g-dictation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-dictation__tr {
+  max-width: var(--maxw-text);
+  text-wrap: balance;
+}
+
+.g-dictation__note {
+  margin: 0;
+  color: var(--primary-strong);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  text-align: center;
+}
+
+.g-dictation__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Открытая клавиатура телефона (STYLE §7): перевод стоит справа от картинки. Длинному переводу сложного
+   предложения даём чуть больше ширины и шрифт поменьше, чтобы строка с картинкой не росла в высоту. */
+@media (max-height: 560px) {
+  .g-dictation .g-dictation__tr {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 60%;
+    font-size: var(--fs-s);
+    text-wrap: pretty;
+  }
+}

@@ -1,1 +1,59 @@
-/* Заглушка: стили игры «Напиши слово» (spell). Каждый селектор этого файла начинается с .g-spell. */
+/* Игра «Напиши слово» (spell). Колонку игры рисует WS.ui.stage, клеточки — WS.ui.letterInput (kit.css);
+   здесь только своё: подпись под картинкой в шаге с предложением (что делать + перевод предложения)
+   и пустое состояние. Каждый селектор начинается с .g-spell; значения — только токены. */
+.g-spell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-spell__cap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: var(--maxw-text);
+  text-align: center;
+}
+
+.g-spell__note {
+  margin: 0;
+  color: var(--primary-strong);
+  font-size: var(--fs-s);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.g-spell__tr {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-m);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  text-wrap: balance;
+}
+
+.g-spell__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Открытая клавиатура телефона (STYLE §7): картинка и перевод предложения встают в ряд, подпись шага
+   прячется — место нужно клеточкам. */
+@media (max-height: 560px) {
+  .g-spell__cap {
+    flex: 0 1 auto;
+    min-width: 0;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .g-spell__note { display: none; }
+
+  .g-spell__tr { text-wrap: pretty; }
+}
