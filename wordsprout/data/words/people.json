@@ -1,0 +1,161 @@
+{
+  "chapter": "people",
+  "words": [
+    {
+      "id": "mom", "en": "mom", "ru": "мама", "pos": "noun", "emoji": "1f469-200d-1f37c",
+      "forms": ["moms"],
+      "note": "в Британии — mum",
+      "easy": { "en": "Mom reads me a bedtime story.", "ru": "Мама читает мне сказку на ночь.", "answer": "mom" },
+      "hard": { "en": "My mom started learning to swim at fifty, and now she swims every morning.", "ru": "Моя мама начала учиться плавать в пятьдесят лет, а теперь плавает каждое утро.", "answer": "mom" }
+    },
+    {
+      "id": "dad", "en": "dad", "ru": "папа", "pos": "noun", "emoji": "1f468-200d-1f37c",
+      "forms": ["dads"],
+      "easy": { "en": "Dad makes pancakes on Sundays.", "ru": "По воскресеньям папа печёт блинчики.", "answer": "dad" },
+      "hard": { "en": "When I was little, my dad carried me on his shoulders all around the zoo.", "ru": "Когда я был маленьким, папа носил меня на плечах по всему зоопарку.", "answer": "dad" }
+    },
+    {
+      "id": "baby", "en": "baby", "ru": "малыш", "pos": "noun", "emoji": "1f476",
+      "forms": ["babies"],
+      "ruAlt": ["младенец"],
+      "easy": { "en": "The baby is laughing at the dog.", "ru": "Малыш смотрит на собаку и смеётся.", "answer": "baby" },
+      "hard": { "en": "Our neighbors had a baby last week, so we cooked dinner for them.", "ru": "На прошлой неделе у наших соседей родился малыш, и мы приготовили им ужин.", "answer": "baby" }
+    },
+    {
+      "id": "brother", "en": "brother", "ru": "брат", "pos": "noun", "emoji": "1f466",
+      "forms": ["brothers"],
+      "easy": { "en": "My little brother collects toy trains.", "ru": "Мой младший брат собирает игрушечные поезда.", "answer": "brother" },
+      "hard": { "en": "Ben and his little brother share a room and talk until late every night.", "ru": "Бен и его младший брат живут в одной комнате и каждый вечер болтают допоздна.", "answer": "brother" }
+    },
+    {
+      "id": "sister", "en": "sister", "ru": "сестра", "pos": "noun", "emoji": "1f467",
+      "forms": ["sisters"],
+      "easy": { "en": "My sister plays the violin.", "ru": "Моя сестра играет на скрипке.", "answer": "sister" },
+      "hard": { "en": "Anna has two older sisters, and both of them live by the sea.", "ru": "У Анны две старшие сестры, и обе живут у моря.", "answer": "sisters" }
+    },
+    {
+      "id": "meet", "en": "meet", "ru": "встречать", "pos": "verb", "emoji": "1f91d",
+      "forms": ["meets", "met", "meeting"],
+      "note": "и знакомиться",
+      "verb": { "base": "meet", "s": "meets", "past": "met", "pp": "met", "ing": "meeting" },
+      "drills": [
+        { "tense": "present-simple", "en": "Lisa ___ her friends at the cafe every Friday.", "ru": "Каждую пятницу Лиза встречается с подругами в кафе.", "answer": "meets" },
+        { "tense": "past-simple", "en": "We ___ Grandma at the train station yesterday.", "ru": "Вчера мы встречали бабушку на вокзале.", "answer": "met" },
+        { "tense": "present-continuous", "en": "Hurry, Mom ___ the guests at the door right now.", "ru": "Скорее, мама прямо сейчас встречает гостей у двери.", "answer": "is meeting" },
+        { "tense": "present-perfect", "en": "Kate ___ a lot of new people since she moved here.", "ru": "С тех пор как Кейт сюда переехала, она познакомилась с множеством новых людей.", "answer": "has met" }
+      ],
+      "easy": { "en": "Let's meet at the park after lunch.", "ru": "Давай встретимся в парке после обеда.", "answer": "meet" },
+      "hard": { "en": "I met my best friend Omar on the first day of school, when we were six.", "ru": "Со своим лучшим другом Омаром я познакомился в первый день школы, когда нам было по шесть лет.", "answer": "met" }
+    },
+    {
+      "id": "family", "en": "family", "ru": "семья", "pos": "noun", "emoji": null,
+      "forms": ["families"],
+      "easy": { "en": "My family loves board games.", "ru": "Моя семья обожает настольные игры.", "answer": "family" },
+      "hard": { "en": "Every summer the whole family gets together at Grandpa's house by the lake.", "ru": "Каждое лето вся семья собирается в дедушкином доме у озера.", "answer": "family" }
+    },
+    {
+      "id": "friend", "en": "friend", "ru": "друг", "pos": "noun", "emoji": "1fac2",
+      "forms": ["friends"],
+      "ruAlt": ["подруга"],
+      "note": "и подруга",
+      "easy": { "en": "Mia is my best friend.", "ru": "Мия — моя лучшая подруга.", "answer": "friend" },
+      "hard": { "en": "Jake and two friends carried a heavy couch up the stairs to his new apartment.", "ru": "Джейк и двое друзей затащили тяжёлый диван по лестнице в его новую квартиру.", "answer": "friends" }
+    },
+    {
+      "id": "son", "en": "son", "ru": "сын", "pos": "noun", "emoji": null,
+      "forms": ["sons"],
+      "easy": { "en": "Their son loves trains.", "ru": "Их сын обожает поезда.", "answer": "son" },
+      "hard": { "en": "Rosa taught her son to ride a bike in the park last summer.", "ru": "Прошлым летом Роза научила сына кататься на велосипеде в парке.", "answer": "son" }
+    },
+    {
+      "id": "daughter", "en": "daughter", "ru": "дочь", "pos": "noun", "emoji": null,
+      "forms": ["daughters"],
+      "easy": { "en": "Omar walks his daughter to school.", "ru": "Омар провожает дочь в школу.", "answer": "daughter" },
+      "hard": { "en": "Our daughter wants to be a vet because she loves animals so much.", "ru": "Наша дочь хочет стать ветеринаром, потому что очень любит животных.", "answer": "daughter" }
+    },
+    {
+      "id": "help", "en": "help", "ru": "помогать", "pos": "verb", "emoji": null,
+      "forms": ["helps", "helped", "helping"],
+      "verb": { "base": "help", "s": "helps", "past": "helped", "pp": "helped", "ing": "helping" },
+      "drills": [
+        { "tense": "present-simple", "en": "Sam often ___ his grandma with the shopping.", "ru": "Сэм часто помогает бабушке с покупками.", "answer": "helps" },
+        { "tense": "past-simple", "en": "Last weekend we ___ our neighbors with their garden.", "ru": "В прошлые выходные мы помогали соседям в саду.", "answer": "helped" },
+        { "tense": "present-continuous", "en": "Look, the kids ___ Dad in the kitchen right now.", "ru": "Смотри, дети сейчас помогают папе на кухне.", "answer": "are helping" },
+        { "tense": "present-perfect", "en": "Tom ___ me a lot since I started this new job.", "ru": "С тех пор как я вышел на новую работу, Том мне очень помог.", "answer": "has helped" }
+      ],
+      "easy": { "en": "Can you help me with this box?", "ru": "Поможешь мне с этой коробкой?", "answer": "help" },
+      "hard": { "en": "Leo helped an old woman carry her bags across the busy street.", "ru": "Лео помог пожилой женщине перенести сумки через оживлённую улицу.", "answer": "helped" }
+    },
+    {
+      "id": "grandma", "en": "grandma", "ru": "бабушка", "pos": "noun", "emoji": "1f475",
+      "forms": ["grandmas"],
+      "easy": { "en": "Grandma teaches me to play chess.", "ru": "Бабушка учит меня играть в шахматы.", "answer": "grandma" },
+      "hard": { "en": "My grandma learned to use a smartphone, and now she sends us photos every day.", "ru": "Моя бабушка научилась пользоваться смартфоном и теперь каждый день присылает нам фотографии.", "answer": "grandma" }
+    },
+    {
+      "id": "grandpa", "en": "grandpa", "ru": "дедушка", "pos": "noun", "emoji": "1f474",
+      "forms": ["grandpas"],
+      "easy": { "en": "Grandpa tells funny stories.", "ru": "Дедушка рассказывает смешные истории.", "answer": "grandpa" },
+      "hard": { "en": "My grandpa and I build model ships at his kitchen table every Saturday.", "ru": "Каждую субботу мы с дедушкой собираем модели кораблей за его кухонным столом.", "answer": "grandpa" }
+    },
+    {
+      "id": "parents", "en": "parents", "ru": "родители", "pos": "noun", "emoji": null,
+      "forms": [],
+      "easy": { "en": "My parents have a small bakery.", "ru": "У моих родителей маленькая пекарня.", "answer": "parents" },
+      "hard": { "en": "Lucy called her parents from the airport to say that she had landed safely.", "ru": "Люси позвонила родителям из аэропорта и сказала, что благополучно долетела.", "answer": "parents" }
+    },
+    {
+      "id": "talk", "en": "talk", "ru": "разговаривать", "pos": "verb", "emoji": "1f5e8",
+      "forms": ["talks", "talked", "talking"],
+      "ruAlt": ["говорить"],
+      "verb": { "base": "talk", "s": "talks", "past": "talked", "pp": "talked", "ing": "talking" },
+      "drills": [
+        { "tense": "present-simple", "en": "Emma ___ to her aunt on the phone every Sunday.", "ru": "Эмма каждое воскресенье разговаривает с тётей по телефону.", "answer": "talks" },
+        { "tense": "past-simple", "en": "We ___ about our summer plans at dinner yesterday.", "ru": "Вчера за ужином мы говорили о планах на лето.", "answer": "talked" },
+        { "tense": "present-continuous", "en": "Max ___ to the new neighbor at the moment.", "ru": "Макс сейчас разговаривает с новым соседом.", "answer": "is talking" },
+        { "tense": "present-perfect", "en": "My brother and I ___ every evening since he moved away.", "ru": "С тех пор как брат переехал, мы с ним разговариваем каждый вечер.", "answer": "have talked" }
+      ],
+      "easy": { "en": "Kate and Lucy talk for hours.", "ru": "Кейт и Люси часами разговаривают.", "answer": "talk" },
+      "hard": { "en": "After the movie, we sat in the cafe and talked about it until closing time.", "ru": "После фильма мы сидели в кафе и обсуждали его до самого закрытия.", "answer": "talked" }
+    },
+    {
+      "id": "husband", "en": "husband", "ru": "муж", "pos": "noun", "emoji": "1f935-200d-2642",
+      "forms": ["husbands"],
+      "easy": { "en": "Her husband is a nurse.", "ru": "Её муж — медбрат.", "answer": "husband" },
+      "hard": { "en": "Nina and her husband have traveled to twelve countries together since their wedding.", "ru": "Со дня свадьбы Нина с мужем вместе побывали в двенадцати странах.", "answer": "husband" }
+    },
+    {
+      "id": "wife", "en": "wife", "ru": "жена", "pos": "noun", "emoji": "1f470-200d-2640",
+      "forms": ["wives"],
+      "note": "мн. ч. wives",
+      "easy": { "en": "His wife drives a big truck.", "ru": "Его жена водит большой грузовик.", "answer": "wife" },
+      "hard": { "en": "Dan and his wife repair old bikes in their garage and give them to kids.", "ru": "Дэн с женой чинят в гараже старые велосипеды и дарят их детям.", "answer": "wife" }
+    },
+    {
+      "id": "aunt", "en": "aunt", "ru": "тётя", "pos": "noun", "emoji": "1f469",
+      "forms": ["aunts"],
+      "easy": { "en": "My aunt lives on a farm.", "ru": "Моя тётя живёт на ферме.", "answer": "aunt" },
+      "hard": { "en": "Every time Aunt Eva visits us, she brings a big box of homemade cookies.", "ru": "Каждый раз, когда тётя Ева приезжает к нам, она привозит большую коробку домашнего печенья.", "answer": "aunt" }
+    },
+    {
+      "id": "uncle", "en": "uncle", "ru": "дядя", "pos": "noun", "emoji": "1f9d4-200d-2642",
+      "forms": ["uncles"],
+      "easy": { "en": "Our uncle plays the drums.", "ru": "Наш дядя играет на барабанах.", "answer": "uncle" },
+      "hard": { "en": "My uncle is only two years older than me, so we are more like brothers.", "ru": "Мой дядя всего на два года старше меня, так что мы скорее как братья.", "answer": "uncle" }
+    },
+    {
+      "id": "visit", "en": "visit", "ru": "навещать", "pos": "verb", "emoji": null,
+      "forms": ["visits", "visited", "visiting"],
+      "note": "и посещать",
+      "verb": { "base": "visit", "s": "visits", "past": "visited", "pp": "visited", "ing": "visiting" },
+      "drills": [
+        { "tense": "present-simple", "en": "Jake ___ his grandparents twice a month.", "ru": "Джейк навещает бабушку с дедушкой два раза в месяц.", "answer": "visits" },
+        { "tense": "past-simple", "en": "Last summer we ___ my cousins by the sea.", "ru": "Прошлым летом мы ездили в гости к двоюродным братьям на море.", "answer": "visited" },
+        { "tense": "present-continuous", "en": "Lisa ___ her aunt in the city at the moment.", "ru": "Лиза сейчас гостит у тёти в городе.", "answer": "is visiting" },
+        { "tense": "present-perfect", "en": "Alex ___ the science museum three times since March.", "ru": "С марта Алекс уже три раза ходил в научный музей.", "answer": "has visited" }
+      ],
+      "easy": { "en": "Come and visit us soon!", "ru": "Приезжай к нам в гости поскорее!", "answer": "visit" },
+      "hard": { "en": "When Ella was sick, her friends visited her every day and brought her soup.", "ru": "Когда Элла болела, подруги каждый день навещали её и приносили ей суп.", "answer": "visited" }
+    }
+  ]
+}

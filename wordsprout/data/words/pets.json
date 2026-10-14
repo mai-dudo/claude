@@ -1,0 +1,241 @@
+{
+  "chapter": "pets",
+  "words": [
+    {
+      "id": "dog",
+      "en": "dog",
+      "ru": "собака",
+      "pos": "noun",
+      "emoji": "1f415",
+      "forms": ["dogs"],
+      "easy": { "en": "Our dog waits by the door.", "ru": "Наша собака ждёт у двери.", "answer": "dog" },
+      "hard": { "en": "Every evening Omar takes the dog to the park, even when it rains.", "ru": "Каждый вечер Омар водит собаку в парк, даже когда идёт дождь.", "answer": "dog" }
+    },
+    {
+      "id": "cat",
+      "en": "cat",
+      "ru": "кошка",
+      "pos": "noun",
+      "emoji": "1f408",
+      "forms": ["cats"],
+      "easy": { "en": "A gray cat sits on the roof.", "ru": "Серая кошка сидит на крыше.", "answer": "cat" },
+      "hard": { "en": "Our cat always hides under the bed when guests ring the doorbell.", "ru": "Наша кошка всегда прячется под кровать, когда гости звонят в дверь.", "answer": "cat" }
+    },
+    {
+      "id": "puppy",
+      "en": "puppy",
+      "ru": "щенок",
+      "pos": "noun",
+      "emoji": null,
+      "forms": ["puppies"],
+      "easy": { "en": "Ben plays with his new puppy.", "ru": "Бен играет со своим новым щенком.", "answer": "puppy" },
+      "hard": { "en": "When Ella got a puppy for her birthday, she could not stop smiling.", "ru": "Когда Элле подарили на день рождения щенка, она не могла перестать улыбаться.", "answer": "puppy" }
+    },
+    {
+      "id": "kitten",
+      "en": "kitten",
+      "ru": "котёнок",
+      "pos": "noun",
+      "emoji": null,
+      "forms": ["kittens"],
+      "easy": { "en": "The kitten sleeps in a shoe box.", "ru": "Котёнок спит в коробке из-под обуви.", "answer": "kitten" },
+      "hard": { "en": "We found three hungry kittens near the garage and took them to a shelter.", "ru": "Мы нашли у гаража трёх голодных котят и отнесли их в приют.", "answer": "kittens" }
+    },
+    {
+      "id": "feed",
+      "en": "feed",
+      "ru": "кормить",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["feeds", "fed", "feeding"],
+      "note": "неправильный глагол: fed",
+      "verb": { "base": "feed", "s": "feeds", "past": "fed", "pp": "fed", "ing": "feeding" },
+      "drills": [
+        { "tense": "present-simple", "en": "Grandma ___ the chickens twice a day.", "ru": "Бабушка кормит кур два раза в день.", "answer": "feeds" },
+        { "tense": "past-simple", "en": "Last weekend we ___ the ducks at the pond.", "ru": "В прошлые выходные мы кормили уток на пруду.", "answer": "fed" },
+        { "tense": "present-continuous", "en": "Dad ___ the baby in the kitchen right now.", "ru": "Папа сейчас кормит малыша на кухне.", "answer": "is feeding" },
+        { "tense": "present-perfect", "en": "Mia ___ the fish every day since Monday.", "ru": "С понедельника Мия каждый день кормит рыбок.", "answer": "has fed" }
+      ],
+      "easy": { "en": "Lucy feeds the birds in winter.", "ru": "Зимой Люси кормит птиц.", "answer": "feeds" },
+      "hard": { "en": "Our neighbors asked us to feed their cat while they were on vacation.", "ru": "Соседи попросили нас кормить их кошку, пока они были в отпуске.", "answer": "feed" }
+    },
+    {
+      "id": "horse",
+      "en": "horse",
+      "ru": "лошадь",
+      "pos": "noun",
+      "emoji": "1f40e",
+      "forms": ["horses"],
+      "easy": { "en": "Nina rides a white horse.", "ru": "Нина катается на белой лошади.", "answer": "horse" },
+      "hard": { "en": "My aunt has two horses, and she lets us brush them every summer.", "ru": "У моей тёти две лошади, и каждое лето она разрешает нам их чистить.", "answer": "horses" }
+    },
+    {
+      "id": "cow",
+      "en": "cow",
+      "ru": "корова",
+      "pos": "noun",
+      "emoji": "1f404",
+      "forms": ["cows"],
+      "easy": { "en": "Grandpa milks the cow every morning.", "ru": "Дедушка каждое утро доит корову.", "answer": "cow" },
+      "hard": { "en": "The cows on this farm walk home by themselves when it gets dark.", "ru": "Коровы на этой ферме сами возвращаются домой, когда темнеет.", "answer": "cows" }
+    },
+    {
+      "id": "pig",
+      "en": "pig",
+      "ru": "свинья",
+      "pos": "noun",
+      "emoji": "1f416",
+      "forms": ["pigs"],
+      "easy": { "en": "A pig rolls in the mud.", "ru": "Свинья валяется в грязи.", "answer": "pig" },
+      "hard": { "en": "The little pig escaped from the farm and ran straight into our vegetable garden.", "ru": "Маленькая свинка сбежала с фермы и примчалась прямо к нам в огород.", "answer": "pig" }
+    },
+    {
+      "id": "rabbit",
+      "en": "rabbit",
+      "ru": "кролик",
+      "pos": "noun",
+      "emoji": "1f407",
+      "forms": ["rabbits"],
+      "easy": { "en": "Emma gives the rabbit a carrot.", "ru": "Эмма даёт кролику морковку.", "answer": "rabbit" },
+      "hard": { "en": "My son wants a rabbit, but first he has to learn how to care for it.", "ru": "Мой сын хочет кролика, но сначала ему нужно научиться за ним ухаживать.", "answer": "rabbit" }
+    },
+    {
+      "id": "walk",
+      "en": "walk",
+      "ru": "гулять",
+      "pos": "verb",
+      "emoji": "1f6b6",
+      "forms": ["walks", "walked", "walking"],
+      "ruAlt": ["ходить пешком"],
+      "note": "walk the dog — выгуливать собаку",
+      "verb": { "base": "walk", "s": "walks", "past": "walked", "pp": "walked", "ing": "walking" },
+      "drills": [
+        { "tense": "present-simple", "en": "Anna usually ___ to the office on sunny days.", "ru": "В солнечные дни Анна обычно ходит в офис пешком.", "answer": "walks" },
+        { "tense": "past-simple", "en": "Yesterday we ___ along the beach for two hours.", "ru": "Вчера мы два часа гуляли по пляжу.", "answer": "walked" },
+        { "tense": "present-continuous", "en": "Look, Rosa ___ three dogs at once!", "ru": "Смотри, Роза выгуливает сразу трёх собак!", "answer": "is walking" },
+        { "tense": "present-perfect", "en": "Grandpa ___ around the lake twice since breakfast.", "ru": "С завтрака дедушка уже дважды прогулялся вокруг озера.", "answer": "has walked" }
+      ],
+      "easy": { "en": "Jake walks the dog after dinner.", "ru": "Джейк выгуливает собаку после ужина.", "answer": "walks" },
+      "hard": { "en": "If the rain stops, we will walk to the river after lunch.", "ru": "Если дождь закончится, после обеда мы пойдём гулять к реке.", "answer": "walk" }
+    },
+    {
+      "id": "chicken",
+      "en": "chicken",
+      "ru": "курица",
+      "pos": "noun",
+      "emoji": "1f414",
+      "forms": ["chickens"],
+      "note": "птица; и куриное мясо",
+      "easy": { "en": "This chicken lays big brown eggs.", "ru": "Эта курица несёт большие коричневые яйца.", "answer": "chicken" },
+      "hard": { "en": "Grandma's chickens run around the yard all day looking for bugs.", "ru": "Бабушкины куры целый день бегают по двору в поисках жучков.", "answer": "chickens" }
+    },
+    {
+      "id": "duck",
+      "en": "duck",
+      "ru": "утка",
+      "pos": "noun",
+      "emoji": "1f986",
+      "forms": ["ducks"],
+      "easy": { "en": "Look, a duck is swimming in the pond!", "ru": "Смотри, в пруду плавает утка!", "answer": "duck" },
+      "hard": { "en": "A mother duck and her babies stopped the traffic while they crossed the road.", "ru": "Утка с утятами остановила движение, пока переходила дорогу.", "answer": "duck" }
+    },
+    {
+      "id": "sheep",
+      "en": "sheep",
+      "ru": "овца",
+      "pos": "noun",
+      "emoji": "1f411",
+      "forms": [],
+      "note": "мн. ч. тоже sheep",
+      "easy": { "en": "The sheep has thick white wool.", "ru": "У овцы густая белая шерсть.", "answer": "sheep" },
+      "hard": { "en": "In the field we counted forty sheep, but one lamb was hiding behind a bush.", "ru": "В поле мы насчитали сорок овец, а один ягнёнок прятался за кустом.", "answer": "sheep" }
+    },
+    {
+      "id": "bark",
+      "en": "bark",
+      "ru": "лаять",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["barks", "barked", "barking"],
+      "verb": { "base": "bark", "s": "barks", "past": "barked", "pp": "barked", "ing": "barking" },
+      "drills": [
+        { "tense": "present-simple", "en": "The dog next door always ___ at the mailman.", "ru": "Соседская собака всегда лает на почтальона.", "answer": "barks" },
+        { "tense": "past-simple", "en": "Last night a dog ___ for hours under my window.", "ru": "Вчера ночью под моим окном часами лаяла собака.", "answer": "barked" },
+        { "tense": "present-continuous", "en": "Listen, the puppies ___ in the yard!", "ru": "Слушай, во дворе лают щенки!", "answer": "are barking" },
+        { "tense": "present-perfect", "en": "Our dog ___ twice since dinner.", "ru": "После ужина наша собака уже дважды лаяла.", "answer": "has barked" }
+      ],
+      "easy": { "en": "Dogs bark at strangers.", "ru": "Собаки лают на незнакомцев.", "answer": "bark" },
+      "hard": { "en": "The dog barked so loudly at the door that everyone in the house woke up.", "ru": "Собака так громко лаяла у двери, что в доме все проснулись.", "answer": "barked" }
+    },
+    {
+      "id": "goat",
+      "en": "goat",
+      "ru": "коза",
+      "pos": "noun",
+      "emoji": "1f410",
+      "forms": ["goats"],
+      "easy": { "en": "The goat eats everything, even paper!", "ru": "Коза ест всё подряд, даже бумагу!", "answer": "goat" },
+      "hard": { "en": "A hungry goat ate the corner of my map while I was taking a photo.", "ru": "Пока я фотографировал, голодная коза съела уголок моей карты.", "answer": "goat" }
+    },
+    {
+      "id": "hamster",
+      "en": "hamster",
+      "ru": "хомяк",
+      "pos": "noun",
+      "emoji": "1f439",
+      "forms": ["hamsters"],
+      "easy": { "en": "My hamster runs in its wheel.", "ru": "Мой хомяк бегает в колесе.", "answer": "hamster" },
+      "hard": { "en": "Leo's hamster hides seeds in its cheeks and carries them to its bed.", "ru": "Хомяк Лео прячет семечки за щеками и уносит их к себе в гнёздышко.", "answer": "hamster" }
+    },
+    {
+      "id": "parrot",
+      "en": "parrot",
+      "ru": "попугай",
+      "pos": "noun",
+      "emoji": "1f99c",
+      "forms": ["parrots"],
+      "easy": { "en": "Can your parrot talk?", "ru": "Твой попугай умеет говорить?", "answer": "parrot" },
+      "hard": { "en": "Our parrot copies the sound of the phone, so we never know when it really rings.", "ru": "Наш попугай подражает звонку телефона, так что мы никогда не знаем, звонит ли телефон на самом деле.", "answer": "parrot" }
+    },
+    {
+      "id": "mouse-animal",
+      "en": "mouse",
+      "ru": "мышь",
+      "pos": "noun",
+      "emoji": "1f401",
+      "forms": ["mice"],
+      "note": "животное; мн. ч. mice",
+      "easy": { "en": "A tiny mouse runs across the floor.", "ru": "По полу бежит крошечная мышка.", "answer": "mouse" },
+      "hard": { "en": "Max keeps two white mice as pets, and they love to climb into his sleeves.", "ru": "Макс держит дома двух белых мышей, и они обожают забираться к нему в рукава.", "answer": "mice" }
+    },
+    {
+      "id": "farm",
+      "en": "farm",
+      "ru": "ферма",
+      "pos": "noun",
+      "emoji": "1f69c",
+      "forms": ["farms"],
+      "easy": { "en": "My uncle lives on a farm.", "ru": "Мой дядя живёт на ферме.", "answer": "farm" },
+      "hard": { "en": "Next summer the kids are going to spend a whole week on a farm.", "ru": "Следующим летом дети проведут целую неделю на ферме.", "answer": "farm" }
+    },
+    {
+      "id": "chase",
+      "en": "chase",
+      "ru": "гоняться",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["chases", "chased", "chasing"],
+      "ruAlt": ["гнаться"],
+      "note": "за кем-то",
+      "verb": { "base": "chase", "s": "chases", "past": "chased", "pp": "chased", "ing": "chasing" },
+      "drills": [
+        { "tense": "present-simple", "en": "Our cat often ___ butterflies in the garden.", "ru": "Наша кошка часто гоняется за бабочками в саду.", "answer": "chases" },
+        { "tense": "past-simple", "en": "When I was a child, I ___ pigeons in the park.", "ru": "В детстве я гонялся за голубями в парке.", "answer": "chased" },
+        { "tense": "present-continuous", "en": "Look, the puppy ___ its own tail!", "ru": "Смотри, щенок гоняется за собственным хвостом!", "answer": "is chasing" },
+        { "tense": "present-perfect", "en": "My dog ___ the same squirrel three times since breakfast.", "ru": "С завтрака моя собака уже трижды гонялась за одной и той же белкой.", "answer": "has chased" }
+      ],
+      "easy": { "en": "Kittens chase each other.", "ru": "Котята гоняются друг за другом.", "answer": "chase" },
+      "hard": { "en": "At the farm a noisy goose chased us all the way to the car.", "ru": "На ферме шумный гусь гнался за нами до самой машины.", "answer": "chased" }
+    }
+  ]
+}

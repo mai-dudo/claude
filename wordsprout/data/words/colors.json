@@ -1,0 +1,242 @@
+{
+  "chapter": "colors",
+  "words": [
+    {
+      "id": "red",
+      "en": "red",
+      "ru": "красный",
+      "pos": "adj",
+      "emoji": "1f534",
+      "forms": [],
+      "easy": { "en": "Jake wears a red cap.", "ru": "Джейк носит красную кепку.", "answer": "red" },
+      "hard": { "en": "When the traffic light turns red, everyone has to stop and wait.", "ru": "Когда на светофоре загорается красный, все должны остановиться и подождать.", "answer": "red" }
+    },
+    {
+      "id": "blue",
+      "en": "blue",
+      "ru": "синий",
+      "pos": "adj",
+      "emoji": "1f535",
+      "forms": [],
+      "ruAlt": ["голубой"],
+      "note": "и голубой",
+      "easy": { "en": "Emma has blue eyes.", "ru": "У Эммы голубые глаза.", "answer": "blue" },
+      "hard": { "en": "Lisa chose blue curtains for the bedroom because they remind her of the sea.", "ru": "Лиза выбрала для спальни синие шторы, потому что они напоминают ей о море.", "answer": "blue" }
+    },
+    {
+      "id": "green",
+      "en": "green",
+      "ru": "зелёный",
+      "pos": "adj",
+      "emoji": "1f7e2",
+      "forms": [],
+      "easy": { "en": "The grass is green after the rain.", "ru": "После дождя трава зелёная.", "answer": "green" },
+      "hard": { "en": "In May the whole town turns green, and the parks fill with people.", "ru": "В мае весь город зеленеет, и парки наполняются людьми.", "answer": "green" }
+    },
+    {
+      "id": "yellow",
+      "en": "yellow",
+      "ru": "жёлтый",
+      "pos": "adj",
+      "emoji": "1f7e1",
+      "forms": [],
+      "easy": { "en": "A yellow taxi stops near us.", "ru": "Рядом с нами останавливается жёлтое такси.", "answer": "yellow" },
+      "hard": { "en": "The kids drew a big yellow sun on the sidewalk with chalk.", "ru": "Дети нарисовали мелом на тротуаре большое жёлтое солнце.", "answer": "yellow" }
+    },
+    {
+      "id": "black",
+      "en": "black",
+      "ru": "чёрный",
+      "pos": "adj",
+      "emoji": null,
+      "forms": [],
+      "easy": { "en": "Dad drinks black coffee.", "ru": "Папа пьёт чёрный кофе.", "answer": "black" },
+      "hard": { "en": "Dan wore a black suit to the wedding, but he forgot to change his sneakers.", "ru": "Дэн пришёл на свадьбу в чёрном костюме, но забыл переобуть кроссовки.", "answer": "black" }
+    },
+    {
+      "id": "white",
+      "en": "white",
+      "ru": "белый",
+      "pos": "adj",
+      "emoji": "26aa",
+      "forms": [],
+      "easy": { "en": "We draw on white paper.", "ru": "Мы рисуем на белой бумаге.", "answer": "white" },
+      "hard": { "en": "Grandpa's hair turned white years ago, but he still runs every morning.", "ru": "Волосы у дедушки побелели много лет назад, но он до сих пор каждое утро бегает.", "answer": "white" }
+    },
+    {
+      "id": "paint",
+      "en": "paint",
+      "ru": "рисовать красками",
+      "pos": "verb",
+      "emoji": "1f58c",
+      "forms": ["paints", "painted", "painting"],
+      "ruAlt": ["красить"],
+      "note": "и красить",
+      "verb": { "base": "paint", "s": "paints", "past": "painted", "pp": "painted", "ing": "painting" },
+      "drills": [
+        { "tense": "present-simple", "en": "Rosa ___ flowers on small stones every weekend.", "ru": "Каждые выходные Роза рисует цветы на маленьких камушках.", "answer": "paints" },
+        { "tense": "past-simple", "en": "Last summer Dad ___ the fence green.", "ru": "Прошлым летом папа покрасил забор в зелёный цвет.", "answer": "painted" },
+        { "tense": "present-continuous", "en": "Careful, Omar ___ the door right now.", "ru": "Осторожно, Омар сейчас красит дверь.", "answer": "is painting" },
+        { "tense": "present-perfect", "en": "Lucy ___ ten pictures since January.", "ru": "С января Люси написала уже десять картин.", "answer": "has painted" }
+      ],
+      "easy": { "en": "Kids paint with their fingers.", "ru": "Дети рисуют красками прямо пальцами.", "answer": "paint" },
+      "hard": { "en": "We are going to paint the kitchen yellow, so it feels sunny even in winter.", "ru": "Мы собираемся покрасить кухню в жёлтый цвет, чтобы даже зимой там было солнечно.", "answer": "paint" }
+    },
+    {
+      "id": "orange-color",
+      "en": "orange",
+      "ru": "оранжевый",
+      "pos": "adj",
+      "emoji": "1f7e0",
+      "forms": [],
+      "note": "цвет",
+      "easy": { "en": "Leo rides an orange bike.", "ru": "Лео катается на оранжевом велосипеде.", "answer": "orange" },
+      "hard": { "en": "Workers on the road wear orange vests, so drivers can see them at night.", "ru": "Дорожные рабочие носят оранжевые жилеты, чтобы водители видели их ночью.", "answer": "orange" }
+    },
+    {
+      "id": "pink",
+      "en": "pink",
+      "ru": "розовый",
+      "pos": "adj",
+      "emoji": "1fa77",
+      "forms": [],
+      "easy": { "en": "Pink flowers grow by the gate.", "ru": "У калитки растут розовые цветы.", "answer": "pink" },
+      "hard": { "en": "Never wash a red sock with white shirts, or everything will turn pink!", "ru": "Никогда не стирай красный носок с белыми рубашками, а то всё станет розовым!", "answer": "pink" }
+    },
+    {
+      "id": "brown",
+      "en": "brown",
+      "ru": "коричневый",
+      "pos": "adj",
+      "emoji": "1f7e4",
+      "forms": [],
+      "easy": { "en": "Ben keeps his pens in a brown box.", "ru": "Бен хранит ручки в коричневой коробке.", "answer": "brown" },
+      "hard": { "en": "My aunt bought brown boots that go perfectly with her old leather bag.", "ru": "Тётя купила коричневые сапоги, которые идеально подходят к её старой кожаной сумке.", "answer": "brown" }
+    },
+    {
+      "id": "draw",
+      "en": "draw",
+      "ru": "рисовать",
+      "pos": "verb",
+      "emoji": "1f58d",
+      "forms": ["draws", "drew", "drawn", "drawing"],
+      "note": "карандашом, ручкой",
+      "verb": { "base": "draw", "s": "draws", "past": "drew", "pp": "drawn", "ing": "drawing" },
+      "drills": [
+        { "tense": "present-simple", "en": "Max often ___ funny cats in his notebook.", "ru": "Макс часто рисует в тетради смешных котов.", "answer": "draws" },
+        { "tense": "past-simple", "en": "Last Friday I ___ a horse for my little brother.", "ru": "В прошлую пятницу я нарисовал лошадь для младшего брата.", "answer": "drew" },
+        { "tense": "present-continuous", "en": "Nina ___ a portrait of Grandpa at the moment.", "ru": "Нина сейчас рисует портрет дедушки.", "answer": "is drawing" },
+        { "tense": "present-perfect", "en": "The children ___ six pictures since breakfast.", "ru": "С завтрака дети нарисовали уже шесть картинок.", "answer": "have drawn" }
+      ],
+      "easy": { "en": "Draw a house and a tree.", "ru": "Нарисуй дом и дерево.", "answer": "draw" },
+      "hard": { "en": "Alex drew a simple map, so his guests found the house without any trouble.", "ru": "Алекс нарисовал простую схему, и гости без труда нашли его дом.", "answer": "drew" }
+    },
+    {
+      "id": "purple",
+      "en": "purple",
+      "ru": "фиолетовый",
+      "pos": "adj",
+      "emoji": "1f7e3",
+      "forms": [],
+      "easy": { "en": "I write with a purple pen.", "ru": "Я пишу фиолетовой ручкой.", "answer": "purple" },
+      "hard": { "en": "Mia dyed her hair purple for the concert, and her grandma loved it.", "ru": "Мия покрасила волосы в фиолетовый цвет к концерту, и её бабушке это очень понравилось.", "answer": "purple" }
+    },
+    {
+      "id": "gray",
+      "en": "gray",
+      "ru": "серый",
+      "pos": "adj",
+      "emoji": "1fa76",
+      "forms": [],
+      "note": "в Британии — grey",
+      "easy": { "en": "An elephant is big and gray.", "ru": "Слон большой и серый.", "answer": "gray" },
+      "hard": { "en": "Have you ever seen a gray squirrel in the city park?", "ru": "Ты когда-нибудь видел серую белку в городском парке?", "answer": "gray" }
+    },
+    {
+      "id": "dark",
+      "en": "dark",
+      "ru": "тёмный",
+      "pos": "adj",
+      "emoji": null,
+      "forms": [],
+      "easy": { "en": "Mom has long dark hair.", "ru": "У мамы длинные тёмные волосы.", "answer": "dark" },
+      "hard": { "en": "The room was so dark that I could not find the light switch.", "ru": "В комнате было так темно, что я не мог найти выключатель.", "answer": "dark" }
+    },
+    {
+      "id": "color",
+      "en": "color",
+      "ru": "раскрашивать",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["colors", "colored", "coloring"],
+      "note": "в Британии — colour",
+      "verb": { "base": "color", "s": "colors", "past": "colored", "pp": "colored", "ing": "coloring" },
+      "drills": [
+        { "tense": "present-simple", "en": "My daughter ___ in her animal book every evening.", "ru": "Моя дочка каждый вечер раскрашивает книжку с животными.", "answer": "colors" },
+        { "tense": "past-simple", "en": "Yesterday the kids ___ paper stars for the classroom.", "ru": "Вчера дети раскрасили бумажные звёзды для класса.", "answer": "colored" },
+        { "tense": "present-continuous", "en": "Look, Adam ___ a dinosaur with crayons!", "ru": "Смотри, Адам раскрашивает динозавра цветными мелками!", "answer": "is coloring" },
+        { "tense": "present-perfect", "en": "Lisa ___ every page of her new book since Monday.", "ru": "С понедельника Лиза раскрасила все страницы своей новой книжки.", "answer": "has colored" }
+      ],
+      "easy": { "en": "Tom colors the sun yellow.", "ru": "Том раскрашивает солнце в жёлтый цвет.", "answer": "colors" },
+      "hard": { "en": "My grandson colored a card for me, and I put it on the fridge.", "ru": "Внук раскрасил для меня открытку, и я повесила её на холодильник.", "answer": "colored" }
+    },
+    {
+      "id": "bright",
+      "en": "bright",
+      "ru": "яркий",
+      "pos": "adj",
+      "emoji": "1f506",
+      "forms": [],
+      "easy": { "en": "My new desk lamp is so bright.", "ru": "Моя новая настольная лампа такая яркая.", "answer": "bright" },
+      "hard": { "en": "Kate always wears bright colors, so it is easy to find her in a crowd.", "ru": "Кейт всегда носит яркую одежду, поэтому её легко найти в толпе.", "answer": "bright" }
+    },
+    {
+      "id": "gold",
+      "en": "gold",
+      "ru": "золотой",
+      "pos": "adj",
+      "emoji": "1f451",
+      "forms": [],
+      "easy": { "en": "Grandma never takes off her gold ring.", "ru": "Бабушка никогда не снимает своё золотое кольцо.", "answer": "gold" },
+      "hard": { "en": "Our team won the gold medal, and the whole school celebrated with us.", "ru": "Наша команда завоевала золотую медаль, и вся школа праздновала вместе с нами.", "answer": "gold" }
+    },
+    {
+      "id": "silver",
+      "en": "silver",
+      "ru": "серебряный",
+      "pos": "adj",
+      "emoji": null,
+      "forms": [],
+      "easy": { "en": "Anna wears silver earrings.", "ru": "Анна носит серебряные серёжки.", "answer": "silver" },
+      "hard": { "en": "Mom keeps her silver bracelet in a small box and wears it only on holidays.", "ru": "Мама хранит свой серебряный браслет в маленькой шкатулке и надевает его только по праздникам.", "answer": "silver" }
+    },
+    {
+      "id": "colorful",
+      "en": "colorful",
+      "ru": "разноцветный",
+      "pos": "adj",
+      "emoji": null,
+      "forms": [],
+      "note": "в Британии — colourful",
+      "easy": { "en": "Sam flies a colorful kite.", "ru": "Сэм запускает разноцветного воздушного змея.", "answer": "colorful" },
+      "hard": { "en": "The new playground is so colorful that kids want to stay there all day.", "ru": "Новая детская площадка такая разноцветная, что дети готовы проводить там весь день.", "answer": "colorful" }
+    },
+    {
+      "id": "mix",
+      "en": "mix",
+      "ru": "смешивать",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["mixes", "mixed", "mixing"],
+      "verb": { "base": "mix", "s": "mixes", "past": "mixed", "pp": "mixed", "ing": "mixing" },
+      "drills": [
+        { "tense": "present-simple", "en": "The artist usually ___ her paints on an old plate.", "ru": "Художница обычно смешивает краски на старой тарелке.", "answer": "mixes" },
+        { "tense": "past-simple", "en": "Last week we ___ red and white paint for the kitchen walls.", "ru": "На прошлой неделе мы смешали красную и белую краску для стен на кухне.", "answer": "mixed" },
+        { "tense": "present-continuous", "en": "Look, Eva ___ all her paints together!", "ru": "Смотри, Ева смешивает все свои краски!", "answer": "is mixing" },
+        { "tense": "present-perfect", "en": "I ___ five kinds of blue since lunch.", "ru": "С обеда я смешала уже пять оттенков синего.", "answer": "have mixed" }
+      ],
+      "easy": { "en": "Mix the paint with water.", "ru": "Смешай краску с водой.", "answer": "mix" },
+      "hard": { "en": "If you mix yellow and blue, you will get a lovely shade of green.", "ru": "Если смешать жёлтый и синий, получится красивый оттенок зелёного.", "answer": "mix" }
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+/* Экран «Проверка клавиатуры» (#/lab): образцы, клеточки, переключатель клавиатуры и журнал событий.
+   Каждый селектор начинается с .s-lab; цвета, отступы и шрифты — только токены из tokens.css.
+   Журнал — моноширинный, новые строки сверху, у строки слева цветная метка: зелёная — буква принята,
+   красная — отклонена, подсолнечная — композиция, листовая — действие на экране. */
+.s-lab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--maxw-text);
+  margin: 0 auto;
+}
+
+.s-lab__head {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.s-lab__title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-tight);
+}
+
+.s-lab__intro {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: var(--lh);
+}
+
+.s-lab__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.s-lab__samples,
+.s-lab__keyboards {
+  align-self: center;
+  max-width: 100%;
+}
+
+.s-lab__ru {
+  margin: 0;
+  text-align: center;
+}
+
+.s-lab__field {
+  display: grid;
+  min-height: 72px;
+  align-content: center;
+}
+
+.s-lab__actions {
+  flex-wrap: wrap;
+}
+
+.s-lab__status {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.s-lab__status.is-done {
+  color: var(--ok-ink);
+  font-weight: var(--fw-bold);
+}
+
+.s-lab__h2 {
+  margin: 0;
+  font-size: var(--fs-l);
+  line-height: var(--lh-tight);
+}
+
+.s-lab__note,
+.s-lab__legend,
+.s-lab__empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-s);
+  line-height: var(--lh-snug);
+}
+
+.s-lab__empty {
+  padding: var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-s);
+  text-align: center;
+}
+
+.s-lab__journal-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.s-lab__journal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.s-lab__log {
+  max-height: min(48vh, 420px);
+  margin: 0;
+  padding: var(--space-1);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  list-style: none;
+}
+
+.s-lab__log:empty {
+  display: none;
+}
+
+.s-lab__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  padding: 3px var(--space-2) 3px 10px;
+  border-radius: var(--radius-xs);
+  box-shadow: inset 3px 0 0 var(--border-strong);
+  overflow-wrap: anywhere;
+}
+
+.s-lab__row + .s-lab__row {
+  margin-top: 2px;
+}
+
+.s-lab__time {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-lab__type {
+  font-weight: var(--fw-bold);
+}
+
+.s-lab__text {
+  min-width: 0;
+  color: var(--text-muted);
+}
+
+.s-lab__row--ok {
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+
+.s-lab__row--ok .s-lab__type {
+  color: var(--ok-ink);
+}
+
+.s-lab__row--bad {
+  background: var(--bad-soft);
+  box-shadow: inset 3px 0 0 var(--bad);
+}
+
+.s-lab__row--bad .s-lab__type,
+.s-lab__row--bad .s-lab__text {
+  color: var(--bad-ink);
+}
+
+.s-lab__row--done {
+  background: var(--ok-soft);
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+
+.s-lab__row--done .s-lab__type,
+.s-lab__row--done .s-lab__text {
+  color: var(--ok-ink);
+}
+
+.s-lab__row--comp {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.s-lab__row--note {
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.s-lab__row--note .s-lab__type {
+  color: var(--primary-strong);
+}
+
+.s-lab__device {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+}
+
+.s-lab__clip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 720px) {
+  .s-lab__log {
+    font-size: var(--fs-s);
+  }
+}

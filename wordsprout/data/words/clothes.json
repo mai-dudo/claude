@@ -1,0 +1,165 @@
+{
+  "chapter": "clothes",
+  "words": [
+    {
+      "id": "t-shirt", "en": "t-shirt", "ru": "футболка", "pos": "noun", "emoji": "1f455",
+      "forms": ["t-shirts"],
+      "easy": { "en": "This T-shirt is too big for me.", "ru": "Эта футболка мне велика.", "answer": "t-shirt" },
+      "hard": { "en": "On our last day at camp, everyone signed their names on my white T-shirt.", "ru": "В последний день в лагере все расписались на моей белой футболке.", "answer": "t-shirt" }
+    },
+    {
+      "id": "dress", "en": "dress", "ru": "платье", "pos": "noun", "emoji": "1f457",
+      "forms": ["dresses"],
+      "easy": { "en": "Ella has a long blue dress.", "ru": "У Эллы длинное синее платье.", "answer": "dress" },
+      "hard": { "en": "Lucy made her own dress for the school dance from an old curtain.", "ru": "Люси сама сшила себе платье для школьного бала из старой шторы.", "answer": "dress" }
+    },
+    {
+      "id": "hat", "en": "hat", "ru": "шляпа", "pos": "noun", "emoji": "1f452",
+      "forms": ["hats"],
+      "ruAlt": ["шапка"],
+      "note": "и шапка",
+      "easy": { "en": "My winter hat is bright red.", "ru": "Моя зимняя шапка ярко-красная.", "answer": "hat" },
+      "hard": { "en": "It was so windy on the boat that Dad's hat flew into the water.", "ru": "На лодке было так ветрено, что папину шляпу сдуло в воду.", "answer": "hat" }
+    },
+    {
+      "id": "shoes", "en": "shoes", "ru": "обувь", "pos": "noun", "emoji": "1f45e",
+      "forms": [],
+      "note": "туфли, ботинки",
+      "easy": { "en": "Take off your shoes, please.", "ru": "Сними, пожалуйста, обувь.", "answer": "shoes" },
+      "hard": { "en": "Anna's new shoes were too tight, so she danced barefoot all evening.", "ru": "Новые туфли Анне жали, поэтому весь вечер она танцевала босиком.", "answer": "shoes" }
+    },
+    {
+      "id": "wear", "en": "wear", "ru": "носить", "pos": "verb", "emoji": null,
+      "forms": ["wears", "wore", "worn", "wearing"],
+      "note": "об одежде",
+      "verb": { "base": "wear", "s": "wears", "past": "wore", "pp": "worn", "ing": "wearing" },
+      "drills": [
+        { "tense": "present-simple", "en": "Nurses usually ___ comfortable shoes at work.", "ru": "Медсёстры обычно носят на работе удобную обувь.", "answer": "wear" },
+        { "tense": "past-simple", "en": "Last Saturday Eva ___ a long silver dress to the concert.", "ru": "В прошлую субботу Ева ходила на концерт в длинном серебристом платье.", "answer": "wore" },
+        { "tense": "present-continuous", "en": "Look, Nina ___ the same sweater as you!", "ru": "Смотри, на Нине такой же свитер, как у тебя!", "answer": "is wearing" },
+        { "tense": "present-perfect", "en": "Grandpa ___ the same watch since his wedding day.", "ru": "Дедушка носит одни и те же часы со дня своей свадьбы.", "answer": "has worn" }
+      ],
+      "easy": { "en": "We wear warm coats in winter.", "ru": "Зимой мы носим тёплые пальто.", "answer": "wear" },
+      "hard": { "en": "Dan wore a funny costume to the party, and nobody recognized him at first.", "ru": "Дэн пришёл на вечеринку в смешном костюме, и сначала его никто не узнал.", "answer": "wore" }
+    },
+    {
+      "id": "pants", "en": "pants", "ru": "брюки", "pos": "noun", "emoji": "1f456",
+      "forms": [],
+      "ruAlt": ["штаны"],
+      "note": "в Британии — trousers",
+      "easy": { "en": "These pants are too long.", "ru": "Эти брюки слишком длинные.", "answer": "pants" },
+      "hard": { "en": "Ben spilled coffee on his pants, so he borrowed a pair from his brother.", "ru": "Бен пролил на брюки кофе, и ему пришлось одолжить другие у брата.", "answer": "pants" }
+    },
+    {
+      "id": "skirt", "en": "skirt", "ru": "юбка", "pos": "noun", "emoji": null,
+      "forms": ["skirts"],
+      "easy": { "en": "This skirt has big pockets.", "ru": "У этой юбки большие карманы.", "answer": "skirt" },
+      "hard": { "en": "Mia found a beautiful green skirt at the market, and it was really cheap.", "ru": "Мия нашла на рынке красивую зелёную юбку, и она оказалась совсем недорогой.", "answer": "skirt" }
+    },
+    {
+      "id": "socks", "en": "socks", "ru": "носки", "pos": "noun", "emoji": "1f9e6",
+      "forms": ["sock"],
+      "easy": { "en": "My socks are wet.", "ru": "У меня мокрые носки.", "answer": "socks" },
+      "hard": { "en": "Why does the washing machine always eat one sock from every pair?", "ru": "Почему стиральная машина всегда съедает один носок из каждой пары?", "answer": "sock" }
+    },
+    {
+      "id": "coat", "en": "coat", "ru": "пальто", "pos": "noun", "emoji": "1f9e5",
+      "forms": ["coats"],
+      "easy": { "en": "My coat has big buttons.", "ru": "У моего пальто большие пуговицы.", "answer": "coat" },
+      "hard": { "en": "You will need a warm coat if you visit us in January.", "ru": "Если приедешь к нам в январе, тебе понадобится тёплое пальто.", "answer": "coat" }
+    },
+    {
+      "id": "sweater", "en": "sweater", "ru": "свитер", "pos": "noun", "emoji": null,
+      "forms": ["sweaters"],
+      "note": "в Британии — jumper",
+      "easy": { "en": "Grandpa knits a green sweater.", "ru": "Дедушка вяжет зелёный свитер.", "answer": "sweater" },
+      "hard": { "en": "My favorite sweater shrank in the wash, so now my little sister wears it.", "ru": "Мой любимый свитер сел после стирки, и теперь его носит моя младшая сестра.", "answer": "sweater" }
+    },
+    {
+      "id": "fold", "en": "fold", "ru": "складывать", "pos": "verb", "emoji": null,
+      "forms": ["folds", "folded", "folding"],
+      "verb": { "base": "fold", "s": "folds", "past": "folded", "pp": "folded", "ing": "folding" },
+      "drills": [
+        { "tense": "present-simple", "en": "Dad usually ___ the laundry after dinner.", "ru": "Папа обычно складывает бельё после ужина.", "answer": "folds" },
+        { "tense": "past-simple", "en": "Yesterday the kids ___ paper boats and sailed them in the pond.", "ru": "Вчера дети сложили бумажные кораблики и пускали их по пруду.", "answer": "folded" },
+        { "tense": "present-continuous", "en": "Wait a minute, I ___ the towels right now.", "ru": "Подожди минутку, я сейчас складываю полотенца.", "answer": "am folding" },
+        { "tense": "present-perfect", "en": "Jake ___ the same map three times since we left the hotel.", "ru": "С тех пор как мы вышли из отеля, Джейк уже три раза складывал одну и ту же карту.", "answer": "has folded" }
+      ],
+      "easy": { "en": "Fold your clothes, please.", "ru": "Сложи, пожалуйста, одежду.", "answer": "fold" },
+      "hard": { "en": "Before the trip, Kate folded her shirts carefully so they would fit in one small bag.", "ru": "Перед поездкой Кейт аккуратно сложила рубашки, чтобы они поместились в одну маленькую сумку.", "answer": "folded" }
+    },
+    {
+      "id": "shorts", "en": "shorts", "ru": "шорты", "pos": "noun", "emoji": "1fa73",
+      "forms": [],
+      "easy": { "en": "Leo runs in black shorts.", "ru": "Лео бегает в чёрных шортах.", "answer": "shorts" },
+      "hard": { "en": "Pack some shorts, because it will be very hot at the lake next week.", "ru": "Возьми с собой шорты: на следующей неделе на озере будет очень жарко.", "answer": "shorts" }
+    },
+    {
+      "id": "cap", "en": "cap", "ru": "кепка", "pos": "noun", "emoji": "1f9e2",
+      "forms": ["caps"],
+      "ruAlt": ["бейсболка"],
+      "easy": { "en": "Jake always wears his cap backward.", "ru": "Джейк всегда носит кепку козырьком назад.", "answer": "cap" },
+      "hard": { "en": "Dad bought caps for the whole team, so everyone looked the same in the photos.", "ru": "Папа купил кепки для всей команды, и на фотографиях все выглядели одинаково.", "answer": "caps" }
+    },
+    {
+      "id": "scarf", "en": "scarf", "ru": "шарф", "pos": "noun", "emoji": "1f9e3",
+      "forms": ["scarves"],
+      "note": "мн. ч. scarves",
+      "easy": { "en": "This scarf is very soft.", "ru": "Этот шарф очень мягкий.", "answer": "scarf" },
+      "hard": { "en": "I dropped my scarf at the station, and a kind woman ran after me with it.", "ru": "Я уронил шарф на вокзале, и добрая женщина догнала меня, чтобы его вернуть.", "answer": "scarf" }
+    },
+    {
+      "id": "gloves", "en": "gloves", "ru": "перчатки", "pos": "noun", "emoji": "1f9e4",
+      "forms": [],
+      "easy": { "en": "My gloves are in my pocket.", "ru": "Мои перчатки лежат в кармане.", "answer": "gloves" },
+      "hard": { "en": "Should I take gloves, or is it warm enough outside today?", "ru": "Мне брать перчатки, или на улице сегодня достаточно тепло?", "answer": "gloves" }
+    },
+    {
+      "id": "hang", "en": "hang", "ru": "вешать", "pos": "verb", "emoji": "1fa9d",
+      "forms": ["hangs", "hung", "hanging"],
+      "verb": { "base": "hang", "s": "hangs", "past": "hung", "pp": "hung", "ing": "hanging" },
+      "drills": [
+        { "tense": "present-simple", "en": "Ben always ___ his keys by the front door.", "ru": "Бен всегда вешает ключи у входной двери.", "answer": "hangs" },
+        { "tense": "past-simple", "en": "Yesterday we ___ new curtains in the living room.", "ru": "Вчера мы повесили в гостиной новые шторы.", "answer": "hung" },
+        { "tense": "present-continuous", "en": "Look, Alex ___ balloons all over the room!", "ru": "Смотри, Алекс развешивает по всей комнате воздушные шарики!", "answer": "is hanging" },
+        { "tense": "present-perfect", "en": "Nina ___ twelve of her photos on the wall since May.", "ru": "С мая Нина повесила на стену двенадцать своих фотографий.", "answer": "has hung" }
+      ],
+      "easy": { "en": "Hang your jacket on the hook.", "ru": "Повесь куртку на крючок.", "answer": "hang" },
+      "hard": { "en": "After the rain stopped, we hung all the wet clothes on a rope between two trees.", "ru": "Когда дождь закончился, мы развесили всю мокрую одежду на верёвке между двумя деревьями.", "answer": "hung" }
+    },
+    {
+      "id": "boots", "en": "boots", "ru": "сапоги", "pos": "noun", "emoji": "1f462",
+      "forms": [],
+      "note": "и высокие ботинки",
+      "easy": { "en": "Rosa has new rain boots.", "ru": "У Розы новые резиновые сапоги.", "answer": "boots" },
+      "hard": { "en": "Leave your muddy boots outside, or Mom will make you wash the floor.", "ru": "Оставь грязные сапоги за дверью, а то мама заставит тебя мыть пол.", "answer": "boots" }
+    },
+    {
+      "id": "sneakers", "en": "sneakers", "ru": "кроссовки", "pos": "noun", "emoji": "1f45f",
+      "forms": [],
+      "note": "в Британии — trainers",
+      "easy": { "en": "These sneakers are perfect for running.", "ru": "Эти кроссовки отлично подходят для бега.", "answer": "sneakers" },
+      "hard": { "en": "Max is going to need new sneakers, because his feet grow so fast.", "ru": "Максу скоро понадобятся новые кроссовки: у него так быстро растут ноги.", "answer": "sneakers" }
+    },
+    {
+      "id": "glasses", "en": "glasses", "ru": "очки", "pos": "noun", "emoji": "1f453",
+      "forms": [],
+      "easy": { "en": "Adam cannot read without his glasses.", "ru": "Адам не может читать без очков.", "answer": "glasses" },
+      "hard": { "en": "I searched everywhere for my glasses, and they were on my head!", "ru": "Я везде искал очки, а они всё это время были у меня на голове!", "answer": "glasses" }
+    },
+    {
+      "id": "iron", "en": "iron", "ru": "гладить", "pos": "verb", "emoji": null,
+      "forms": ["irons", "ironed", "ironing"],
+      "note": "утюгом",
+      "verb": { "base": "iron", "s": "irons", "past": "ironed", "pp": "ironed", "ing": "ironing" },
+      "drills": [
+        { "tense": "present-simple", "en": "Omar ___ his shirts every Sunday evening.", "ru": "Омар гладит рубашки каждое воскресенье вечером.", "answer": "irons" },
+        { "tense": "past-simple", "en": "Last Friday Mom ___ my dress for the school photo.", "ru": "В прошлую пятницу мама погладила мне платье для школьной фотографии.", "answer": "ironed" },
+        { "tense": "present-continuous", "en": "Please wait, Anna ___ your pants right now.", "ru": "Подожди, пожалуйста, Анна как раз гладит твои брюки.", "answer": "is ironing" },
+        { "tense": "present-perfect", "en": "Since breakfast, Lucy ___ a whole basket of clothes.", "ru": "С завтрака Люси перегладила целую корзину белья.", "answer": "has ironed" }
+      ],
+      "easy": { "en": "Can you iron my blue shirt?", "ru": "Можешь погладить мою синюю рубашку?", "answer": "iron" },
+      "hard": { "en": "Tom always listens to music while he irons, because he finds it boring.", "ru": "Том всегда слушает музыку, когда гладит, потому что ему это скучно.", "answer": "irons" }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+/* Игра «Вставь слово» (gap). Колонку игры рисует WS.ui.stage, строку с пропуском — WS.ui.sentence,
+   клеточки — WS.ui.letterInput (kit.css); здесь только своё: ширина строки, русский перевод предложения
+   и пустое состояние. Каждый селектор начинается с .g-gap; значения — только токены. */
+.g-gap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-gap__sentence {
+  max-width: var(--maxw-text);
+}
+
+.g-gap__tr {
+  max-width: var(--maxw-text);
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-m);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.g-gap__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  color: var(--text-muted);
+  text-align: center;
+}

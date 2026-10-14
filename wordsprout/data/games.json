@@ -1,0 +1,14 @@
+[
+  {"id": "spell", "order": 1, "title": "Напиши слово", "blurb": "Смотри на картинку и печатай слово по буквам.", "icon": "270f", "scope": "chapter", "needs": ["picture"], "minWords": 3, "size": 10, "enabled": true},
+  {"id": "pick", "order": 2, "title": "Выбери картинку", "blurb": "Читай английское слово и находи его картинку.", "icon": "1f5bc", "scope": "chapter", "needs": ["picture"], "minWords": 4, "size": 10, "enabled": true},
+  {"id": "match", "order": 3, "title": "Найди пары", "blurb": "Соединяй картинки с английскими словами.", "icon": "1f9e9", "scope": "chapter", "needs": ["picture"], "minWords": 3, "size": 10, "enabled": true},
+  {"id": "gap", "order": 4, "title": "Вставь слово", "blurb": "Допиши пропущенное слово в предложение.", "icon": "1f4dd", "scope": "chapter", "needs": ["sentence"], "minWords": 3, "size": 10, "enabled": true},
+  {"id": "recall", "order": 5, "title": "Вспомни и напиши", "blurb": "Пиши слово по картинке, на слух и по переводу.", "icon": "1f9e0", "scope": "chapter", "needs": [], "minWords": 3, "size": 10, "enabled": true},
+  {"id": "dictation", "order": 6, "title": "Диктант", "blurb": "Слушай предложение и записывай его целиком.", "icon": "1f3a7", "scope": "chapter", "needs": ["sentence"], "minWords": 3, "size": 10, "enabled": true},
+  {"id": "wordsearch", "order": 7, "title": "Найди слова", "blurb": "Ищи спрятанные слова в сетке из букв.", "icon": "1f50e", "scope": "chapter", "needs": ["short"], "minWords": 3, "size": 10, "enabled": true},
+  {"id": "build", "order": 8, "title": "Собери предложение", "blurb": "Расставляй слова предложения по порядку.", "icon": "1f9f1", "scope": "chapter", "needs": ["sentence"], "minWords": 3, "size": 10, "enabled": true},
+  {"id": "tenses", "order": 9, "title": "Времена глаголов", "blurb": "Ставь глагол в нужное время.", "icon": "23f3", "scope": "chapter", "needs": ["verb"], "minWords": 2, "size": 10, "enabled": true},
+  {"id": "shadowing", "order": 10, "title": "Повтори вслух", "blurb": "Слушай и повторяй слова и фразы вслух.", "icon": "1f5e3", "scope": "chapter", "needs": ["sentence"], "minWords": 3, "size": 10, "enabled": true},
+  {"id": "mistakes", "order": 11, "title": "Работа над ошибками", "blurb": "Ещё раз пройди слова, в которых были ошибки.", "icon": "1f527", "scope": "global", "needs": [], "minWords": 1, "size": 20, "enabled": true},
+  {"id": "srs", "order": 12, "title": "Повторение", "blurb": "Освежай выученные слова, пока они не забылись.", "icon": "1f501", "scope": "global", "needs": [], "minWords": 1, "size": 30, "enabled": true}
+]

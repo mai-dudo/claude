@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<script>if (!location.pathname.endsWith('/') && !/\.html$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+<meta charset="utf-8">
+<script>
+  /* Вид страницы до первой отрисовки: тема, стиль и анимации из сохранённых настроек
+     (wordsprout.v1.settings) и системных prefers-*; в тестовом режиме (?test=1) анимаций нет. */
+  (() => {
+    'use strict';
+    const root = document.documentElement;
+    let s = {};
+    try {
+      s = JSON.parse(localStorage.getItem('wordsprout.v1.settings')) || {};
+    } catch (e) {
+      s = {};
+    }
+    if (!s || typeof s !== 'object') s = {};
+    const media = (q) => !!(window.matchMedia && window.matchMedia(q).matches);
+    const test = /[?&]test=1(&|$)/.test(location.search);
+    const dark = s.theme === 'dark' || (s.theme !== 'light' && media('(prefers-color-scheme: dark)'));
+    root.dataset.theme = dark ? 'dark' : 'light';
+    root.dataset.look = s.look === 'simple' ? 'simple' : 'illustrated';
+    root.dataset.motion = test || s.motion === 'reduce' || media('(prefers-reduced-motion: reduce)') ? 'reduce' : 'full';
+    if (test) root.dataset.test = '1';
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>WordSprout — английские слова</title>
+<meta name="description" content="WordSprout — бесплатный тренажёр английских слов по картинкам: смотри, слушай и печатай.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#fbf6ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1c16" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="img/app/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/app/icon-192.png">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/kit.css">
+<link rel="stylesheet" href="css/screens/lab.css">
+<link rel="stylesheet" href="css/screens/home.css">
+<link rel="stylesheet" href="css/screens/learn.css">
+<link rel="stylesheet" href="css/screens/progress.css">
+<link rel="stylesheet" href="css/screens/tree.css">
+<link rel="stylesheet" href="css/screens/settings.css">
+<link rel="stylesheet" href="css/screens/review.css">
+<link rel="stylesheet" href="css/screens/about.css">
+<script defer src="js/core/ns.js"></script>
+<script defer src="js/core/i18n.js"></script>
+<script defer src="js/core/store.js"></script>
+<script defer src="js/core/settings.js"></script>
+<script defer src="js/core/data.js"></script>
+<script defer src="js/core/progress.js"></script>
+<script defer src="js/core/speech.js"></script>
+<script defer src="js/core/sfx.js"></script>
+<script defer src="js/ui/icons.js"></script>
+<script defer src="js/ui/kit.js"></script>
+<script defer src="js/ui/letter-input.js"></script>
+<script defer src="js/ui/keypad.js"></script>
+<script defer src="js/core/router.js"></script>
+<script defer src="js/core/shell.js"></script>
+<script defer src="js/core/games.js"></script>
+<script defer src="js/screens/home.js"></script>
+<script defer src="js/screens/learn.js"></script>
+<script defer src="js/screens/review.js"></script>
+<script defer src="js/screens/progress.js"></script>
+<script defer src="js/screens/tree.js"></script>
+<script defer src="js/screens/settings.js"></script>
+<script defer src="js/screens/about.js"></script>
+<script defer src="js/screens/lab.js"></script>
+<script defer src="js/core/boot.js"></script>
+</head>
+<body>
+<div class="ws-app" data-ws="app"></div>
+<noscript><p>Включи JavaScript — без него WordSprout не работает.</p></noscript>
+</body>
+</html>

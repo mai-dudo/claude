@@ -1,0 +1,242 @@
+{
+  "chapter": "meals",
+  "words": [
+    {
+      "id": "bread",
+      "en": "bread",
+      "ru": "хлеб",
+      "pos": "noun",
+      "emoji": "1f35e",
+      "forms": [],
+      "easy": { "en": "Alex buys fresh bread.", "ru": "Алекс покупает свежий хлеб.", "answer": "bread" },
+      "hard": { "en": "The bakery near us opens at six, so the bread is still warm at breakfast.", "ru": "Пекарня рядом с нами открывается в шесть, поэтому к завтраку хлеб ещё тёплый.", "answer": "bread" }
+    },
+    {
+      "id": "egg",
+      "en": "egg",
+      "ru": "яйцо",
+      "pos": "noun",
+      "emoji": "1f95a",
+      "forms": ["eggs"],
+      "easy": { "en": "Mom boils an egg for me.", "ru": "Мама варит мне яйцо.", "answer": "egg" },
+      "hard": { "en": "Carry the bag carefully, because there are a dozen eggs inside.", "ru": "Неси пакет осторожно, ведь в нём десяток яиц.", "answer": "eggs" }
+    },
+    {
+      "id": "milk",
+      "en": "milk",
+      "ru": "молоко",
+      "pos": "noun",
+      "emoji": "1f95b",
+      "forms": [],
+      "easy": { "en": "The baby drinks warm milk.", "ru": "Малыш пьёт тёплое молоко.", "answer": "milk" },
+      "hard": { "en": "We had no milk left, so Emma went to the store in her pajamas.", "ru": "Молоко закончилось, и Эмма пошла в магазин прямо в пижаме.", "answer": "milk" }
+    },
+    {
+      "id": "eat",
+      "en": "eat",
+      "ru": "есть",
+      "pos": "verb",
+      "emoji": "1f374",
+      "forms": ["eats", "ate", "eaten", "eating"],
+      "note": "о еде",
+      "verb": { "base": "eat", "s": "eats", "past": "ate", "pp": "eaten", "ing": "eating" },
+      "drills": [
+        { "tense": "present-simple", "en": "Grandpa ___ oatmeal every morning.", "ru": "Дедушка каждое утро ест овсянку.", "answer": "eats" },
+        { "tense": "past-simple", "en": "We ___ pizza on the beach last night.", "ru": "Вчера вечером мы ели пиццу на пляже.", "answer": "ate" },
+        { "tense": "present-continuous", "en": "The kids ___ their lunch on the grass right now.", "ru": "Дети сейчас обедают на траве.", "answer": "are eating" },
+        { "tense": "present-perfect", "en": "Max ___ three pancakes since he woke up.", "ru": "С тех пор как Макс проснулся, он съел уже три блина.", "answer": "has eaten" }
+      ],
+      "easy": { "en": "Let's eat on the balcony today.", "ru": "Давай сегодня поедим на балконе.", "answer": "eat" },
+      "hard": { "en": "Have you ever eaten a sandwich with honey and cheese?", "ru": "Ты когда-нибудь ел бутерброд с мёдом и сыром?", "answer": "eaten" }
+    },
+    {
+      "id": "water",
+      "en": "water",
+      "ru": "вода",
+      "pos": "noun",
+      "emoji": "1f4a7",
+      "forms": [],
+      "easy": { "en": "Can I have some water, please?", "ru": "Можно мне воды, пожалуйста?", "answer": "water" },
+      "hard": { "en": "After the long hike, we sat by the river and drank cold water from our bottles.", "ru": "После долгого похода мы сидели у реки и пили холодную воду из бутылок.", "answer": "water" }
+    },
+    {
+      "id": "cheese",
+      "en": "cheese",
+      "ru": "сыр",
+      "pos": "noun",
+      "emoji": "1f9c0",
+      "forms": [],
+      "easy": { "en": "Kate eats cheese with apples.", "ru": "Кейт ест сыр с яблоками.", "answer": "cheese" },
+      "hard": { "en": "My uncle makes cheese on his farm and sells it at the market every Saturday.", "ru": "Мой дядя делает сыр у себя на ферме и каждую субботу продаёт его на рынке.", "answer": "cheese" }
+    },
+    {
+      "id": "breakfast",
+      "en": "breakfast",
+      "ru": "завтрак",
+      "pos": "noun",
+      "emoji": "1f963",
+      "forms": ["breakfasts"],
+      "easy": { "en": "Breakfast is on the table!", "ru": "Завтрак на столе!", "answer": "breakfast" },
+      "hard": { "en": "On weekends Dad makes a big breakfast, and we all eat together in the kitchen.", "ru": "По выходным папа готовит большой завтрак, и мы все вместе едим на кухне.", "answer": "breakfast" }
+    },
+    {
+      "id": "drink",
+      "en": "drink",
+      "ru": "пить",
+      "pos": "verb",
+      "emoji": "1f964",
+      "forms": ["drinks", "drank", "drunk", "drinking"],
+      "note": "неправильный глагол: drank, drunk",
+      "verb": { "base": "drink", "s": "drinks", "past": "drank", "pp": "drunk", "ing": "drinking" },
+      "drills": [
+        { "tense": "present-simple", "en": "Lisa ___ green tea after every meal.", "ru": "Лиза пьёт зелёный чай после каждой еды.", "answer": "drinks" },
+        { "tense": "past-simple", "en": "Two weeks ago we ___ fresh milk in the village.", "ru": "Две недели назад мы пили в деревне парное молоко.", "answer": "drank" },
+        { "tense": "present-continuous", "en": "Look, the horses ___ from the river!", "ru": "Смотри, лошади пьют из реки!", "answer": "are drinking" },
+        { "tense": "present-perfect", "en": "I ___ four glasses of water since lunch.", "ru": "С обеда я выпил уже четыре стакана воды.", "answer": "have drunk" }
+      ],
+      "easy": { "en": "Ben drinks hot cocoa in the evening.", "ru": "Вечером Бен пьёт горячее какао.", "answer": "drinks" },
+      "hard": { "en": "You should drink more water when you play sports in hot weather.", "ru": "Когда занимаешься спортом в жару, нужно пить больше воды.", "answer": "drink" }
+    },
+    {
+      "id": "lunch",
+      "en": "lunch",
+      "ru": "обед",
+      "pos": "noun",
+      "emoji": "1f371",
+      "forms": ["lunches"],
+      "easy": { "en": "We have lunch at noon.", "ru": "Мы обедаем в полдень.", "answer": "lunch" },
+      "hard": { "en": "Tom forgot his lunch at home, so his friends shared their food with him.", "ru": "Том забыл обед дома, поэтому друзья поделились с ним своей едой.", "answer": "lunch" }
+    },
+    {
+      "id": "dinner",
+      "en": "dinner",
+      "ru": "ужин",
+      "pos": "noun",
+      "emoji": null,
+      "forms": ["dinners"],
+      "easy": { "en": "Mom sets the table for dinner.", "ru": "Мама накрывает стол к ужину.", "answer": "dinner" },
+      "hard": { "en": "We invited our new neighbors to dinner and talked until midnight.", "ru": "Мы пригласили новых соседей на ужин и проговорили до полуночи.", "answer": "dinner" }
+    },
+    {
+      "id": "soup",
+      "en": "soup",
+      "ru": "суп",
+      "pos": "noun",
+      "emoji": "1f372",
+      "forms": [],
+      "easy": { "en": "This soup is too hot.", "ru": "Этот суп слишком горячий.", "answer": "soup" },
+      "hard": { "en": "When I catch a cold, Grandma makes chicken soup and tells me funny stories.", "ru": "Когда я простужаюсь, бабушка варит куриный суп и рассказывает мне смешные истории.", "answer": "soup" }
+    },
+    {
+      "id": "rice",
+      "en": "rice",
+      "ru": "рис",
+      "pos": "noun",
+      "emoji": "1f35a",
+      "forms": [],
+      "easy": { "en": "We eat rice with vegetables.", "ru": "Мы едим рис с овощами.", "answer": "rice" },
+      "hard": { "en": "Omar cooked so much rice that we had leftovers for three days.", "ru": "Омар сварил столько риса, что мы доедали его ещё три дня.", "answer": "rice" }
+    },
+    {
+      "id": "make",
+      "en": "make",
+      "ru": "делать",
+      "pos": "verb",
+      "emoji": null,
+      "forms": ["makes", "made", "making"],
+      "ruAlt": ["готовить"],
+      "note": "make lunch — готовить обед",
+      "verb": { "base": "make", "s": "makes", "past": "made", "pp": "made", "ing": "making" },
+      "drills": [
+        { "tense": "present-simple", "en": "Lucy ___ pancakes every Sunday.", "ru": "Каждое воскресенье Люси печёт блины.", "answer": "makes" },
+        { "tense": "past-simple", "en": "Yesterday Anna ___ a salad for the whole family.", "ru": "Вчера Анна приготовила салат на всю семью.", "answer": "made" },
+        { "tense": "present-continuous", "en": "Leo ___ sandwiches for our picnic right now.", "ru": "Лео сейчас делает бутерброды для нашего пикника.", "answer": "is making" },
+        { "tense": "present-perfect", "en": "The kids ___ lemonade every weekend since June.", "ru": "С июня дети каждые выходные делают лимонад.", "answer": "have made" }
+      ],
+      "easy": { "en": "I make tea for Grandpa.", "ru": "Я делаю чай для дедушки.", "answer": "make" },
+      "hard": { "en": "Can you make dinner tonight if I wash the dishes afterward?", "ru": "Приготовишь сегодня ужин, если я потом помою посуду?", "answer": "make" }
+    },
+    {
+      "id": "butter",
+      "en": "butter",
+      "ru": "сливочное масло",
+      "pos": "noun",
+      "emoji": "1f9c8",
+      "forms": [],
+      "ruAlt": ["масло"],
+      "easy": { "en": "Eva spreads butter on her toast.", "ru": "Ева намазывает масло на тост.", "answer": "butter" },
+      "hard": { "en": "Grandma always bakes with real butter, and you can taste the difference.", "ru": "Бабушка всегда печёт на настоящем сливочном масле, и разница чувствуется.", "answer": "butter" }
+    },
+    {
+      "id": "meat",
+      "en": "meat",
+      "ru": "мясо",
+      "pos": "noun",
+      "emoji": "1f969",
+      "forms": [],
+      "easy": { "en": "Adam cooks meat on the grill.", "ru": "Адам жарит мясо на гриле.", "answer": "meat" },
+      "hard": { "en": "If you keep the meat in the freezer, it will stay fresh for months.", "ru": "Если хранить мясо в морозилке, оно несколько месяцев останется свежим.", "answer": "meat" }
+    },
+    {
+      "id": "sandwich",
+      "en": "sandwich",
+      "ru": "бутерброд",
+      "pos": "noun",
+      "emoji": "1f96a",
+      "forms": ["sandwiches"],
+      "ruAlt": ["сэндвич"],
+      "note": "и сэндвич",
+      "easy": { "en": "Mia makes a cheese sandwich.", "ru": "Мия делает бутерброд с сыром.", "answer": "sandwich" },
+      "hard": { "en": "We packed sandwiches for the road, but we ate them before the train left the station.", "ru": "Мы взяли бутерброды в дорогу, но съели их ещё до того, как поезд отошёл от станции.", "answer": "sandwiches" }
+    },
+    {
+      "id": "hungry",
+      "en": "hungry",
+      "ru": "голодный",
+      "pos": "adj",
+      "emoji": null,
+      "forms": [],
+      "easy": { "en": "Our puppy is always hungry.", "ru": "Наш щенок всегда голодный.", "answer": "hungry" },
+      "hard": { "en": "Never go shopping when you are hungry, or you will buy too many snacks.", "ru": "Никогда не ходи в магазин голодным, а то купишь слишком много вкусностей.", "answer": "hungry" }
+    },
+    {
+      "id": "pasta",
+      "en": "pasta",
+      "ru": "макароны",
+      "pos": "noun",
+      "emoji": "1f35d",
+      "forms": [],
+      "ruAlt": ["паста"],
+      "note": "паста",
+      "easy": { "en": "Dan loves pasta with cheese.", "ru": "Дэн обожает макароны с сыром.", "answer": "pasta" },
+      "hard": { "en": "My son can cook only one dish, but his pasta with tomatoes is excellent.", "ru": "Мой сын умеет готовить только одно блюдо, но паста с помидорами у него отличная.", "answer": "pasta" }
+    },
+    {
+      "id": "honey",
+      "en": "honey",
+      "ru": "мёд",
+      "pos": "noun",
+      "emoji": "1f36f",
+      "forms": [],
+      "easy": { "en": "Bears love sweet honey.", "ru": "Медведи обожают сладкий мёд.", "answer": "honey" },
+      "hard": { "en": "Rosa puts a spoon of honey in her tea instead of sugar.", "ru": "Роза кладёт в чай ложку мёда вместо сахара.", "answer": "honey" }
+    },
+    {
+      "id": "pour",
+      "en": "pour",
+      "ru": "наливать",
+      "pos": "verb",
+      "emoji": "1fad7",
+      "forms": ["pours", "poured", "pouring"],
+      "verb": { "base": "pour", "s": "pours", "past": "poured", "pp": "poured", "ing": "pouring" },
+      "drills": [
+        { "tense": "present-simple", "en": "Dad always ___ the milk first and then the cereal.", "ru": "Папа всегда сначала наливает молоко, а потом насыпает хлопья.", "answer": "pours" },
+        { "tense": "past-simple", "en": "Last night Jake ___ the soup into four bowls.", "ru": "Вчера вечером Джейк разлил суп по четырём тарелкам.", "answer": "poured" },
+        { "tense": "present-continuous", "en": "Wait, the waiter ___ our water right now.", "ru": "Подожди, официант сейчас наливает нам воду.", "answer": "is pouring" },
+        { "tense": "present-perfect", "en": "Nina ___ tea for the guests three times since noon.", "ru": "С полудня Нина уже трижды наливала гостям чай.", "answer": "has poured" }
+      ],
+      "easy": { "en": "Ella pours milk into a glass.", "ru": "Элла наливает молоко в стакан.", "answer": "pours" },
+      "hard": { "en": "Sam poured hot tea into our cups and told us about his first job.", "ru": "Сэм налил нам в чашки горячего чая и рассказал о своей первой работе.", "answer": "poured" }
+    }
+  ]
+}

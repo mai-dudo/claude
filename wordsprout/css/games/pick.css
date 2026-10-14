@@ -1,0 +1,81 @@
+/* Игра «Выбери картинку» (pick). Колонку, карточки и их состояния рисует кит (WS.ui.stage, choiceGrid);
+   здесь — только своё: крупное слово, предложение, число колонок сетки (2 на телефоне, 4 на широком
+   экране), размер картинки в карточке (меньше на низком экране, чтобы «Дальше» оставалась видна),
+   значки «верно / неверно» на карточках и строка-подсказка под сеткой. Каждый селектор начинается
+   с .g-pick; значения — только токены. */
+.g-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.g-pick__word {
+  margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.g-pick__sentence {
+  width: 100%;
+  max-width: var(--maxw-text);
+}
+
+.g-pick__grid {
+  --cols: 2;
+}
+
+@media (min-width: 720px) {
+  .g-pick__grid {
+    --cols: 4;
+  }
+}
+
+/* Картинка в карточке: не шире 148 px и не выше ~16 % экрана. */
+.g-pick__pic {
+  display: block;
+  width: min(100%, clamp(72px, 16dvh, 148px));
+}
+
+.g-pick__mark {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  color: var(--surface);
+  pointer-events: none;
+}
+
+.g-pick__mark .ws-icon {
+  --icon-size: 18px;
+}
+
+.g-pick__mark--ok {
+  background: var(--ok);
+}
+
+.g-pick__mark--bad {
+  background: var(--bad);
+}
+
+.g-pick__note {
+  min-height: calc(var(--fs-m) * var(--lh-snug));
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-m);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  text-align: center;
+}
+
+.g-pick__note--ok {
+  color: var(--ok-ink);
+}
+
+.g-pick__note--bad {
+  color: var(--bad-ink);
+}
