@@ -48,3 +48,14 @@ Sony Interactive Entertainment; это фанатская страница, с S
 | Шрифт | Автор | Лицензия |
 | --- | --- | --- |
 | M PLUS 1p (Google Fonts) | M+ Fonts Project | SIL OFL 1.1 |
+
+## Генератор роликов для TikTok (`tiktok/`)
+
+Код, сцены и сценарии сделаны для этого репозитория. Голос — синтез Microsoft Edge TTS,
+звуковые эффекты синтезируются кодом. В архив сайта папка не попадает (`.gitattributes`).
+
+| Шрифт | Автор | Лицензия |
+| --- | --- | --- |
+| Montserrat (`tiktok/render/fonts/Montserrat.ttf`) | The Montserrat.Git Project Authors (Julieta Ulanovsky) | SIL OFL 1.1 (`tiktok/render/fonts/OFL-Montserrat.txt`) |
+| Caveat (`tiktok/render/fonts/Caveat.ttf`) | The Caveat Project Authors | SIL OFL 1.1 (`tiktok/render/fonts/OFL-Caveat.txt`) |
+| JetBrains Mono (`tiktok/render/fonts/JetBrainsMono.ttf`) | The JetBrains Mono Project Authors | SIL OFL 1.1 (`tiktok/render/fonts/OFL-JetBrainsMono.txt`) |

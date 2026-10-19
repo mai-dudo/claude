@@ -49,4 +49,7 @@ python3 -m http.server 8080 --bind 127.0.0.1
 git archive HEAD | tar -x -C /tmp/site && cp -r .vercel /tmp/site/ && cd /tmp/site && vercel deploy --prod
 ```
 
+Папка `tiktok/` — генератор роликов для TikTok, к сайту не относится и в `git archive` не попадает
+(см. `.gitattributes` и `tiktok/README.md`).
+
 Авторы и лицензии видео, иконок, игр и шрифта — в `CREDITS.md`.

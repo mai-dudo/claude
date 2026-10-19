@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""Делает вертикальный ролик для TikTok из сценария: python make_video.py stories/metro-tupik.json
+
+Что получается в out/<имя>/: video.mp4 (1080×1920, 30 к/с), cover.jpg, post.txt (подпись и хэштеги),
+audio.wav и timeline.json (для просмотра в браузере с --preview).
+"""
+import argparse
+import asyncio
+import base64
+import functools
+import http.server
+import json
+import math
+import re
+import subprocess
+import sys
+import threading
+import time
+from pathlib import Path
+
+import audio
+import voice
+
+ROOT = Path(__file__).resolve().parent
+# Поля, где время можно задать словом из текста сцены («at»: «гул») или секундами от начала сцены.
+TIME_KEYS = {'at', 'from', 'until', 'rail', 'lightsOff', 'lightOff', 'handle', 'phantoms', 'glowFrom'}
+
+
+def resolve_time(value, words, dur, where):
+    if isinstance(value, bool):
+        return 0.0 if value else None
+    if isinstance(value, (int, float)):
+        return float(value) if value >= 0 else max(0.0, dur + value)
+    m = re.match(r'^(.*?)\s*([+-]\d+(?:\.\d+)?)$', value)
+    word, shift = (m.group(1), float(m.group(2))) if m and m.group(1) else (value, 0.0)
+    t = voice.find(words, word)
+    if t is None:
+        print(f'  ! {where}: слово «{word}» не найдено в тексте сцены, ставлю на начало')
+        t = 0.0
+    return max(0.0, t + shift)
+
+
+def resolve(obj, words, dur, where):
+    if isinstance(obj, dict):
+        return {k: (resolve_time(v, words, dur, where) if k in TIME_KEYS and not isinstance(v, (dict, list)) and v is not None
+                    else resolve(v, words, dur, where)) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [resolve(v, words, dur, where) for v in obj]
+    return obj
+
+
+def build(story, out):
+    """Озвучка всех сцен, монтажный лист (timeline.json) и звуковая дорожка (audio.wav)."""
+    v, rate, pitch = story.get('voice', 'ru-RU-DmitryNeural'), story.get('rate', '+0%'), story.get('pitch', '+0Hz')
+    cache = ROOT / '.cache' / 'tts'
+    scenes, caps, clips, effects = [], [], [], []
+    T = float(story.get('lead', 0.25))
+    for i, sc in enumerate(story['scenes'], 1):
+        say = sc.get('say', '').strip()
+        words, spoken = [], 0.0
+        if say:
+            text, marked = voice.parse(say)
+            mp3, bounds = voice.speak(text, v, rate, pitch, cache)
+            spoken = audio.duration(mp3)
+            words = voice.align(marked, bounds)
+            clips.append((T, mp3))
+        dur = float(sc.get('dur') or spoken + sc.get('pause', story.get('pause', 0.3)))
+        dur = max(dur, spoken + 0.05, 0.5)
+        where = f'сцена {i}'
+        body = resolve({k: v2 for k, v2 in sc.items() if k not in ('say', 'sfx')}, words, dur, where)
+        scenes.append({**body, 'start': round(T, 3), 'dur': round(dur, 3)})
+        for e in sc.get('sfx', []):
+            effects.append({**e, 'at': T + resolve_time(e.get('at', 0), words, dur, where)})
+        for c in voice.chunks(words):
+            caps.append({**c, 's': round(c['s'] + T, 3), 'e': round(c['e'] + T, 3)})
+        print(f'  сцена {i:>2}: {sc.get("type", "blank"):<7} {dur:5.1f} с  {say[:60]}')
+        T += dur
+    total = round(T + float(story.get('tail', 0.0)), 3)
+    timeline = {'duration': total, 'hero': story.get('hero', {}), 'scenes': scenes, 'captions': caps,
+                'captionY': story.get('captionY', 1400), 'captionSize': story.get('captionSize', 86)}
+    (out / 'timeline.json').write_text(json.dumps(timeline, ensure_ascii=False, indent=1))
+    music = story.get('music')
+    audio.mix(total, clips, effects, out / 'audio.wav', ambient=story.get('ambient', 'drone'),
+              ambient_db=story.get('ambientDb', -27), music=(ROOT / music) if music else None,
+              music_db=story.get('musicDb', -20))
+    return timeline
+
+
+class Quiet(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *a):
+        pass
+
+
+def serve(port=0):
+    httpd = http.server.ThreadingHTTPServer(('127.0.0.1', port), functools.partial(Quiet, directory=str(ROOT)))
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd
+
+
+FRAME_JS = "t => { draw(t); return document.getElementById('c').toDataURL('image/jpeg', 0.94); }"
+
+
+async def frames(timeline, times, scale, workers, sink):
+    """Рисует кадры в Chromium (несколько вкладок параллельно) и отдаёт их в sink(номер, jpeg) по порядку."""
+    from playwright.async_api import async_playwright
+    httpd = serve()
+    url = f'http://127.0.0.1:{httpd.server_port}/render/index.html'
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        pages = []
+        for _ in range(max(1, min(workers, len(times)))):
+            ctx = await browser.new_context(viewport={'width': round(1080 * scale), 'height': round(1920 * scale)})
+            page = await ctx.new_page()
+            page.on('pageerror', lambda e: print(f'  ! ошибка на странице: {e}'))
+            await page.goto(url)
+            await page.evaluate('([tl, s]) => setup(tl, { scale: s })', [timeline, scale])
+            pages.append(page)
+        ready, nxt = {}, 0
+
+        async def work(k, page):
+            nonlocal nxt
+            for i in range(k, len(times), len(pages)):
+                data = await page.evaluate(FRAME_JS, times[i])
+                ready[i] = base64.b64decode(data.split(',', 1)[1])
+                while nxt in ready:
+                    sink(nxt, ready.pop(nxt))
+                    nxt += 1
+
+        await asyncio.gather(*(work(k, pg) for k, pg in enumerate(pages)))
+        await browser.close()
+    httpd.shutdown()
+
+
+def render(timeline, out, fps, scale, workers):
+    n = math.ceil(timeline['duration'] * fps)
+    times = [i / fps for i in range(n)]
+    tmp = out / 'video.tmp.mp4'
+    cmd = ['ffmpeg', '-y', '-v', 'error', '-f', 'image2pipe', '-c:v', 'mjpeg', '-framerate', str(fps), '-i', '-',
+           '-i', str(out / 'audio.wav'), '-map', '0:v', '-map', '1:a',
+           '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
+           '-vf', 'scale=1080:1920:flags=lanczos', '-r', str(fps),
+           '-af', 'highpass=f=40,loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-c:a', 'aac', '-b:a', '192k',
+           '-movflags', '+faststart', '-shortest', str(tmp)]
+    ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    start = time.time()
+
+    def sink(i, jpg):
+        ff.stdin.write(jpg)
+        if i % (fps * 5) == 0 or i == n - 1:
+            el = time.time() - start
+            print(f'\r  кадры: {i + 1}/{n}  ({(i + 1) / max(el, 0.01):.1f} к/с)', end='', flush=True)
+
+    asyncio.run(frames(timeline, times, scale, workers, sink))
+    ff.stdin.close()
+    if ff.wait():
+        sys.exit('ffmpeg не смог собрать видео')
+    tmp.replace(out / 'video.mp4')
+    print()
+
+
+def stills(timeline, out, times, scale=0.5):
+    """Отдельные кадры в out/<имя>/stills/ и лист с ними (sheet.jpg) — быстро посмотреть, как выглядят сцены."""
+    d = out / 'stills'
+    d.mkdir(exist_ok=True)
+    for f in d.glob('*.jpg'):
+        f.unlink()
+    asyncio.run(frames(timeline, times, scale, 4, lambda i, jpg: (d / f'{i:03d}_{times[i]:06.2f}.jpg').write_bytes(jpg)))
+    cols = min(len(times), 5)
+    rows = math.ceil(len(times) / cols)
+    subprocess.run(['ffmpeg', '-y', '-v', 'error', '-pattern_type', 'glob', '-i', str(d / '*.jpg'),
+                    '-vf', f'scale=270:480,tile={cols}x{rows}:padding=6', '-frames:v', '1', str(out / 'sheet.jpg')], check=True)
+    print(f'  кадры: {d}\n  лист:  {out / "sheet.jpg"}')
+
+
+def main():
+    ap = argparse.ArgumentParser(description='Ролик для TikTok из сценария')
+    ap.add_argument('story', help='путь к сценарию .json')
+    ap.add_argument('--fps', type=int, default=30)
+    ap.add_argument('--draft', action='store_true', help='черновик: 540×960 и 15 к/с, в 4–6 раз быстрее')
+    ap.add_argument('--workers', type=int, default=3, help='сколько вкладок Chromium рисуют кадры одновременно')
+    ap.add_argument('--stills', type=int, metavar='N', help='только N кадров по одному из середины каждой сцены (или равномерно)')
+    ap.add_argument('--at', help='только кадры в эти секунды, через запятую: --at 3,12.5')
+    ap.add_argument('--preview', action='store_true', help='не рендерить, а открыть просмотр в браузере')
+    a = ap.parse_args()
+
+    story = json.loads(Path(a.story).read_text(encoding='utf-8'))
+    out = ROOT / 'out' / (story.get('slug') or Path(a.story).stem)
+    out.mkdir(parents=True, exist_ok=True)
+    print(f'«{story.get("title", out.name)}»: озвучка и монтаж')
+    tl = build(story, out)
+    print(f'  длина: {tl["duration"]:.1f} с, субтитров: {len(tl["captions"])}')
+
+    if a.preview:
+        httpd = serve(8090)
+        print(f'Просмотр: http://127.0.0.1:{httpd.server_port}/render/index.html?preview=/out/{out.name}/  (Ctrl+C — выход)')
+        try:
+            threading.Event().wait()
+        except KeyboardInterrupt:
+            return
+    if a.at or a.stills:
+        if a.at:
+            times = [float(x) for x in a.at.split(',')]
+        elif a.stills >= len(tl['scenes']):
+            times = [s['start'] + s['dur'] * 0.6 for s in tl['scenes']]
+        else:
+            times = [tl['duration'] * (i + 0.5) / a.stills for i in range(a.stills)]
+        stills(tl, out, times)
+        return
+
+    fps, scale = (15, 0.5) if a.draft else (a.fps, 1.0)
+    render(tl, out, fps, scale, a.workers)
+    cover_at = story.get('cover', 1.2)
+    subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', str(cover_at), '-i', str(out / 'video.mp4'), '-frames:v', '1',
+                    '-q:v', '2', str(out / 'cover.jpg')], check=True)
+    post = story.get('post', {})
+    (out / 'post.txt').write_text(f'{post.get("caption", story.get("title", ""))}\n\n{" ".join(post.get("hashtags", []))}\n',
+                                  encoding='utf-8')
+    print(f'Готово: {out / "video.mp4"}\n  обложка: {out / "cover.jpg"}\n  подпись: {out / "post.txt"}')
+
+
+if __name__ == '__main__':
+    main()
