@@ -115,12 +115,13 @@
       </ul>
     </section>
 
-    <!-- Игры: только на ПК, на узком экране раздел убирает js/app.js -->
-    <section class="cat" id="games" data-desktop-only data-icon="assets/icons/aero/game-pad.png">
+    <!-- Игры: HexGL и Astray только на ПК, на узком экране их убирает js/app.js; «Подбрось Пепе» работает и на телефоне -->
+    <section class="cat" id="games" data-icon="assets/icons/aero/game-pad.png">
       <h2 class="cat__name">Игры</h2>
       <ul class="cat__list">
-        <li class="it" data-kind="game"><a class="it__row" href="game/hexgl/index.html"><span class="it__ico"><img src="assets/icons/aero/hexgl.png" alt=""></span><span class="it__txt"><span class="it__title">HexGL</span><span class="it__sub">Гонка на WebGL · управление стрелками</span></span></a></li>
-        <li class="it" data-kind="game"><a class="it__row" href="game/astray/index.html"><span class="it__ico"><img src="assets/icons/aero/astray.png" alt=""></span><span class="it__txt"><span class="it__title">Astray</span><span class="it__sub">Лабиринт на WebGL · управление стрелками</span></span></a></li>
+        <li class="it" data-kind="game"><a class="it__row" href="game/capyjump/index.html"><span class="it__ico"><img src="assets/icons/aero/capyjump.png" alt=""></span><span class="it__txt"><span class="it__title">Подбрось Пепе</span><span class="it__sub">Прыжки по капибарам · стрелки, палец или наклон</span></span></a></li>
+        <li class="it" data-kind="game" data-desktop-only><a class="it__row" href="game/hexgl/index.html"><span class="it__ico"><img src="assets/icons/aero/hexgl.png" alt=""></span><span class="it__txt"><span class="it__title">HexGL</span><span class="it__sub">Гонка на WebGL · управление стрелками</span></span></a></li>
+        <li class="it" data-kind="game" data-desktop-only><a class="it__row" href="game/astray/index.html"><span class="it__ico"><img src="assets/icons/aero/astray.png" alt=""></span><span class="it__txt"><span class="it__title">Astray</span><span class="it__sub">Лабиринт на WebGL · управление стрелками</span></span></a></li>
       </ul>
     </section>
 
@@ -181,7 +182,7 @@
 
   <!-- игра открывается поверх сайта; крестик справа сверху закрывает -->
   <div class="game" id="game" hidden>
-    <iframe class="game__frame" id="gameFrame" title="Игра" allow="fullscreen; autoplay; gamepad"></iframe>
+    <iframe class="game__frame" id="gameFrame" title="Игра" allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"></iframe>
     <button class="game__close" id="gameClose" type="button" aria-label="Закрыть игру">✕</button>
   </div>
 

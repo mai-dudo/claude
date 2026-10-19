@@ -13,7 +13,7 @@
     channelId: '',
     channelUrl: 'https://www.youtube.com/',
   };
-  const GAME_BUILD = '2026-10-05'; // метка в адресе игры, чтобы браузер не отдал старую копию
+  const GAME_BUILD = '2026-10-19'; // метка в адресе игры, чтобы браузер не отдал старую копию
 
   const root = document.documentElement;
   const q = (sel, el = document) => el.querySelector(sel);
