@@ -742,11 +742,20 @@
     tiltBtn.setAttribute('aria-pressed', String(on));
     tiltBtn.textContent = `Наклон телефона: ${on ? 'вкл' : 'выкл'}`;
     store.set('capyjump.tilt', on);
+    // датчик молчит (браузер или страница, в которую встроена игра, его не дают): выключаем и прячем кнопку
+    if (on) {
+      setTimeout(() => {
+        if (!tilt.on || tilt.v !== null) return;
+        setTilt(false);
+        tiltBtn.hidden = true;
+        $('howTouch').textContent = 'Веди пальцем влево и вправо. Наклон в этом браузере недоступен';
+      }, 1500);
+    }
   }
   if (coarse) {
     $('howKeys').hidden = true;
     $('howTouch').hidden = false;
-    if ('DeviceOrientationEvent' in window) {
+    if (tiltBtn && 'DeviceOrientationEvent' in window) {
       tiltBtn.hidden = false;
       tiltBtn.addEventListener('click', () => setTilt(!tilt.on));
       // на iOS разрешение спрашивают только по нажатию, поэтому сами включаем наклон лишь там, где его не нужно
