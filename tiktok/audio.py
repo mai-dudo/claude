@@ -128,10 +128,17 @@ def fx_drip(**_):
     return norm(np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.04), 0.6)
 
 
+def fx_wind(dur=6.0, **_):
+    t = np.arange(int(dur * SR)) / SR
+    swell = 0.55 + 0.25 * np.sin(2 * np.pi * t / 3.1) + 0.2 * np.sin(2 * np.pi * t / 1.7 + 1)
+    e = np.minimum(1, np.minimum(t / 1.5, (dur - t) / 1.0))
+    return norm((band(noise(dur), 150, 1200) + band(noise(dur), 1200, 4000) * 0.25) * swell * e)
+
+
 FX = {'hit': fx_hit, 'whoosh': fx_whoosh, 'knock': fx_knock, 'steps': fx_steps, 'zap': fx_zap,
-      'rumble': fx_rumble, 'beep': fx_beep, 'click': fx_click, 'drip': fx_drip}
+      'rumble': fx_rumble, 'beep': fx_beep, 'click': fx_click, 'drip': fx_drip, 'wind': fx_wind}
 DEFAULT_DB = {'hit': -8, 'whoosh': -16, 'knock': -6, 'steps': -10, 'zap': -14, 'rumble': -9, 'beep': -14,
-              'click': -10, 'drip': -16}
+              'click': -10, 'drip': -16, 'wind': -16}
 
 
 def drone(sec):

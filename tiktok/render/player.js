@@ -40,7 +40,7 @@ function draw(T) {
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   const i = sceneIndex(T), sc = TL.scenes[i];
   const t = T - sc.start;
-  const S = { t, d: sc.dur, p: clamp(t / sc.dur), T, P: sc, outfit: { ...HERO_DEFAULT, ...(TL.hero || {}) }, i };
+  const S = { t, d: sc.dur, p: clamp(t / sc.dur), T, P: sc, outfit: { ...HERO_DEFAULT, ...(TL.hero || {}) }, cast: TL.cast || {}, i };
   ctx.save();
   camera(ctx, S);
   (SCENES[sc.type] || SCENES.blank)(ctx, S);
@@ -137,10 +137,15 @@ function meter(c, m, i, t, d) {
   c.restore();
 }
 
-// Огромная цифра посередине: { text, sub, color, at, y }
+// Огромная цифра посередине: { text, sub, color, at, y, count: [от, до], until } — с count число
+// отсчитывается от at до until, а text дописывается после него.
 function big(c, b, t, T) {
   const k = after(t, b.at ?? 0.2, 0.3);
   if (k <= 0) return;
+  if (b.count) {
+    const at = b.at ?? 0.2, v = lerp(b.count[0], b.count[1], ease.out((t - at) / Math.max(0.1, (b.until ?? at + 1.5) - at)));
+    b = { ...b, text: `${Math.round(v)}${b.text || ''}` };
+  }
   const y = b.y ?? 700, col = color(b.color, PAL.yellow);
   const flick = b.flicker === false ? 1 : (hash(Math.floor(T * 20)) > 0.12 ? 1 : 0.55);
   c.save(); c.globalAlpha = clamp(k) * flick; c.translate(W / 2, y); const z = ease.back(k); c.scale(z, z);

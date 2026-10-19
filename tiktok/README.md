@@ -27,7 +27,7 @@ python make_video.py stories/metro-tupik.json --preview     # посмотрет
 python make_video.py stories/metro-tupik.json               # готовый ролик (2 мин видео ≈ 5–10 мин рендера)
 ```
 
-Результат в `out/<slug>/`: `video.mp4`, `cover.jpg`, `post.txt` (подпись и хэштеги), `sheet.jpg` (лист кадров).
+Результат в `out/<slug>/`: `video.mp4`, `cover.jpg`, `post.txt` (название ролика и хэштеги одной строкой — вставить при публикации), `sheet.jpg` (лист кадров).
 Ключи: `--draft` — черновик 540×960 и 15 к/с, `--at 3,12.5` — только кадры в эти секунды,
 `--workers 4` — сколько вкладок браузера рисуют параллельно (по числу ядер).
 
@@ -44,7 +44,7 @@ python make_video.py stories/metro-tupik.json               # готовый р�
   "slug": "metro-tupik-1",
   "voice": "ru-RU-DmitryNeural", "rate": "+12%", "pitch": "-4Hz",
   "hero": { "hat": "hair", "jacket": "#2a9d8f", "backpack": "#e76f51", "light": "phone" },
-  "post": { "caption": "Подпись к ролику", "hashtags": ["#метро", "#истории"] },
+  "post": { "caption": "Название ролика", "hashtags": ["#метро", "#страшныеистории", "#истории"] },
   "scenes": [
     {
       "type": "tunnel",
@@ -73,12 +73,12 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | `chip: { text, color }` | плашка наверху (`red`, `green`, `yellow`, `white`, `blue`, `dark`) |
 | `tags: [{ text, x, y, at, to: [x, y] }]` | подпись в рамке у предмета, `to` — пунктир к точке |
 | `stamp: { text, at }` | наклонная красная наклейка («НИКАКОГО ОГНЯ») |
-| `big: { text, sub, at, y }` | огромная светящаяся цифра |
+| `big: { text, sub, at, y, count: [от, до], until }` | огромная светящаяся цифра; с `count` число отсчитывается, `text` дописывается после |
 | `cards: [{ label, value, color, at }]` | карточки с цифрами наверху («−30…+40») |
 | `meters: [{ label, value: [от, до], text, at }]` | полоски-шкалы, значения 0…1 |
 | `timer: { from, to, at }` | табло обратного отсчёта, секунды |
 | `cam: { zoom: [1, 1.2], focus: [x, y], punch, shake }` | наезд камеры к точке, тряска |
-| `sfx: [{ type, at, db }]` | `hit`, `whoosh`, `knock`, `steps`, `zap`, `rumble`, `beep`, `click`, `drip` |
+| `sfx: [{ type, at, db }]` | `hit`, `whoosh`, `knock`, `steps`, `zap`, `rumble`, `beep`, `click`, `drip`, `wind` |
 | `fade` | появление из чёрного |
 
 Кадр 1080×1920, координаты в пикселях. Субтитры на высоте `captionY` (1400). Нижнюю четверть кадра
@@ -89,18 +89,24 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | `type` | Что рисует | Основные поля |
 | --- | --- | --- |
 | `wagon` | вагон метро изнутри | `lights` (`on`/`off`/`flicker`), `lightsOff`, `handle`, `hero { x, pose: sleep/sit/stand, light }` |
-| `tunnel` | тоннель в разрезе (`style`: `metro` или кирпичный `brick`) | `dark` 0…1, `rail`, `train`, `loco`, `niche`, `signal`, `figure`, `phantoms`, `fog`, `water`, `surface`, `tint` |
-| `city` | ночной город | `metro` (павильон «М»), `cutaway` (разрез: эскалатор, станция, тупик), `danger`, `rain`, `figures { n, kind: people/zombie }` |
-| `phone` | экран телефона | `time`, `date`, `battery`, `net`, `notes: [{ title, text, at }]` |
+| `tunnel` | тоннель в разрезе (`style`: `metro` или кирпичный `brick`) | `dark` 0…1, `rail`, `train`, `loco`, `niche`, `signal`, `figure`, `phantoms`, `fog`, `water`, `surface`, `tint`, `people`, `lights`, `pickets: [{ x, text, at }]`, `wind` |
+| `city` | ночной город | `metro` (павильон «М»), `cutaway` (разрез: эскалатор, станция, тупик), `dawn` (рассвет), `danger`, `rain`, `figures { n, kind: people/zombie }`, `hero`, `people` |
+| `phone` | экран телефона | `time`, `date`, `battery`, `net`, `notes: [{ title, text, at }]`, `call { name, at, ring }` — экран звонка |
 | `map` | схема линии метро | `stations: [{ name, pos }]`, `deadEnd`, `marker { pos, label }`, `measure { a, b, text }` |
 | `note` | записи в тетради при свете фонаря | `title`, `lines: [{ text, at, color, strike }]` |
+| `board` | доска почёта с фотографиями | `who` (кто из `cast` на выделенном фото), `focus` (номер рамки 0…5), `caption`, `at` |
 | `card` | титр, конец серии | `kicker`, `title: ["строка", { text, color }]`, `sub` |
 | `blank` | пустой фон под плашки | `bg` |
 
 Герой: `hero` на верхнем уровне — внешность (`hat`: `hair`/`helmet`/`cap`/`none`, `hair`, `skin`, `jacket`,
 `stripes`, `pants`, `backpack`, `light`: `phone`/`torch`); `hero` в сцене — где он и что делает:
 `x`, `walk: [x0, x1]` с `from`/`until`, `pose`, `light`, `lightOff`, `then: { at, …что поменять }`.
-`"hero": false` — героя в сцене нет. Новые сцены добавляются в `render/scenes.js`.
+`"hero": false` — героя в сцене нет.
+
+Другие персонажи описываются в `cast` на верхнем уровне (`"cast": { "ded": { "hat": "helmet", … } }`) и выводятся
+в сцене списком `people: [{ "who": "ded", "walk": [100, 700] }]` с теми же полями, что у героя;
+`"dead": true` — фонарь в руке не светит. Пример — `stories/metro-tupik-2.json`.
+Новые сцены добавляются в `render/scenes.js`.
 
 ## Как писать истории, которые смотрят
 

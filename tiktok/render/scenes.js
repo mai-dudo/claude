@@ -2,14 +2,15 @@
 // Библиотека сцен. Каждая сцена рисует кадр целиком: SCENES.имя(ctx, S), где
 // S.t — секунды от начала сцены, S.d — длина сцены, S.p = t / d, S.T — время ролика,
 // S.P — параметры сцены из сценария (время в полях at уже переведено в секунды),
-// S.outfit — одежда героя из сценария.
+// S.outfit — одежда героя из сценария, S.cast — другие персонажи ({ имя: одежда }).
 const SCENES = {};
 
-// Герой в сцене: P.hero = { x, pose, facing, light, walk: [x0, x1], from, until, lightOff: at,
-// then: { at, …поля, которые сменятся в этот момент } } поверх одежды.
-function heroIn(S, def) {
-  if (S.P.hero === false) return null;
-  const h = { ...S.outfit, ...def, ...(S.P.hero || {}) };
+// Персонаж в сцене: { who (имя из cast; без него — герой), x, pose, facing, light, dead (фонарь в руке
+// не светит), walk: [x0, x1], from, until, lightOff: at, then: { at, …поля, которые сменятся в этот момент } }.
+function personIn(S, spec, def = {}) {
+  if (spec === false) return null;
+  const base = spec && spec.who ? { ...HERO_DEFAULT, ...(S.cast[spec.who] || {}) } : S.outfit;
+  const h = { ...base, ...def, ...(spec || {}) };
   if (h.walk) {
     const t0 = h.from ?? 0, t1 = h.until ?? S.d;
     const k = clamp((S.t - t0) / Math.max(0.1, t1 - t0));
@@ -21,6 +22,18 @@ function heroIn(S, def) {
   if (h.then && S.t >= (h.then.at ?? 0)) Object.assign(h, h.then);
   if (h.lightOff != null && S.t >= h.lightOff) h.light = null;
   return h;
+}
+const heroIn = (S, def) => personIn(S, S.P.hero, def);
+
+// Рисует людей и возвращает точки фонарей, которые светят.
+function drawPeople(c, list, y, scale) {
+  const hands = [];
+  for (const p of list) {
+    if (!p) continue;
+    const hand = drawPerson(c, p.x, y, p.scale ?? scale, p);
+    if (hand && !p.dead) hands.push(hand);
+  }
+  return hands;
 }
 
 function earth(c, y0 = -60, y1 = H + 60, seed = 5) {
@@ -144,7 +157,7 @@ SCENES.wagon = (c, S) => {
 };
 
 // ───────────────────────── Экран телефона ─────────────────────────
-// P: time, date, battery (0..100), net, notes: [{ title, text, at }]
+// P: time, date, battery (0..100), net, notes: [{ title, text, at }], call { name, at, ring }
 SCENES.phone = (c, S) => {
   const { t, T, P } = S;
   c.fillStyle = '#05060a'; c.fillRect(-80, -80, W + 160, H + 160);
@@ -194,11 +207,32 @@ SCENES.phone = (c, S) => {
     c.fillText(n.text, px + 126, ny + 106);
     c.restore();
   });
+  // звонок: { name, at, ring (сколько секунд идут гудки) }
+  if (P.call) {
+    const cl = P.call, at = cl.at ?? 0.3, k = after(t, at, 0.35);
+    if (k > 0) {
+      c.globalAlpha = k;
+      c.fillStyle = '#0e1018'; c.fillRect(px, py, pw, ph);
+      circle(c, W / 2, py + 330, 96, '#3a4256');
+      c.fillStyle = '#c9cfdb'; c.textAlign = 'center'; c.font = '700 80px Montserrat';
+      c.fillText(cl.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase(), W / 2, py + 358);
+      c.fillStyle = '#fff'; c.font = '700 50px Montserrat'; c.fillText(cl.name, W / 2, py + 520);
+      const talk = t - at - (cl.ring ?? 1.5);
+      c.fillStyle = 'rgba(255,255,255,0.7)'; c.font = '500 34px Montserrat';
+      c.fillText(talk < 0 ? 'вызов…' : `00:${String(Math.floor(talk)).padStart(2, '0')}`, W / 2, py + 580);
+      for (const dx of [-170, 0, 170]) circle(c, W / 2 + dx, py + 760, 58, '#3a4256');
+      circle(c, W / 2, py + 930, 66, '#e5383b');
+      c.save(); c.translate(W / 2, py + 930); c.rotate(2.36);
+      c.fillStyle = '#fff'; rr(c, -34, -10, 68, 20, 10); c.fill(); c.restore();
+      c.globalAlpha = 1;
+    }
+  }
   c.restore();
 };
 
 // ───────────────────────── Ночной город ─────────────────────────
-// P: ground (y улицы), danger (зарево), rain, metro (павильон с буквой М), figures { n, kind: 'people' | 'zombie' },
+// P: ground (y улицы), dawn (рассвет), danger (зарево), rain, metro (павильон с буквой М), figures { n, kind: 'people' | 'zombie' },
+// hero и people (люди на улице, как в тоннеле),
 // cutaway (разрез под землёй: эскалатор, станция, тоннель с тупиком), train (поезд в тупике)
 function skyline(c, seed, base, hmin, hmax, wmin, wmax, fill, lit, T) {
   const r = rng(seed);
@@ -222,22 +256,27 @@ function skyline(c, seed, base, hmin, hmax, wmin, wmax, fill, lit, T) {
 
 SCENES.city = (c, S) => {
   const { t, T, P } = S;
-  const gy = P.ground ?? (P.cutaway ? 700 : 1150);
+  const gy = P.ground ?? (P.cutaway ? 700 : 1150), dawn = !!P.dawn;
   let g = c.createLinearGradient(0, 0, 0, gy);
-  g.addColorStop(0, '#0a0e1a'); g.addColorStop(1, '#1e2539');
+  g.addColorStop(0, dawn ? '#27365c' : '#0a0e1a'); g.addColorStop(1, dawn ? '#f0a378' : '#1e2539');
   c.fillStyle = g; c.fillRect(-80, -80, W + 160, gy + 80);
-  const r = rng(7);
-  for (let i = 0; i < 70; i++) {
-    c.globalAlpha = 0.25 + 0.5 * noise1(T * 0.7 + i, 2);
-    c.fillStyle = '#fff'; c.fillRect(r() * W, r() * gy * 0.55, 2.5, 2.5);
+  if (!dawn) {
+    const r = rng(7);
+    for (let i = 0; i < 70; i++) {
+      c.globalAlpha = 0.25 + 0.5 * noise1(T * 0.7 + i, 2);
+      c.fillStyle = '#fff'; c.fillRect(r() * W, r() * gy * 0.55, 2.5, 2.5);
+    }
+    c.globalAlpha = 1;
+    if (P.moon !== false) { circle(c, 190, 150, 50, '#e9e4d0'); glow(c, 190, 150, 200, '233,228,208', 0.12); }
+  } else {
+    glow(c, 620, gy - 40, 620, '255,170,110', 0.45);
+    circle(c, 620, gy - 120, 60, 'rgba(255,214,160,0.9)');
   }
-  c.globalAlpha = 1;
-  if (P.moon !== false) { circle(c, 190, 150, 50, '#e9e4d0'); glow(c, 190, 150, 200, '233,228,208', 0.12); }
-  skyline(c, 3, gy, gy * 0.42, gy * 0.8, 110, 200, '#151b2b', 0.22, T);
+  skyline(c, 3, gy, gy * 0.42, gy * 0.8, 110, 200, dawn ? '#2c3554' : '#151b2b', dawn ? 0.08 : 0.22, T);
   if (P.danger) {
     for (let i = 0; i < 4; i++) glow(c, 120 + i * 270, gy - 80 - (i % 2) * 120, 260, '255,90,50', 0.18 + 0.08 * Math.sin(T * 2.3 + i * 2));
   }
-  skyline(c, 11, gy, gy * 0.2, gy * 0.5, 140, 240, '#1a2134', 0.3, T);
+  skyline(c, 11, gy, gy * 0.2, gy * 0.5, 140, 240, dawn ? '#343e5e' : '#1a2134', dawn ? 0.1 : 0.3, T);
   // улица
   c.fillStyle = '#3a404c'; c.fillRect(-80, gy - 14, W + 160, 16);
   c.fillStyle = '#272c36'; c.fillRect(-80, gy, W + 160, 66);
@@ -247,7 +286,8 @@ SCENES.city = (c, S) => {
   for (const lx of [90, 470]) {
     c.fillStyle = '#2d323d'; c.fillRect(lx, gy - 230, 8, 230); c.fillRect(lx, gy - 230, 46, 8);
     circle(c, lx + 44, gy - 220, 8, '#ffe6b0');
-    glow(c, lx + 44, gy - 220, 90, '255,214,150', 0.35);
+    glow(c, lx + 44, gy - 220, 90, '255,214,150', dawn ? 0.12 : 0.35);
+    if (dawn) continue;
     c.save(); c.globalCompositeOperation = 'lighter';
     const lg = c.createLinearGradient(0, gy - 220, 0, gy);
     lg.addColorStop(0, 'rgba(255,214,150,0.16)'); lg.addColorStop(1, 'rgba(255,214,150,0.02)');
@@ -276,6 +316,9 @@ SCENES.city = (c, S) => {
         ? { pose: 'walk', phase: T * 3 + i, facing: dir, skin: '#86b35a', jacket: '#3d4a3a', pants: '#2b2f3a', shoes: '#1b1f27', hat: 'none', zombie: true }
         : { pose: 'walk', phase: T * 5 + i, facing: dir, skin: '#1c2230', jacket: '#1c2230', pants: '#1c2230', shoes: '#1c2230', hair: '#1c2230', hat: 'hair' });
     }
+  }
+  if (P.hero || P.people) {
+    drawPeople(c, [P.hero ? heroIn(S, { x: 840, light: null }) : null, ...(P.people || []).map((sp) => personIn(S, sp, { light: null }))], gy + 4, 0.8);
   }
   // под землёй
   if (P.cutaway || gy < H - 100) {
@@ -358,7 +401,9 @@ function drawTrain(c, x, yRail, o = {}) {
 // P: style ('metro' | 'brick'), lamps (горят ли лампы), dark (0..1), rail (at — подсветить контактный рельс),
 // sparks, train { x, cars, head, lit, glowAt (x окна со светом внутри) }, loco { from, until, x0, x1 },
 // niche (x ниши), signal { x, color }, figure { walk: [x0, x1], from, until, eyes }, phantoms (at), tint (цвет темноты),
-// fog { color, from }, water (уровень, 0..1), surface (город над разрезом), hero { walk, x, light, lightOff, pose }
+// fog { color, from }, water (уровень, 0..1), surface (город над разрезом), hero { walk, x, light, lightOff, pose },
+// people [{ who, …как hero }], lights [{ x, y, r } или конус { x, y, a, spread, len }], pickets [{ x, text, at }],
+// wind (at — пошёл ветер от поезда)
 SCENES.tunnel = (c, S) => {
   const { t, T, P } = S;
   const top = 500, floor = 1210, base = 1290;
@@ -435,12 +480,9 @@ SCENES.tunnel = (c, S) => {
     drawTrain(c, P.train.x ?? 520, floor - 22, { cars: P.train.cars ?? 2, scale: P.train.scale ?? 0.95, lit: P.train.lit, head: P.train.head, headlights: P.train.headlights });
   }
   // герой
-  const h = heroIn(S, { x: 360, light: 'phone' });
-  let hand = null;
-  if (h) {
-    const hs = h.scale ?? 1.25;
-    hand = drawPerson(c, h.x, floor - 8, hs, h);
-  }
+  if (P.pickets) pickets(c, P.pickets, t, T, top);
+  const people = [heroIn(S, { x: 360, light: 'phone' }), ...(P.people || []).map((sp) => personIn(S, sp, { light: null }))];
+  const hands = drawPeople(c, people, floor - 8, 1.25);
   // мотовоз
   let loco = null;
   if (P.loco) {
@@ -477,7 +519,8 @@ SCENES.tunnel = (c, S) => {
 
   // свет и темнота
   const lights = [...lamps];
-  if (hand) lights.push({ x: hand.x, y: hand.y, a: hand.a, spread: 0.36, len: 820, r: 200 });
+  for (const hand of hands) lights.push({ x: hand.x, y: hand.y, a: hand.a, spread: 0.36, len: 820, r: 200 });
+  for (const L of P.lights || []) lights.push(L);
   if (loco) lights.push({ x: loco.x, y: loco.y, a: 0, spread: 0.4, len: 1300, r: 360, k: loco.k });
   if (P.signal) lights.push({ x: (P.signal.x ?? 80) + 22, y: floor - 336, r: 380, k: 0.75 });
   if (P.train && P.train.glowAt != null) lights.push({ x: (P.train.x ?? 520) + P.train.glowAt * (P.train.scale ?? 0.95), y: floor - 260, r: 180, k: 0.7 });
@@ -500,7 +543,12 @@ SCENES.tunnel = (c, S) => {
     glow(c, gx, floor - 245, 70, '170,200,255', 0.3 + 0.06 * Math.sin(T * 2));
   }
   if (P.surface) surface(c, T, top - 170);
-  if (hand) { beam(c, hand.x, hand.y, hand.a, 0.36, 760, 0.2); glow(c, hand.x, hand.y, 40, '255,255,240', 0.7); }
+  for (const hand of hands) { beam(c, hand.x, hand.y, hand.a, 0.36, 760, 0.2); glow(c, hand.x, hand.y, 40, '255,255,240', 0.7); }
+  for (const L of P.lights || []) {
+    if (L.len) beam(c, L.x, L.y, L.a, L.spread ?? 0.4, L.len * 0.85, 0.16, L.rgb);
+    glow(c, L.x, L.y, L.len ? 60 : (L.r ?? 200) * 0.35, L.rgb || '200,220,255', 0.35);
+  }
+  if (P.wind != null && t >= P.wind) wind(c, t - P.wind, T, top, floor);
   if (loco) {
     beam(c, loco.x, loco.y, 0, 0.4, 1200, 0.32 * loco.k, '255,236,190');
     glow(c, loco.x, loco.y, loco.edge ? 520 : 160, '255,236,190', 0.8 * loco.k);
@@ -519,6 +567,36 @@ SCENES.tunnel = (c, S) => {
     }
   }
 };
+
+// Таблички-пикеты на стене тоннеля (каждые 100 м). at — когда подсветить.
+function pickets(c, list, t, T, top) {
+  for (const pk of list) {
+    const x = pk.x, y = top + 300, lit = pk.at != null && t >= pk.at;
+    c.fillStyle = '#e9e6dc'; rr(c, x - 70, y - 38, 140, 76, 6); c.fill();
+    c.strokeStyle = '#1b1d22'; c.lineWidth = 4; c.stroke();
+    c.fillStyle = '#16181c'; c.font = '800 34px "JetBrains Mono"'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(pk.text, x, y + 2); c.textBaseline = 'alphabetic';
+    if (lit) glow(c, x, y, 160, '255,220,120', 0.25 + 0.1 * Math.sin(T * 5));
+  }
+}
+
+// Поток воздуха вдоль тоннеля: штрихи и пыль летят слева направо, сила нарастает за 1,5 с.
+function wind(c, dt, T, top, floor) {
+  const k = clamp(dt / 1.5);
+  c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
+  for (let i = 0; i < 46; i++) {
+    const sp = 700 + hash(i) * 900, len = 60 + hash(i + 1) * 160;
+    const x = ((hash(i + 2) * (W + 400) + T * sp) % (W + 400)) - 200, y = top + 60 + hash(i + 3) * (floor - top - 90);
+    c.strokeStyle = `rgba(220,230,255,${(0.16 + hash(i + 4) * 0.22) * k})`; c.lineWidth = 2 + hash(i + 5) * 3;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x + len, y + Math.sin(T * 3 + i) * 4); c.stroke();
+  }
+  for (let i = 0; i < 60; i++) {
+    const x = ((hash(i + 70) * (W + 200) + T * (400 + hash(i + 71) * 500)) % (W + 200)) - 100;
+    const y = top + 80 + hash(i + 72) * (floor - top - 100) + Math.sin(T * 4 + i) * 10;
+    circle(c, x, y, 2.5 + hash(i + 73) * 3, `rgba(230,220,200,${0.6 * k})`);
+  }
+  c.restore();
+}
 
 // Полоска ночного города над разрезом: небо, дома, улица на уровне gy.
 function surface(c, T, gy) {
@@ -678,6 +756,73 @@ SCENES.note = (c, S) => {
   c.restore();
   const lx = W / 2 + Math.sin(T * 0.7) * 120 + (noise1(T * 2) - 0.5) * 40, ly = 860 + Math.cos(T * 0.5) * 140;
   darkness(c, P.light === false ? 0 : 0.86, [{ x: lx, y: ly, r: 900 }], '2,2,4');
+};
+
+// ───────────────────────── Доска почёта ─────────────────────────
+// P: who (кого из cast показать в выделенной рамке), focus (номер рамки 0..5), caption (подпись под ней), at
+function drawBust(c, x, y, s, o) { // портрет анфас: (x, y) — низ плеч
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = o.jacket; rr(c, -95, -120, 190, 140, 50); c.fill();
+  if (o.stripes) { c.fillStyle = 'rgba(236,240,240,0.9)'; c.fillRect(-95, -70, 190, 14); }
+  c.fillStyle = o.skin; c.fillRect(-18, -150, 36, 40);
+  circle(c, 0, -195, 62, o.skin);
+  if (o.hat === 'helmet' || o.hat === 'cap') {
+    c.fillStyle = o.hatColor; c.beginPath(); c.arc(0, -212, 66, Math.PI, TAU); c.fill(); rr(c, -76, -218, 152, 14, 6); c.fill();
+  } else if (o.hat !== 'none') {
+    c.fillStyle = o.hair; c.beginPath(); c.arc(0, -208, 64, Math.PI * 1.02, Math.PI * 1.98); c.fill();
+  }
+  circle(c, -22, -192, 6, '#1b1d22'); circle(c, 22, -192, 6, '#1b1d22');
+  c.strokeStyle = '#1b1d22'; c.lineWidth = 4; c.beginPath(); c.moveTo(-16, -160); c.lineTo(16, -160); c.stroke();
+  if (o.mustache) { c.fillStyle = o.hair; rr(c, -28, -176, 56, 12, 6); c.fill(); }
+  c.restore();
+}
+
+SCENES.board = (c, S) => {
+  const { t, T, P } = S;
+  c.fillStyle = '#d9d2bd'; c.fillRect(-80, -80, W + 160, 1280);
+  c.fillStyle = '#3f5f52'; c.fillRect(-80, 1200, W + 160, H);
+  c.fillStyle = '#2f483e'; c.fillRect(-80, 1192, W + 160, 12);
+  // лампа дневного света
+  const flick = hash(Math.floor(T * 12)) > 0.08 ? 1 : 0.7;
+  c.fillStyle = '#f4f2ea'; rr(c, 300, 40, 480, 26, 10); c.fill();
+  // доска
+  const bx = 120, by = 300, bw = 840, bh = 1020;
+  c.fillStyle = '#5b3420'; rr(c, bx - 24, by - 24, bw + 48, bh + 48, 18); c.fill();
+  c.fillStyle = '#9b1c22'; c.fillRect(bx, by, bw, bh);
+  c.fillStyle = '#e9c46a'; c.font = '900 56px Montserrat'; c.textAlign = 'center';
+  c.fillText('ДОСКА ПОЧЁТА', W / 2, by + 90);
+  const people = [
+    { hat: 'hair', hair: '#3b2a20', jacket: '#4a5568', skin: '#e9c3a0' },
+    { hat: 'hair', hair: '#151515', jacket: '#2f3e57', skin: '#efcba8' },
+    { hat: 'hair', hair: '#7a6a5a', jacket: '#3d4a3a', skin: '#e3b894', mustache: true },
+    { hat: 'hair', hair: '#2a1f18', jacket: '#55406a', skin: '#f0cfb0' },
+    null,
+    { hat: 'none', hair: '#888', jacket: '#3a3f47', skin: '#e6bd99' },
+  ];
+  const focus = P.focus ?? 4, star = { ...HERO_DEFAULT, ...(S.cast[P.who] || {}) };
+  for (let i = 0; i < 6; i++) {
+    const col = i % 3, row = Math.floor(i / 3);
+    const fx = bx + 50 + col * 260, fy = by + 150 + row * 420, fw = 220, fh = 280;
+    c.fillStyle = '#e8dcc0'; c.fillRect(fx - 10, fy - 10, fw + 20, fh + 20);
+    c.save(); c.beginPath(); c.rect(fx, fy, fw, fh); c.clip();
+    c.fillStyle = '#c9b48f'; c.fillRect(fx, fy, fw, fh);
+    c.filter = i === focus ? 'sepia(0.45) contrast(0.95)' : 'sepia(0.85) grayscale(0.35) contrast(0.95)';
+    drawBust(c, fx + fw / 2, fy + fh + 10, 1.05, { ...HERO_DEFAULT, ...(i === focus ? star : people[i]) });
+    c.filter = 'none'; c.restore();
+    c.fillStyle = '#f2ead6'; c.fillRect(fx, fy + fh + 26, fw, 64);
+    c.fillStyle = 'rgba(40,30,20,0.55)';
+    if (i === focus && P.caption && t >= (P.at ?? 0)) {
+      const k = after(t, P.at ?? 0, 0.6);
+      c.save(); c.beginPath(); c.rect(fx, fy + fh + 26, fw * k, 64); c.clip();
+      c.fillStyle = '#2a2018'; c.font = '700 21px "JetBrains Mono"'; c.textAlign = 'center';
+      P.caption.split('\n').forEach((ln, j) => c.fillText(ln, fx + fw / 2, fy + fh + 52 + j * 26));
+      c.restore();
+    } else {
+      c.fillRect(fx + 30, fy + fh + 44, fw - 60, 8); c.fillRect(fx + 50, fy + fh + 62, fw - 100, 8);
+    }
+  }
+  c.fillStyle = `rgba(0,0,0,${0.12 + (1 - flick) * 0.25})`; c.fillRect(-80, -80, W + 160, H + 160);
+  vignette(c, 0.55);
 };
 
 // ───────────────────────── Титр (обложка, конец серии) ─────────────────────────

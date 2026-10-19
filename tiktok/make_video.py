@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Делает вертикальный ролик для TikTok из сценария: python make_video.py stories/metro-tupik.json
 
-Что получается в out/<имя>/: video.mp4 (1080×1920, 30 к/с), cover.jpg, post.txt (подпись и хэштеги),
+Что получается в out/<имя>/: video.mp4 (1080×1920, 30 к/с), cover.jpg, post.txt (название ролика и хэштеги одной строкой),
 audio.wav и timeline.json (для просмотра в браузере с --preview).
 """
 import argparse
@@ -23,7 +23,7 @@ import voice
 
 ROOT = Path(__file__).resolve().parent
 # Поля, где время можно задать словом из текста сцены («at»: «гул») или секундами от начала сцены.
-TIME_KEYS = {'at', 'from', 'until', 'rail', 'lightsOff', 'lightOff', 'handle', 'phantoms', 'glowFrom'}
+TIME_KEYS = {'at', 'from', 'until', 'rail', 'lightsOff', 'lightOff', 'handle', 'phantoms', 'glowFrom', 'wind'}
 
 
 def resolve_time(value, words, dur, where):
@@ -76,7 +76,7 @@ def build(story, out):
         print(f'  сцена {i:>2}: {sc.get("type", "blank"):<7} {dur:5.1f} с  {say[:60]}')
         T += dur
     total = round(T + float(story.get('tail', 0.0)), 3)
-    timeline = {'duration': total, 'hero': story.get('hero', {}), 'scenes': scenes, 'captions': caps,
+    timeline = {'duration': total, 'hero': story.get('hero', {}), 'cast': story.get('cast', {}), 'scenes': scenes, 'captions': caps,
                 'captionY': story.get('captionY', 1400), 'captionSize': story.get('captionSize', 86)}
     (out / 'timeline.json').write_text(json.dumps(timeline, ensure_ascii=False, indent=1))
     music = story.get('music')
@@ -189,6 +189,10 @@ def main():
     print(f'«{story.get("title", out.name)}»: озвучка и монтаж')
     tl = build(story, out)
     print(f'  длина: {tl["duration"]:.1f} с, субтитров: {len(tl["captions"])}')
+    post = story.get('post', {})
+    line = ' '.join([post.get('caption', story.get('title', out.name)), *post.get('hashtags', [])])
+    (out / 'post.txt').write_text(line + '\n', encoding='utf-8')
+    print(f'  подпись: {line}')
 
     if a.preview:
         httpd = serve(8090)
@@ -212,9 +216,6 @@ def main():
     cover_at = story.get('cover', 1.2)
     subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', str(cover_at), '-i', str(out / 'video.mp4'), '-frames:v', '1',
                     '-q:v', '2', str(out / 'cover.jpg')], check=True)
-    post = story.get('post', {})
-    (out / 'post.txt').write_text(f'{post.get("caption", story.get("title", ""))}\n\n{" ".join(post.get("hashtags", []))}\n',
-                                  encoding='utf-8')
     print(f'Готово: {out / "video.mp4"}\n  обложка: {out / "cover.jpg"}\n  подпись: {out / "post.txt"}')
 
 
