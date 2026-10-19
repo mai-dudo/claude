@@ -42,7 +42,7 @@ Sony Interactive Entertainment; это фанатская страница, с S
 | --- | --- | --- | --- |
 | `game/hexgl/` — гонка HexGL. Убраны счётчик Google Analytics, appcache и исходники CoffeeScript | Thibaut Despoulain (BKcore) | MIT (`game/hexgl/LICENSE`) | https://github.com/BKcore/HexGL |
 | `game/astray/` — лабиринт Astray на Three.js и Box2D | Rye Terrell (wwwtyro) | Unlicense (`game/astray/License.md`) | https://github.com/wwwtyro/Astray |
-| `game/capyjump/` — «Подбрось Пепе», прыгалка по мотивам Doodle Jump; капибары, рыбьи скелеты, огонь и шапка с пропеллером нарисованы кодом | код сайта | — | — |
+| `game/capyjump/` — «Подбрось Пепе», прыгалка по мотивам игры «Подбрось пользователя»; капибары, рыбьи скелеты, огонь и шапка с пропеллером нарисованы кодом | код сайта | — | — |
 | `game/capyjump/pepe.png` и Пепе на значке `assets/icons/aero/capyjump.png` — плюшевый Пепе (Plush Pepe), картинку прислал владелец сайта. Персонаж Pepe the Frog придуман Мэттом Фьюри | правообладатели картинки | не указана | — |
 
 ## Шрифт

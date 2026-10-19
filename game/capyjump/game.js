@@ -1,23 +1,29 @@
-/* Подбрось Пепе — прыгалка в духе Doodle Jump. Плюшевый Пепе отскакивает от капибар,
-   камера едет только вверх, счёт — набранная высота в «км». Капибары, рыбьи скелеты,
-   огонь и пропеллер рисуются кодом, из картинок только сам Пепе (pepe.png). */
+/* Подбрось Пепе — прыгалка по мотивам игры «Подбрось пользователя». Плюшевый Пепе отскакивает
+   от капибар, камера едет только вверх, счёт — набранная высота в «км». Прыжок, скорость камеры,
+   цена «км» и сетка рядов сняты с записи оригинала. Капибары, рыбьи скелеты, огонь и пропеллер
+   рисуются кодом, из картинок только сам Пепе (pepe.png). */
 (() => {
   'use strict';
 
-  /* ---------- Настройки ---------- */
+  /* ---------- Настройки: поле 400 единиц в ширину, как экран оригинала в 390 px ---------- */
   const W = 400;            // ширина поля в условных единицах, высота зависит от экрана
   const ASPECT = 0.56;      // на широком экране поле — столбец 9:16 по центру
-  const G = 1600;           // ускорение падения, ед/с²
-  const JUMP = 820;         // скорость отскока: прыжок около 210 ед
-  const RUN = 340;          // предельная скорость вбок, ед/с
-  const PEPE = 76;          // сторона картинки Пепе
-  const FEET = 22;          // полуширина опоры Пепе при приземлении
+  const G = 1720;           // ускорение падения, ед/с²
+  const JUMP = 808;         // скорость отскока: подъём на 190 ед за 0,47 с
+  const PEPE = 74;          // сторона картинки Пепе
+  const FEET = 24;          // полуширина опоры Пепе при приземлении
   const CAPY_HALF = 44;     // полуширина спины капибары
   const CAPY_TOP = 26;      // от низа капибары до спины, куда встаёт Пепе
-  const FLY_TIME = 3;       // полёт на пропеллере, с
-  const FLY_SPEED = 1100;
-  const KM = 10;            // единиц высоты в одном «км»
-  const HARD_AT = 15000;    // к этой высоте игра становится самой трудной
+  const ROW = 84;           // платформы стоят рядами с этим шагом
+  const SPARSE_FROM = 250;  // с этого счёта нечётные ряды начинают пустеть,
+  const SPARSE_FULL = 330;  // а отсюда твёрдые капибары только через ряд
+  const FOLLOW = 12;        // как быстро Пепе догоняет палец, 1/с
+  const KEY_SPEED = 520;    // скорость с клавиатуры, ед/с
+  const CAM_LINE = 0.57;    // камера держит середину Пепе не выше этой доли экрана снизу
+  const CAM_FOLLOW = 11;    // и догоняет его с такой скоростью, 1/с
+  const FLY_TIME = 2.8;     // полёт на пропеллере, с: в оригинале 2,3–2,8 с
+  const FLY_SPEED = 1050;   // около 35 км в секунду
+  const KM = 30;            // единиц высоты в одном «км»: экран — около 29 км
   const STEP = 1 / 120;     // шаг физики, чтобы на медленном кадре не проскочить огонь
   const INK = '#2a1b10';
   const PATCH = ['rgba(150, 200, 100, .26)', 'rgba(185, 226, 135, .4)', 'rgba(135, 190, 90, .2)', 'rgba(236, 252, 208, .45)'];
@@ -28,7 +34,6 @@
   const $ = (id) => document.getElementById(id);
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const rand = (lo, hi) => lo + Math.random() * (hi - lo);
-  const wrapDx = (a, b) => ((a - b + W * 1.5) % W) - W / 2; // разница по x с учётом сквозных краёв
   const store = {
     get(key, def) { try { const v = localStorage.getItem(key); return v == null ? def : JSON.parse(v); } catch (_) { return def; } },
     set(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (_) { /* приватный режим */ } },
@@ -39,17 +44,6 @@
   const ctx = cv.getContext('2d');
   const scoreEl = $('score');
   const pepe = new Image();
-  let pepeBurnt = null; // обугленный Пепе после огня
-  pepe.onload = () => {
-    const c = document.createElement('canvas');
-    c.width = pepe.naturalWidth; c.height = pepe.naturalHeight;
-    const x = c.getContext('2d');
-    x.drawImage(pepe, 0, 0);
-    x.globalCompositeOperation = 'source-atop';
-    x.fillStyle = 'rgba(30, 18, 10, .62)';
-    x.fillRect(0, 0, c.width, c.height);
-    pepeBurnt = c;
-  };
   pepe.src = 'pepe.png';
 
   /* ---------- Рисунки ---------- */
@@ -136,7 +130,7 @@
     c.restore();
   }
 
-  // рыбий скелет: с виду ступенька, но Пепе пролетает сквозь него
+  // рыбий скелет: задел — проиграл
   function drawFish(c) {
     c.lineJoin = 'round'; c.lineCap = 'round'; c.strokeStyle = INK; c.fillStyle = '#fbfbf4'; c.lineWidth = 1.8;
     c.beginPath();
@@ -203,6 +197,7 @@
   }
   const blit = (s, x, y) => ctx.drawImage(s.c, x - s.ox, y - s.oy, s.w, s.h);
 
+
   function resize() {
     const vh = innerHeight;
     const cssW = Math.min(innerWidth, Math.round(vh * ASPECT));
@@ -220,70 +215,70 @@
     spr.bg = sprite(W, bgLayout.h, 0, 0, drawBgTile, Math.min(k, 1.5));
     shine = ctx.createLinearGradient(0, 0, 0, H);
     shine.addColorStop(0, 'rgba(255, 255, 235, .45)'); shine.addColorStop(0.55, 'rgba(255, 255, 235, 0)');
-    paintLegend();
     if (plats) fill();
   }
 
-  function paintLegend() {
-    for (const icon of document.querySelectorAll('[data-icon]')) {
-      icon.width = Math.round(60 * dpr); icon.height = Math.round(40 * dpr);
-      const c = icon.getContext('2d');
-      const s = icon.width / 120; // в холсте 120 × 80 условных единиц
-      c.setTransform(s, 0, 0, s, 0, 0);
-      c.clearRect(0, 0, 120, 80);
-      const kind = icon.dataset.icon;
-      if (kind === 'fire') { c.translate(60, 40); c.scale(1.3, 1.3); drawFire(c); }
-      else if (kind === 'fish') { c.translate(60, 42); c.scale(1.5, 1.5); drawFish(c); }
-      else { c.translate(56, 70); drawCapy(c, kind === 'dark', false); if (kind === 'hat') drawHat(c, 30, -30.5, 0.6); }
-    }
-  }
-
   /* ---------- Мир ---------- */
-  let state = 'ready'; // ready — заставка, play — игра, dying — горит и падает, over — итоги, pause — пауза
-  let plats = null, debris, puffs, fires, p, camY, genY, lastHat, startY, fireTimer, time; // camY — набранная высота, из неё счёт
+  let state = 'play'; // play — игра, dying — задел кости и падает, over — итоги, pause — пауза
+  let plats = null, debris, puffs, fires, p, camY, row, lastHat, lastSolidX, startY, fireTimer, time; // camY — набранная высота, из неё счёт
 
+  const plat = (kind, x, y, dir) => ({ kind, x, y, dir, yuzu: false, hat: false, bump: 0, dead: false });
   function reset() {
     plats = []; debris = []; puffs = []; fires = [];
-    camY = 0; time = 0; startY = 70; genY = startY; lastHat = -Infinity;
+    camY = 0; time = 0; row = 0; lastHat = -1; lastSolidX = W / 2; startY = 110;
     fireTimer = rand(6, 10);
-    plats.push({ kind: 'capy', x: W / 2, y: startY, dir: 1, yuzu: false, hat: false, bump: 0, dead: false });
-    p = { x: W / 2, y: startY, vx: 0, vy: JUMP, face: 1, squash: 0, lean: 0, fly: 0, spin: 0, burnt: false };
+    plats.push(plat('capy', W / 2, startY, 1));
+    p = { x: W / 2, tx: W / 2, y: startY, vx: 0, vy: JUMP, face: 1, squash: 0, fly: 0, spin: 0 };
     fill();
   }
-  function fill() { while (genY < camY + H + 160) addRow(); }
+  function fill() { while (startY + row * ROW < camY + H + 160) addRow(); }
 
-  // опоры идут снизу вверх с шагом не больше 160 — прыжок 210, так что до следующей всегда достать
+  // ряды идут по сетке: внизу капибара в каждом ряду, выше твёрдые только в чётных,
+  // а в нечётных кости, тёмная капибара или пусто; до чётного ряда прыжок всегда достаёт
   function addRow() {
-    const d = clamp(genY / HARD_AT, 0, 1);
-    const gap = rand(60 + 35 * d, 100 + 60 * d);
-    const y = genY + gap;
-    const pl = { kind: 'capy', x: rand(CAPY_HALF + 8, W - CAPY_HALF - 8), y, dir: Math.random() < 0.5 ? -1 : 1, yuzu: false, hat: false, bump: 0, dead: false };
-    const hatChance = lastHat === -Infinity ? (y < 1200 ? 0.25 : 0.05) : (y - lastHat > 2600 ? 0.03 : 0);
-    if (y > 260 && Math.random() < 0.06 + 0.26 * d) pl.kind = 'dark';
-    else if (y > 240 && Math.random() < hatChance) { pl.hat = true; lastHat = y; }
-    else if (Math.random() < 0.1) pl.yuzu = true;
-    if (genY > 900 && gap > 86 && Math.random() < 0.18 + 0.4 * d) {
-      let fx;
-      do fx = rand(36, W - 36); while (Math.abs(fx - pl.x) < 85);
-      plats.push({ kind: 'fish', x: fx, y: genY + gap * rand(0.4, 0.6), dir: Math.random() < 0.5 ? -1 : 1, bump: 0, dead: false });
+    row += 1;
+    const y = startY + row * ROW;
+    const s = (row * ROW) / KM;
+    const sparse = clamp((s - SPARSE_FROM) / (SPARSE_FULL - SPARSE_FROM), 0, 1);
+    const d = clamp((s - SPARSE_FROM) / 1250, 0, 1);
+    let x = rand(CAPY_HALF + 6, W - CAPY_HALF - 6);
+    // первые два ряда в стороне: пока игрок не двинул Пепе, он прыгает на месте, как в оригинале
+    if (row <= 2) x = W / 2 + (Math.random() < 0.5 ? -1 : 1) * rand(CAPY_HALF + FEET + 12, W / 2 - CAPY_HALF - 6);
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    if (row % 2 === 1 && Math.random() < sparse) {
+      const r = Math.random();
+      if (r < 0.5) {
+        // кости не вешаем прямо над капибарой снизу, чтобы прыжок на месте не убивал
+        let fx = x;
+        while (Math.abs(fx - lastSolidX) < 80) fx = rand(36, W - 36);
+        plats.push(plat('fish', fx, y, dir));
+      } else if (r < 0.7) {
+        plats.push(plat('dark', x, y, dir));
+        lastSolidX = x;
+      }
+      return;
+    }
+    const pl = plat(Math.random() < (s < SPARSE_FROM ? 0.1 : 0.18 + 0.14 * d) ? 'dark' : 'capy', x, y, dir);
+    if (pl.kind === 'capy') {
+      // как в оригинале: первый пропеллер почти сразу, дальше примерно раз в 60 рядов
+      const early = lastHat < 0 && row >= 2 && row <= 8;
+      if (Math.random() < (early ? 0.3 : row - lastHat >= 30 ? 0.06 : 0)) { pl.hat = true; lastHat = row; }
+      else if (Math.random() < 0.1) pl.yuzu = true;
     }
     plats.push(pl);
-    genY = y;
+    lastSolidX = x;
   }
 
-  /* ---------- Управление: клавиши, палец или мышь, наклон телефона ---------- */
+  /* ---------- Управление: Пепе плавно догоняет точку, которую ведут пальцем или стрелками ---------- */
   const keys = { l: false, r: false };
-  const pointer = { id: null, x: W / 2 };
-  const tilt = { on: false, v: null };
+  const pointer = { id: null, fx: 0, bx: 0 };
 
   function steer(dt) {
-    let target = null;
-    if (pointer.id !== null) target = clamp((pointer.x - p.x) * 7, -RUN, RUN);
-    else if (tilt.on && tilt.v !== null) target = Math.abs(tilt.v) < 2 ? 0 : clamp(tilt.v / 20, -1, 1) * RUN;
-    if (target !== null) { p.vx += (target - p.vx) * Math.min(1, dt * 14); return; }
     const dir = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
-    if (dir) p.vx = clamp(p.vx + dir * (Math.sign(p.vx) === -dir ? 5000 : 2400) * dt, -RUN, RUN);
-    else p.vx *= Math.exp(-9 * dt);
+    if (dir && pointer.id === null) p.tx = clamp(p.tx + dir * KEY_SPEED * dt, 0, W);
+    const nx = p.x + (p.tx - p.x) * (1 - Math.exp(-FOLLOW * dt));
+    p.vx = (nx - p.x) / dt;
+    p.x = nx;
   }
 
   /* ---------- Шаг игры ---------- */
@@ -291,7 +286,7 @@
     time += dt;
     const prevY = p.y;
     if (state === 'play') steer(dt);
-    p.x = (p.x + p.vx * dt + W) % W;
+    else p.x = clamp(p.x + p.vx * dt, 0, W);
     if (p.fly > 0) {
       p.fly -= dt;
       p.vy = p.fly > 0.5 ? FLY_SPEED : JUMP + (FLY_SPEED - JUMP) * Math.max(0, p.fly) / 0.5;
@@ -301,14 +296,12 @@
     }
     p.y += p.vy * dt;
 
-    if (state === 'ready') {
-      if (p.y <= startY) bounce(plats[0], true);
-    } else if (state === 'play') {
+    if (state === 'play') {
       if (p.vy < 0 && p.fly <= 0) land(prevY);
       grabHat();
-      fireHit();
-      const target = p.y - H * 0.47;
-      if (target > camY) camY += (target - camY) * Math.min(1, dt * 14);
+      boneHit();
+      const target = p.y + PEPE / 2 - H * CAM_LINE;
+      if (target > camY) camY += (target - camY) * (1 - Math.exp(-CAM_FOLLOW * dt));
       fill();
       spawnFire(dt);
       if (p.y + PEPE < camY) { sfx.fall(); finish(); return; }
@@ -318,8 +311,7 @@
     }
 
     p.squash = Math.max(0, p.squash - dt * 6);
-    p.lean += (clamp(p.vx / RUN, -1, 1) * 0.18 - p.lean) * Math.min(1, dt * 10);
-    if (Math.abs(p.vx) > 25 && state !== 'dying') p.face = p.vx > 0 ? 1 : -1;
+    if (Math.abs(p.vx) > 30 && state !== 'dying') p.face = p.vx > 0 ? 1 : -1;
     for (const pl of plats) if (pl.bump > 0) pl.bump = Math.max(0, pl.bump - dt * 5);
     for (const f of fires) { f.x += f.vx * dt; f.t += dt; }
     for (const d of debris) {
@@ -333,15 +325,15 @@
     let hit = null;
     for (const pl of plats) {
       if (pl.dead || pl.kind === 'fish') continue;
-      if (prevY >= pl.y && p.y <= pl.y && Math.abs(wrapDx(p.x, pl.x)) < CAPY_HALF + FEET && (!hit || pl.y > hit.y)) hit = pl;
+      if (prevY >= pl.y && p.y <= pl.y && Math.abs(p.x - pl.x) < CAPY_HALF + FEET && (!hit || pl.y > hit.y)) hit = pl;
     }
-    if (hit) bounce(hit, false);
+    if (hit) bounce(hit);
   }
 
-  function bounce(pl, quiet) {
+  function bounce(pl) {
     p.y = pl.y; p.vy = JUMP; p.squash = 1; pl.bump = 1;
-    puff(p.x, pl.y, false);
-    if (!quiet) sfx.jump();
+    puff(p.x, pl.y);
+    sfx.jump();
     if (pl.hat) takeHat(pl);
     if (pl.kind === 'dark') crack(pl);
   }
@@ -357,7 +349,7 @@
     const cy = p.y + PEPE * 0.45;
     for (const pl of plats) {
       if (!pl.hat || pl.dead) continue;
-      if (Math.abs(wrapDx(p.x, pl.x + 30 * pl.dir)) < 26 && Math.abs(pl.y + 10 - cy) < 36) takeHat(pl);
+      if (Math.abs(p.x - pl.x - 30 * pl.dir) < 26 && Math.abs(pl.y + 10 - cy) < 36) takeHat(pl);
     }
   }
   function takeHat(pl) {
@@ -369,37 +361,35 @@
     debris.push({ kind: 'hat', x: p.x - 9 * p.face, y: p.y + PEPE - 7, vx: -p.face * 70, vy: 260, rot: 0, vr: -p.face * 5 });
   }
 
-  function puff(x, y, flame) {
-    const n = flame ? 12 : 5;
-    for (let i = 0; i < n; i++) {
-      puffs.push(flame
-        ? { flame, x: x + rand(-14, 14), y: y + rand(10, 50), vx: rand(-120, 120), vy: rand(-40, 160), s: rand(0.3, 0.6), t: 0, life: rand(0.5, 0.9) }
-        : { flame, x: x + rand(-18, 18), y: y + rand(0, 6), vx: rand(-30, 30), vy: rand(10, 50), s: rand(2.5, 4.5), t: 0, life: rand(0.35, 0.55) });
+  function puff(x, y) {
+    for (let i = 0; i < 5; i++) {
+      puffs.push({ x: x + rand(-18, 18), y: y + rand(0, 6), vx: rand(-30, 30), vy: rand(10, 50), s: rand(2.5, 4.5), t: 0, life: rand(0.35, 0.55) });
     }
   }
 
-  // огонь вылетает из-за края и медленно плывёт поперёк поля
+  // огонь вылетает из-за края и медленно плывёт поперёк поля; как в оригинале, Пепе он не вредит
   function spawnFire(dt) {
-    if (camY < 800) return;
+    if (camY < 2000) return; // первый огонь — после 65 км
     fireTimer -= dt;
     if (fireTimer > 0) return;
-    const d = clamp(camY / HARD_AT, 0, 1);
-    fireTimer = rand(7, 12) - 4 * d;
+    const d = clamp(camY / KM / 1500, 0, 1);
+    fireTimer = rand(5, 9) - 2 * d;
     const side = Math.random() < 0.5 ? -1 : 1;
     fires.push({ x: side < 0 ? -26 : W + 26, y: camY + H * rand(0.55, 0.85), vx: -side * rand(45, 70 + 30 * d), t: rand(0, 6) });
   }
   const fireY = (f) => f.y + Math.sin(f.t * 2.4) * 8;
-  function fireHit() {
-    if (p.fly > 0) return; // на пропеллере огонь не страшен
+  // кости убивают, как и падение: Пепе больше ни на что не встаёт и улетает вниз
+  const FISH_DY = 12; // середина скелета ниже линии ряда, вровень с туловищем капибар
+  function boneHit() {
+    if (p.fly > 0) return; // на пропеллере Пепе пролетает мимо
     const cy = p.y + PEPE * 0.45;
-    for (const f of fires) {
-      const dx = wrapDx(f.x, p.x), dy = fireY(f) - cy;
-      if (dx * dx + dy * dy < 36 * 36) {
+    for (const pl of plats) {
+      if (pl.kind !== 'fish') continue;
+      const dx = Math.max(Math.abs(p.x - pl.x) - 26, 0), dy = Math.max(Math.abs(cy - (pl.y - FISH_DY)) - 6, 0);
+      if (dx * dx + dy * dy < 24 * 24) {
         state = 'dying';
-        p.burnt = true; p.vy = 380; p.vx = dx > 0 ? -120 : 120;
-        fires.splice(fires.indexOf(f), 1);
-        puff(p.x, p.y, true);
-        sfx.burn();
+        p.vy = Math.min(p.vy, 150); p.vx = 0;
+        sfx.hit();
         return;
       }
     }
@@ -416,15 +406,14 @@
   /* ---------- Отрисовка ---------- */
   const sy = (wy) => H - (wy - camY);
 
-  function drawPepe(x) {
+  function drawPepe() {
     const s = p.squash;
     ctx.save();
-    ctx.translate(x, sy(p.y));
-    ctx.scale(p.face * (1 + 0.16 * s), 1 - 0.18 * s);
+    ctx.translate(p.x, sy(p.y));
+    ctx.scale(p.face * (1 + 0.08 * s), 1 - 0.1 * s);
     ctx.translate(0, -PEPE / 2);
-    ctx.rotate(p.face * (p.lean + p.spin));
-    const img = p.burnt && pepeBurnt ? pepeBurnt : pepe;
-    if (pepe.complete && pepe.naturalWidth) ctx.drawImage(img, -PEPE / 2, -PEPE / 2, PEPE, PEPE);
+    ctx.rotate(p.face * p.spin);
+    if (pepe.complete && pepe.naturalWidth) ctx.drawImage(pepe, -PEPE / 2, -PEPE / 2, PEPE, PEPE);
     else { ctx.fillStyle = '#7fb33b'; ctx.beginPath(); ctx.arc(0, 0, PEPE / 2.4, 0, Math.PI * 2); ctx.fill(); }
     if (p.fly > 0) drawHat(ctx, -9, -PEPE / 2 + 7, time * 38);
     ctx.restore();
@@ -442,7 +431,7 @@
       if (y < -70 || y > H + 70) continue;
       ctx.save();
       if (pl.kind === 'fish') {
-        ctx.translate(pl.x, y); ctx.scale(pl.dir, 1); blit(spr.fish, 0, 0);
+        ctx.translate(pl.x, sy(pl.y - FISH_DY)); ctx.scale(pl.dir, 1); blit(spr.fish, 0, 0);
       } else {
         ctx.translate(pl.x, sy(pl.y - CAPY_TOP) + Math.sin(pl.bump * Math.PI) * 4);
         ctx.scale(pl.dir, 1);
@@ -467,15 +456,9 @@
     }
 
     for (const q of puffs) {
-      const a = 1 - q.t / q.life;
-      if (q.flame) {
-        ctx.globalAlpha = a;
-        drawFlame(ctx, q.x, sy(q.y), q.s * (0.6 + a * 0.6));
-      } else {
-        ctx.globalAlpha = a * 0.9;
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(q.x, sy(q.y), q.s * (1 + q.t * 3), 0, Math.PI * 2); ctx.fill();
-      }
+      ctx.globalAlpha = (1 - q.t / q.life) * 0.9;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(q.x, sy(q.y), q.s * (1 + q.t * 3), 0, Math.PI * 2); ctx.fill();
     }
     ctx.globalAlpha = 1;
 
@@ -488,9 +471,7 @@
       ctx.restore();
     }
 
-    drawPepe(p.x);
-    if (p.x < PEPE / 2) drawPepe(p.x + W);
-    else if (p.x > W - PEPE / 2) drawPepe(p.x - W);
+    drawPepe();
 
     const sc = Math.floor(camY / KM);
     if (scoreEl.textContent !== String(sc)) scoreEl.textContent = sc;
@@ -509,7 +490,7 @@
       return ac;
     };
     function tone(type, f0, f1, dur, vol, delay = 0) {
-      const a = on && audio();
+      const a = on && ac && audio(); // до первого касания или клавиши звук не заводим
       if (!a) return;
       const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
       o.type = type;
@@ -519,7 +500,7 @@
       o.start(t); o.stop(t + dur + 0.05);
     }
     function noise(dur, vol, freq) {
-      const a = on && audio();
+      const a = on && ac && audio();
       if (!a) return;
       const n = Math.ceil(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), ch = buf.getChannelData(0);
       for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
@@ -539,12 +520,12 @@
       toggle() { on = !on; store.set('capyjump.sound', on); if (!on) stopProp(); return on; },
       jump: () => tone('sine', 330, 660, 0.12, 0.13),
       crack() { noise(0.16, 0.5, 1100); tone('square', 200, 70, 0.14, 0.04); },
-      burn() { noise(0.45, 0.4, 2400); tone('sawtooth', 420, 60, 0.5, 0.06); },
+      hit() { noise(0.12, 0.4, 700); tone('square', 300, 90, 0.22, 0.05); tone('triangle', 520, 80, 0.7, 0.12, 0.1); },
       fall: () => tone('triangle', 560, 80, 0.75, 0.15),
       record: () => [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f * 1.01, 0.18, 0.1, 0.25 + i * 0.1)),
       prop() { // жужжание пропеллера на всё время полёта
         stopProp();
-        const a = on && audio();
+        const a = on && ac && audio();
         if (!a) return;
         const t = a.currentTime, d = FLY_TIME;
         const o = a.createOscillator(), lp = a.createBiquadFilter(), trem = a.createGain(), env = a.createGain();
@@ -564,10 +545,11 @@
     };
   })();
 
+
   /* ---------- Экраны и рекорды ---------- */
-  const screens = ['scrStart', 'scrOver', 'scrPause', 'scrRecords'].map($);
+  const screens = ['scrOver', 'scrPause', 'scrRecords'].map($);
   const coarse = matchMedia('(pointer: coarse)').matches;
-  let shown = 'scrStart', backTo = 'scrStart';
+  let shown = null, backTo = 'scrOver';
   function show(id) {
     shown = id;
     for (const s of screens) s.hidden = s.id !== id;
@@ -626,12 +608,6 @@
     setTimeout(() => { if (state === 'over') show('scrOver'); }, 450);
   }
 
-  function start() {
-    if (state !== 'ready') return;
-    sfx.unlock();
-    state = 'play';
-    show(null);
-  }
   function again() {
     if (state !== 'over') return;
     sfx.unlock();
@@ -653,7 +629,6 @@
     show(null);
   }
 
-  $('play').addEventListener('click', start);
   $('again').addEventListener('click', again);
   $('resume').addEventListener('click', resume);
   $('recordsBack').addEventListener('click', () => show(backTo));
@@ -685,19 +660,28 @@
     }
   })();
 
+
   /* ---------- События ввода ---------- */
+  // подсказка внизу пропадает при первом движении
+  const hint = $('hint');
+  hint.textContent = coarse ? 'Веди пальцем влево и вправо' : 'Двигай стрелками ← → или мышью с зажатой кнопкой';
+  const hideHint = () => hint.classList.add('is-gone');
+  setTimeout(hideHint, 6000);
+
   addEventListener('keydown', (e) => {
     const c = e.code;
     if (c === 'ArrowLeft' || c === 'KeyA') { keys.l = true; e.preventDefault(); }
     else if (c === 'ArrowRight' || c === 'KeyD') { keys.r = true; e.preventDefault(); }
-    else if (c === 'KeyP') { if (state === 'play') pause(); else resume(); }
+    else if (c === 'KeyP') { if (state === 'play') pause(); else resume(); return; }
     else if ((c === 'Space' || c === 'Enter') && !e.repeat) {
       if (document.activeElement instanceof HTMLButtonElement) return; // кнопка в фокусе нажмётся сама
-      if (state === 'ready' && shown === 'scrStart') start();
-      else if (state === 'pause') resume();
+      if (state === 'pause') resume();
       else if (state === 'over' && shown === 'scrOver') again();
       e.preventDefault();
-    }
+      return;
+    } else return;
+    sfx.unlock();
+    hideHint();
   });
   addEventListener('keyup', (e) => {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.l = false;
@@ -706,76 +690,48 @@
   addEventListener('blur', () => { keys.l = keys.r = false; pointer.id = null; });
   document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 
-  const pointerX = (e) => {
+  // палец двигает точку, за которой летит Пепе, на столько же, на сколько сдвинулся сам:
+  // ставить его можно в любом месте экрана, у края точка упирается и сразу едет обратно
+  const fingerX = (e) => {
     const r = cv.getBoundingClientRect();
-    pointer.x = clamp((e.clientX - r.left) / r.width * W, 0, W);
+    return (e.clientX - r.left) / r.width * W;
   };
   cv.addEventListener('pointerdown', (e) => {
     if (state !== 'play') return;
+    sfx.unlock();
+    hideHint();
     pointer.id = e.pointerId;
-    pointerX(e);
+    pointer.fx = fingerX(e);
+    pointer.bx = p.tx;
     try { cv.setPointerCapture(e.pointerId); } catch (_) { /* не все браузеры дают захват */ }
   });
-  cv.addEventListener('pointermove', (e) => { if (e.pointerId === pointer.id) pointerX(e); });
+  cv.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== pointer.id) return;
+    const fx = fingerX(e);
+    let tx = pointer.bx + fx - pointer.fx;
+    if (tx < 0 || tx > W) { tx = clamp(tx, 0, W); pointer.bx = tx; pointer.fx = fx; }
+    p.tx = tx;
+  });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-    cv.addEventListener(type, (e) => { if (e.pointerId === pointer.id) pointer.id = null; });
+    cv.addEventListener(type, (e) => {
+      if (type === 'pointerup') sfx.unlock(); // на iPhone звук разрешают только по отпусканию пальца
+      if (e.pointerId === pointer.id) pointer.id = null;
+    });
   }
   cv.addEventListener('contextmenu', (e) => e.preventDefault());
-
-  // наклон: в портретной ориентации берём gamma, в альбомной — beta с нужным знаком
-  function onTilt(e) {
-    const angle = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
-    let v = e.gamma;
-    if (angle === 90) v = e.beta;
-    else if (angle === -90 || angle === 270) v = e.beta == null ? null : -e.beta;
-    else if (angle === 180) v = e.gamma == null ? null : -e.gamma;
-    tilt.v = v == null ? null : v;
-  }
-  const tiltBtn = $('tilt');
-  async function setTilt(on) {
-    const D = window.DeviceOrientationEvent;
-    if (on && D && typeof D.requestPermission === 'function') {
-      try { on = (await D.requestPermission()) === 'granted'; } catch (_) { on = false; }
-    }
-    tilt.on = on; tilt.v = null;
-    if (on) addEventListener('deviceorientation', onTilt); else removeEventListener('deviceorientation', onTilt);
-    tiltBtn.setAttribute('aria-pressed', String(on));
-    tiltBtn.textContent = `Наклон телефона: ${on ? 'вкл' : 'выкл'}`;
-    store.set('capyjump.tilt', on);
-    // датчик молчит (браузер или страница, в которую встроена игра, его не дают): выключаем и прячем кнопку
-    if (on) {
-      setTimeout(() => {
-        if (!tilt.on || tilt.v !== null) return;
-        setTilt(false);
-        tiltBtn.hidden = true;
-        $('howTouch').textContent = 'Веди пальцем влево и вправо. Наклон в этом браузере недоступен';
-      }, 1500);
-    }
-  }
-  if (coarse) {
-    $('howKeys').hidden = true;
-    $('howTouch').hidden = false;
-    if (tiltBtn && 'DeviceOrientationEvent' in window) {
-      tiltBtn.hidden = false;
-      tiltBtn.addEventListener('click', () => setTilt(!tilt.on));
-      // на iOS разрешение спрашивают только по нажатию, поэтому сами включаем наклон лишь там, где его не нужно
-      if (store.get('capyjump.tilt', false) && typeof DeviceOrientationEvent.requestPermission !== 'function') setTilt(true);
-    }
-  }
 
   /* ---------- Запуск ---------- */
   addEventListener('resize', resize);
   resize();
   reset();
-  show('scrStart');
 
   let last = performance.now();
   function frame(now) {
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
     last = now;
-    if (state === 'ready' || state === 'play' || state === 'dying') {
+    if (state === 'play' || state === 'dying') {
       const n = Math.ceil(dt / STEP);
-      for (let i = 0; i < n && (state === 'ready' || state === 'play' || state === 'dying'); i++) update(dt / n);
+      for (let i = 0; i < n && (state === 'play' || state === 'dying'); i++) update(dt / n);
       prune();
     }
     render();
