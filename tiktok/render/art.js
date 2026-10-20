@@ -72,7 +72,7 @@ function filmGrain(c, T, a) {
     for (let i = 0; i < d.data.length; i += 4) { const v = r() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
     g.putImageData(d, 0, 0);
   }
-  const f = Math.floor(T * 24);
+  const f = Math.floor(T * 12); // зерно меняется 12 раз в секунду: на глаз так же, а файл в разы легче
   c.save(); c.globalAlpha = a; c.globalCompositeOperation = 'overlay';
   c.translate(-Math.floor(hash(f) * 256), -Math.floor(hash(f + 7) * 256));
   c.fillStyle = c.createPattern(GRAIN, 'repeat'); c.fillRect(0, 0, W + 512, H + 512);
@@ -81,7 +81,7 @@ function filmGrain(c, T, a) {
 
 // Эффекты поверх картинки внутри рамки box.
 const FX = {
-  grain: (c, S, box) => filmGrain(c, S.T, 0.09),
+  grain: (c, S, box) => filmGrain(c, S.T, 0.07),
   vignette: (c, S, box) => {
     const g = c.createRadialGradient(box.x + box.w / 2, box.y + box.h / 2, Math.min(box.w, box.h) * 0.35, box.x + box.w / 2, box.y + box.h / 2, Math.max(box.w, box.h) * 0.75);
     g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.6)');

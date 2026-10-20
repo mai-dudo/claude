@@ -155,7 +155,7 @@ def render(timeline, out, fps, scale, workers, until=None):
     tmp = out / 'video.tmp.mp4'
     cmd = ['ffmpeg', '-y', '-v', 'error', '-f', 'image2pipe', '-c:v', 'mjpeg', '-framerate', str(fps), '-i', '-',
            '-i', str(out / 'audio.wav'), '-map', '0:v', '-map', '1:a',
-           '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
+           '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-maxrate', '8M', '-bufsize', '16M', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
            '-vf', 'scale=1080:1920:flags=lanczos', '-r', str(fps),
            '-af', 'highpass=f=40,loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-c:a', 'aac', '-b:a', '192k',
            '-movflags', '+faststart', '-shortest', str(tmp)]

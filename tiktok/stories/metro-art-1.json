@@ -4,6 +4,8 @@
   "voice": "ru-RU-DmitryNeural",
   "rate": "+12%",
   "pitch": "-4Hz",
+  "tts": "fish",
+  "voiceId": "7312c38557eb4fb384e3874e8e9cea67",
   "pause": 0.2,
   "cover": 0.6,
   "style": "Hand-drawn digital illustration like a frame from a moody indie animated short film: loose sketchy black ink outlines, flat cel-shaded characters with soft painted shadows, slightly desaturated muted colours, painterly softly blurred backgrounds, dramatic cinematic lighting, subtle film grain. Semi-realistic proportions, expressive faces.",
@@ -64,12 +66,23 @@
       ],
       "move": "in",
       "focus": [
-        0.45,
-        0.55
+        0.3,
+        0.42
       ],
       "fx": [
         "grain",
         "vignette"
+      ],
+      "glows": [
+        {
+          "x": 0.37,
+          "y": 0.41,
+          "r": 120,
+          "color": "140,175,255",
+          "a": 0.3,
+          "pulse": 2,
+          "at": "темноте"
+        }
       ]
     },
     {
@@ -97,11 +110,11 @@
       "glows": [
         {
           "x": 0.5,
-          "y": 0.88,
-          "r": 300,
-          "color": "150,180,255",
-          "a": 0.22,
-          "pulse": 2
+          "y": 0.82,
+          "r": 260,
+          "color": "120,170,255",
+          "a": 0.18,
+          "pulse": 1.5
         }
       ],
       "cards": [
@@ -115,6 +128,10 @@
           "color": "red",
           "at": "Заряда"
         }
+      ],
+      "focus": [
+        0.5,
+        0.42
       ]
     },
     {
@@ -129,7 +146,21 @@
       "fx": [
         "grain",
         "vignette",
-        "dust"
+        "rain"
+      ],
+      "focus": [
+        0.78,
+        0.45
+      ],
+      "glows": [
+        {
+          "x": 0.83,
+          "y": 0.39,
+          "r": 110,
+          "color": "255,80,50",
+          "a": 0.35,
+          "pulse": 1.2
+        }
       ]
     },
     {
@@ -183,10 +214,14 @@
       "who": [
         "lyosha"
       ],
-      "move": "right",
+      "move": "in",
       "fx": [
         "grain",
         "vignette"
+      ],
+      "focus": [
+        0.6,
+        0.32
       ]
     },
     {
@@ -204,9 +239,8 @@
       ],
       "big": {
         "text": "825 В",
-        "sub": "постоянный ток",
         "at": "825",
-        "y": 560
+        "y": 400
       },
       "draw": "A dark metro tunnel: Lyosha walks carefully along the tracks between the rails, lighting the way with his phone flashlight. Along the side runs the third (contact) rail under a yellowish protective cover on brackets. Bundles of cables on the curved concrete tunnel wall disappear into darkness.",
       "who": [
@@ -215,11 +249,12 @@
       "move": "in",
       "fx": [
         "grain",
-        "vignette",
-        "sparks"
+        "vignette"
       ],
-      "sparksFrom": "825",
-      "sparksY": 0.9
+      "focus": [
+        0.4,
+        0.42
+      ]
     },
     {
       "type": "art",
@@ -244,10 +279,22 @@
       "fx": [
         "grain",
         "vignette",
-        "sparks"
+        "flicker"
       ],
-      "sparksFrom": "всегда",
-      "sparksY": 0.7
+      "focus": [
+        0.62,
+        0.45
+      ],
+      "glows": [
+        {
+          "x": 0.86,
+          "y": 0.42,
+          "r": 140,
+          "color": "120,190,255",
+          "a": 0.5,
+          "pulse": 9
+        }
+      ]
     },
     {
       "type": "art",
@@ -274,7 +321,7 @@
         {
           "text": "Света: 0 люкс",
           "x": 540,
-          "y": 760,
+          "y": 420,
           "at": "абсолютная"
         }
       ],
@@ -288,7 +335,11 @@
         "vignette",
         "phantoms"
       ],
-      "phantoms": "дорисовывать"
+      "phantoms": "дорисовывать",
+      "focus": [
+        0.45,
+        0.45
+      ]
     },
     {
       "type": "art",
@@ -316,6 +367,20 @@
         "grain",
         "vignette",
         "dust"
+      ],
+      "focus": [
+        0.7,
+        0.45
+      ],
+      "glows": [
+        {
+          "x": 0.3,
+          "y": 0.35,
+          "r": 260,
+          "color": "255,230,170",
+          "a": 0.35,
+          "pulse": 4
+        }
       ]
     },
     {
@@ -357,10 +422,24 @@
       "who": [
         "lyosha"
       ],
-      "move": "out",
+      "move": "in",
       "fx": [
         "grain",
         "vignette"
+      ],
+      "focus": [
+        0.68,
+        0.45
+      ],
+      "glows": [
+        {
+          "x": 0.64,
+          "y": 0.43,
+          "r": 110,
+          "color": "140,175,255",
+          "a": 0.25,
+          "pulse": 2
+        }
       ]
     },
     {
@@ -395,6 +474,20 @@
         "grain",
         "vignette",
         "fog"
+      ],
+      "focus": [
+        0.42,
+        0.45
+      ],
+      "glows": [
+        {
+          "x": 0.215,
+          "y": 0.243,
+          "r": 120,
+          "color": "255,40,30",
+          "a": 0.4,
+          "pulse": 1.5
+        }
       ]
     },
     {
