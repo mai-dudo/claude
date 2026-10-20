@@ -1,14 +1,17 @@
-"""Озвучка и субтитры по таймингам слов: Edge TTS (бесплатно, без ключа) или ElevenLabs (ключ ELEVENLABS_API_KEY).
+"""Озвучка и субтитры по таймингам слов: Edge TTS (бесплатно, без ключа), ElevenLabs (ключ ELEVENLABS_API_KEY)
+или Fish Audio (ключ FISH_API_KEY). Fish Audio не отдаёт тайминги слов — их находит распознавание речи (faster-whisper).
 
 Разметка в тексте сцены: [слово] — подсветить жёлтым, {слово} — красным. В голос скобки не попадают.
 Список голосов ElevenLabs (свои и русские из библиотеки): python voice.py voices
 """
 import asyncio
 import base64
+import difflib
 import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -112,13 +115,85 @@ def _eleven(text, cfg, mp3, prev, nxt):
     return [w for w in words if norm(w['t'])]
 
 
+FISH = 'https://api.fish.audio/v1/tts'
+
+
+def fish_key():
+    return os.environ.get('FISH_API_KEY') or os.environ.get('FISH_AUDIO_API_KEY')
+
+
+def _fish(text, cfg, mp3):
+    """Fish Audio: голос по reference_id (id голоса из адреса fish.audio/m/<id>), ответ — сам mp3."""
+    body = {'text': text, 'reference_id': cfg['voiceId'], 'format': 'mp3', **(cfg.get('settings') or {})}
+    req = urllib.request.Request(FISH, data=json.dumps(body).encode(), method='POST',
+                                 headers={'Authorization': f'Bearer {fish_key()}', 'Content-Type': 'application/json',
+                                          'model': cfg.get('model') or 's2.1-pro-free'})
+    try:
+        with urllib.request.urlopen(req, timeout=300) as r:
+            mp3.write_bytes(r.read())
+    except urllib.error.HTTPError as e:
+        msg = e.read().decode(errors='replace')
+        if e.code in (400, 401, 402, 403, 404, 422):
+            raise SystemExit(f'Fish Audio ответил {e.code}: {msg}')
+        raise RuntimeError(f'Fish Audio ответил {e.code}: {msg}')
+    return asr_align(text, transcribe(mp3))
+
+
+_WHISPER = None
+
+
+def transcribe(path):
+    """Слова с таймингами по распознаванию речи: [{t, s, e}]."""
+    global _WHISPER
+    try:
+        import numpy as np
+        from faster_whisper import WhisperModel
+    except ImportError:
+        raise SystemExit('Для Fish Audio нужен faster-whisper: pip install faster-whisper')
+    if _WHISPER is None:
+        _WHISPER = WhisperModel(os.environ.get('WHISPER_MODEL', 'small'), device='cpu', compute_type='int8')
+    raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', str(path), '-f', 'f32le', '-ac', '1', '-ar', '16000', '-'],
+                         check=True, capture_output=True).stdout
+    segs, _ = _WHISPER.transcribe(np.frombuffer(raw, dtype=np.float32), language='ru', word_timestamps=True)
+    return [{'t': w.word.strip(), 's': w.start, 'e': w.end} for sg in segs for w in sg.words if norm(w.word)]
+
+
+def asr_align(text, heard):
+    """Тайминги для каждого слова сценария по распознанным словам. Распознавание может ошибаться в словах,
+    поэтому сопоставляем последовательности: совпавшие берут своё время, несовпавшие делят время соседнего куска."""
+    script = [w for w in text.split() if norm(w)]
+    a, b = [norm(w) for w in script], [norm(w['t']) for w in heard]
+    if len(heard) < len(script) * 0.6:
+        raise RuntimeError(f'распознано {len(heard)} слов из {len(script)} — похоже, озвучка оборвалась')
+    times = [None] * len(script)
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+        if tag == 'equal':
+            for k in range(i2 - i1):
+                times[i1 + k] = (heard[j1 + k]['s'], heard[j1 + k]['e'])
+        elif tag == 'replace':
+            st, en = heard[j1]['s'], heard[j2 - 1]['e']
+            lens = [max(1, len(a[i])) for i in range(i1, i2)]
+            t = st
+            for i, n in zip(range(i1, i2), lens):
+                d = (en - st) * n / sum(lens)
+                times[i] = (t, t + d)
+                t += d
+    for i in range(len(times)):  # слова, которых распознавание не услышало, ставим между соседями
+        if times[i] is None:
+            prev = next((times[k][1] for k in range(i - 1, -1, -1) if times[k]), 0.0)
+            nxt = next((times[k][0] for k in range(i + 1, len(times)) if times[k]), prev + 0.3)
+            times[i] = (prev, max(prev, nxt))
+    return [{'t': w, 's': round(s, 3), 'e': round(e, 3)} for w, (s, e) in zip(script, times)]
+
+
 def config(story, engine=None, voice_id=None):
-    """Настройки голоса из сценария: tts ('edge' | 'elevenlabs'), voice/rate/pitch для Edge,
-    voiceId/voiceModel/voiceSettings для ElevenLabs. Без ключа или голоса ElevenLabs — Edge с предупреждением."""
+    """Настройки голоса из сценария: tts ('edge' | 'elevenlabs' | 'fish'), voice/rate/pitch для Edge,
+    voiceId/voiceModel/voiceSettings для ElevenLabs и Fish Audio. Без ключа или голоса — Edge с предупреждением."""
     engine = engine or story.get('tts', 'edge')
     vid = voice_id or story.get('voiceId')
-    if engine == 'elevenlabs' and not (eleven_key() and vid):
-        print(f'  ! ElevenLabs: нет {"ключа ELEVENLABS_API_KEY" if not eleven_key() else "voiceId"} — озвучиваю бесплатным голосом Edge')
+    keys = {'elevenlabs': ('ELEVENLABS_API_KEY', eleven_key()), 'fish': ('FISH_API_KEY', fish_key())}
+    if engine in keys and not (keys[engine][1] and vid):
+        print(f'  ! {engine}: нет {"ключа " + keys[engine][0] if not keys[engine][1] else "voiceId"} — озвучиваю бесплатным голосом Edge')
         engine = 'edge'
     return {'engine': engine, 'voice': story.get('voice', 'ru-RU-DmitryNeural'), 'rate': story.get('rate', '+0%'),
             'pitch': story.get('pitch', '+0Hz'), 'voiceId': vid, 'model': story.get('voiceModel'),
@@ -130,8 +205,9 @@ def speak(text, cfg, cache_dir, prev='', nxt=''):
     prev и nxt — соседние фразы: ElevenLabs по ним держит интонацию между сценами."""
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
-    eleven = cfg['engine'] == 'elevenlabs'
-    sig = (f'11|{cfg["voiceId"]}|{cfg.get("model")}|{json.dumps(cfg.get("settings") or {}, sort_keys=True)}|{text}' if eleven
+    engine = cfg['engine']
+    sig = (f'{"11" if engine == "elevenlabs" else engine}|{cfg["voiceId"]}|{cfg.get("model")}|'
+           f'{json.dumps(cfg.get("settings") or {}, sort_keys=True)}|{text}' if engine != 'edge'
            else f'{cfg["voice"]}|{cfg["rate"]}|{cfg["pitch"]}|{text}')
     key = hashlib.sha1(sig.encode()).hexdigest()[:16]
     mp3, meta = cache_dir / f'{key}.mp3', cache_dir / f'{key}.json'
@@ -141,8 +217,10 @@ def speak(text, cfg, cache_dir, prev='', nxt=''):
     need = len([w for w in text.split() if norm(w)])
     for _ in range(4):
         try:
-            if eleven:
+            if engine == 'elevenlabs':
                 bounds = _eleven(text, cfg, mp3, prev, nxt)
+            elif engine == 'fish':
+                bounds = _fish(text, cfg, mp3)
             else:
                 bounds = asyncio.run(_speak(text, cfg['voice'], cfg['rate'], cfg['pitch'], mp3))
             # Сервис иногда обрывает поток на середине фразы — такую озвучку не берём.
@@ -153,7 +231,7 @@ def speak(text, cfg, cache_dir, prev='', nxt=''):
         except Exception as e:  # сервис иногда обрывает соединение — пробуем ещё раз
             err = e
     mp3.unlink(missing_ok=True)
-    raise RuntimeError(f'{"ElevenLabs" if eleven else "Edge TTS"} не ответил: {err}')
+    raise RuntimeError(f'{ {"elevenlabs": "ElevenLabs", "fish": "Fish Audio"}.get(engine, "Edge TTS") } не ответил: {err}')
 
 
 def split(bounds):

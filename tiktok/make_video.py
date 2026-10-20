@@ -197,8 +197,8 @@ def main():
     ap.add_argument('--at', help='только кадры в эти секунды, через запятую: --at 3,12.5')
     ap.add_argument('--preview', action='store_true', help='не рендерить, а открыть просмотр в браузере')
     ap.add_argument('--until', type=float, metavar='СЕК', help='собрать только начало ролика, до этой секунды')
-    ap.add_argument('--tts', choices=['edge', 'elevenlabs'], help='чем озвучивать (по умолчанию — как в сценарии)')
-    ap.add_argument('--voice-id', help='голос ElevenLabs (voice_id), см. python voice.py voices')
+    ap.add_argument('--tts', choices=['edge', 'elevenlabs', 'fish'], help='чем озвучивать (по умолчанию — как в сценарии)')
+    ap.add_argument('--voice-id', help='голос: voice_id ElevenLabs (python voice.py voices) или id голоса Fish Audio')
     a = ap.parse_args()
 
     story = json.loads(Path(a.story).read_text(encoding='utf-8'))
