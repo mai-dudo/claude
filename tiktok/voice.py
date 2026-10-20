@@ -64,13 +64,18 @@ def speak(text, voice, rate, pitch, cache_dir):
     if mp3.exists() and meta.exists():
         return mp3, json.loads(meta.read_text())
     err = None
-    for _ in range(3):
+    need = len([w for w in text.split() if norm(w)])
+    for _ in range(4):
         try:
             bounds = asyncio.run(_speak(text, voice, rate, pitch, mp3))
+            # Сервис иногда обрывает поток на середине фразы — такую озвучку не берём.
+            if len(split(bounds)) < need * 0.8:
+                raise RuntimeError(f'озвучено {len(bounds)} слов из {need}')
             meta.write_text(json.dumps(bounds, ensure_ascii=False))
             return mp3, bounds
         except Exception as e:  # сервис иногда обрывает соединение — пробуем ещё раз
             err = e
+    mp3.unlink(missing_ok=True)
     raise RuntimeError(f'Edge TTS не ответил: {err}')
 
 

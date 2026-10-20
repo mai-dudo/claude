@@ -9,28 +9,31 @@ const SCENES = {};
 // не светит), walk: [x0, x1], from, until, lightOff: at, then: { at, …поля, которые сменятся в этот момент } }.
 function personIn(S, spec, def = {}) {
   if (spec === false) return null;
-  const base = spec && spec.who ? { ...HERO_DEFAULT, ...(S.cast[spec.who] || {}) } : S.outfit;
-  const h = { ...base, ...def, ...(spec || {}) };
+  // Значения по умолчанию сцены перекрывают общую одежду героя, но не одежду персонажа из cast.
+  const h = spec && spec.who
+    ? { ...HERO_DEFAULT, ...def, ...(S.cast[spec.who] || {}), ...spec }
+    : { ...S.outfit, ...def, ...(spec || {}) };
   if (h.walk) {
     const t0 = h.from ?? 0, t1 = h.until ?? S.d;
     const k = clamp((S.t - t0) / Math.max(0.1, t1 - t0));
     h.x = lerp(h.walk[0], h.walk[1], k);
     h.facing = h.facing || Math.sign(h.walk[1] - h.walk[0]) || 1;
-    h.pose = k > 0 && k < 1 ? 'walk' : (h.pose === 'walk' ? 'stand' : h.pose);
-    h.phase = S.T * 5.2;
+    if (h.pose !== 'swim') h.pose = k > 0 && k < 1 ? 'walk' : (h.pose === 'walk' ? 'stand' : h.pose);
   }
+  h.phase = h.phase ?? S.T * (h.pose === 'swim' ? 3 : 5.2) + (h.x || 0) * 0.01;
   if (h.then && S.t >= (h.then.at ?? 0)) Object.assign(h, h.then);
   if (h.lightOff != null && S.t >= h.lightOff) h.light = null;
   return h;
 }
 const heroIn = (S, def) => personIn(S, S.P.hero, def);
 
-// Рисует людей и возвращает точки фонарей, которые светят.
+// Рисует людей и возвращает точки фонарей, которые светят. y — число или функция от x (пол пещеры),
+// у человека может быть свой y (например, у пловца).
 function drawPeople(c, list, y, scale) {
   const hands = [];
   for (const p of list) {
     if (!p) continue;
-    const hand = drawPerson(c, p.x, y, p.scale ?? scale, p);
+    const hand = drawPerson(c, p.x, p.y ?? (typeof y === 'function' ? y(p.x) : y), p.scale ?? scale, p);
     if (hand && !p.dead) hands.push(hand);
   }
   return hands;
@@ -640,7 +643,8 @@ function sparks(c, T, y) {
 
 // ───────────────────────── Схема линии метро ─────────────────────────
 // P: path ([[x, y], …]), color, stations [{ name, pos (0..1 вдоль линии) }], deadEnd (с какой доли линия
-// пунктиром — тупик), marker { pos, label, at }, measure { a, b, text, at } — отрезок от доли a до доли b
+// пунктиром — тупик), marker { pos, label, at }, measure { a, b, text, at } — отрезок от доли a до доли b,
+// flooded [[a, b], …] — затопленные участки (синим)
 function pathTools(pts) {
   const seg = []; let total = 0;
   for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(l); total += l; }
@@ -685,6 +689,12 @@ SCENES.map = (c, S) => {
     c.setLineDash([22, 18]); c.lineWidth = 14; c.strokeStyle = shade(col, -0.25); L.stroke(c, dead, reveal); c.setLineDash([]);
     const [ex, ey, ea] = L.at(reveal);
     c.save(); c.translate(ex, ey); c.rotate(ea); c.fillStyle = '#fff'; c.fillRect(6, -26, 10, 52); c.restore();
+  }
+  for (const [a, b] of P.flooded || []) {
+    if (a >= reveal) continue;
+    c.strokeStyle = 'rgba(47,128,237,0.92)'; c.lineWidth = 34; L.stroke(c, a, Math.min(b, reveal));
+    c.strokeStyle = 'rgba(190,225,255,0.8)'; c.lineWidth = 4; c.setLineDash([10, 16]); c.lineDashOffset = -T * 40;
+    L.stroke(c, a, Math.min(b, reveal)); c.setLineDash([]);
   }
   (P.stations || []).forEach((st, i) => {
     if (st.pos > reveal) return;
@@ -756,6 +766,283 @@ SCENES.note = (c, S) => {
   c.restore();
   const lx = W / 2 + Math.sin(T * 0.7) * 120 + (noise1(T * 2) - 0.5) * 40, ly = 860 + Math.cos(T * 0.5) * 140;
   darkness(c, P.light === false ? 0 : 0.86, [{ x: lx, y: ly, r: 900 }], '2,2,4');
+};
+
+// ───────────────────────── Пещера в разрезе ─────────────────────────
+// P: water (уровень 0..1 или [от, до] — вода поднимается за сцену), murk (мутность воды), dark (0..1),
+// ledge (x, с которого пол поднимается выступом), squeeze (x, где свод уходит под воду), drips (капли со сводов),
+// hole { x, at } (нора в стене), guide (y троса), crowd { n, x0, x1, who: [...], pose, eyesClosed, scale },
+// stretcher { walk: [x0, x1], from, until, who, kid } (двое несут носилки), hero и people, lights, tint,
+// surface (полоска горы с джунглями сверху: true или { time, rain })
+const smooth01 = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+function caveShape(P) {
+  const top = 470, base = 1240;
+  const floorAt = (x) => base - 40 * noise1(x / 220, 7) - (P.ledge != null ? 190 * smooth01((x - P.ledge) / 140) : 0);
+  const ceilAt = (x) => top + 80 * noise1(x / 190, 3) + (P.squeeze != null ? 430 * Math.exp(-(((x - P.squeeze) / 130) ** 2)) : 0);
+  return { top, base, floorAt, ceilAt };
+}
+
+SCENES.cave = (c, S) => {
+  const { t, T, P } = S;
+  const { top, base, floorAt, ceilAt } = caveShape(P);
+  c.fillStyle = '#211b16'; c.fillRect(-80, -80, W + 160, H + 160);
+  let r = rng(31);
+  for (let i = 0; i < 140; i++) {
+    c.fillStyle = i % 2 ? '#2a221c' : '#181410';
+    c.beginPath(); c.ellipse(r() * W, r() * H, 30 + r() * 90, 20 + r() * 50, r() * 3, 0, TAU); c.fill();
+  }
+  const voidPath = () => {
+    c.beginPath(); c.moveTo(-80, ceilAt(-80));
+    for (let x = -80; x <= W + 80; x += 20) c.lineTo(x, ceilAt(x));
+    for (let x = W + 80; x >= -80; x -= 20) c.lineTo(x, floorAt(x));
+    c.closePath();
+  };
+  voidPath();
+  let g = c.createLinearGradient(0, top, 0, base);
+  g.addColorStop(0, '#3d332b'); g.addColorStop(1, '#54463a');
+  c.fillStyle = g; c.fill();
+  c.save(); voidPath(); c.clip();
+  r = rng(5);
+  c.strokeStyle = 'rgba(0,0,0,0.2)'; c.lineWidth = 5;
+  for (let i = 0; i < 9; i++) {
+    const y0 = top + r() * (base - top); c.beginPath();
+    for (let x = -80; x <= W + 80; x += 40) c.lineTo(x, y0 + Math.sin(x / 90 + i) * 14);
+    c.stroke();
+  }
+  if (P.hole) {
+    const k = after(t, P.hole.at ?? 0, 3), hx = P.hole.x ?? 900;
+    c.fillStyle = '#0b0807'; c.beginPath(); c.ellipse(hx, floorAt(hx) - 110, 40 + 30 * k, 60 + 30 * k, 0, 0, TAU); c.fill();
+  }
+  c.restore();
+  c.strokeStyle = '#4a3d32'; c.lineWidth = 7;
+  c.beginPath(); for (let x = -80; x <= W + 80; x += 20) c.lineTo(x, ceilAt(x)); c.stroke();
+  c.strokeStyle = '#5a4733'; c.lineWidth = 16;
+  c.beginPath(); for (let x = -80; x <= W + 80; x += 20) c.lineTo(x, floorAt(x) + 4); c.stroke();
+  // сталактиты
+  r = rng(17);
+  const tips = [];
+  for (let x = -40; x < W + 40; x += 60 + r() * 70) {
+    const y0 = ceilAt(x) - 4, len = 25 + r() * 85, tx = x + (r() - 0.5) * 8;
+    c.fillStyle = '#2f2620'; c.beginPath(); c.moveTo(x - 13, y0); c.lineTo(x + 13, y0); c.lineTo(tx, y0 + len); c.fill();
+    tips.push([tx, y0 + len]);
+  }
+  if (P.guide != null) {
+    c.strokeStyle = '#e9e2c8'; c.lineWidth = 3; c.beginPath();
+    for (let x = -80; x < W + 80; x += 260) { c.moveTo(x, P.guide); c.quadraticCurveTo(x + 130, P.guide + 26, x + 260, P.guide); }
+    c.stroke();
+  }
+
+  // люди
+  const crowd = [];
+  if (P.crowd) {
+    const cr = P.crowd, n = cr.n ?? 6, who = cr.who || [];
+    for (let i = 0; i < n; i++) {
+      crowd.push(personIn(S, { ...cr, who: who[i % Math.max(1, who.length)], x: lerp(cr.x0 ?? 560, cr.x1 ?? 1020, n > 1 ? i / (n - 1) : 0.5) + (hash(i + 3) - 0.5) * 20, facing: cr.facing ?? (i % 3 === 2 ? 1 : -1) }, { light: null }));
+    }
+  }
+  const people = [heroIn(S, { x: 300, light: null }), ...(P.people || []).map((sp) => personIn(S, sp, { light: null })), ...crowd];
+  const hands = drawPeople(c, people, floorAt, 1.0);
+  if (P.stretcher) {
+    const st = P.stretcher, t0 = st.from ?? 0, t1 = st.until ?? S.d;
+    const k = clamp((t - t0) / Math.max(0.1, t1 - t0)), gx = lerp(st.walk[0], st.walk[1], k);
+    const f = Math.sign(st.walk[1] - st.walk[0]) || 1, sy = floorAt(gx) - 205;
+    const carrier = (dx) => personIn(S, { who: st.who, x: gx + dx, pose: k > 0 && k < 1 ? 'walk' : 'stand', facing: f, carry: true, scale: 1.1 }, { light: null });
+    hands.push(...drawPeople(c, [carrier(-f * 210)], floorAt, 1.1));
+    c.fillStyle = '#e85d04'; rr(c, gx - 175, sy, 350, 16, 6); c.fill();
+    drawPerson(c, gx - f * 120, sy - 30, 0.9, { ...personIn(S, { who: st.kid }, {}), pose: 'lie', facing: f, light: null, mask: true });
+    hands.push(...drawPeople(c, [carrier(f * 210)], floorAt, 1.1));
+  }
+  // вода
+  const level = Array.isArray(P.water) ? lerp(P.water[0], P.water[1], ease.inOut(S.p)) : (P.water || 0);
+  let wy = H + 100;
+  if (level > 0) {
+    wy = lerp(base + 10, top + 20, level);
+    c.save(); voidPath(); c.clip();
+    const m = P.murk ?? 0.82, wg = c.createLinearGradient(0, wy, 0, base);
+    wg.addColorStop(0, `rgba(150,122,70,${m})`); wg.addColorStop(1, `rgba(78,62,36,${Math.min(1, m + 0.08)})`);
+    c.fillStyle = wg; c.fillRect(-80, wy, W + 160, H);
+    c.strokeStyle = 'rgba(235,215,170,0.6)'; c.lineWidth = 5; c.beginPath();
+    for (let x = -80; x <= W + 80; x += 20) c.lineTo(x, wy + Math.sin(x / 50 + T * 2.2) * 5);
+    c.stroke(); c.restore();
+  }
+  // капли со сводов
+  if (P.drips) {
+    tips.forEach(([tx, ty], i) => {
+      const per = 1.6 + hash(i + 40) * 2.4, ph = ((T + hash(i + 41) * per) % per) / per;
+      const land = Math.min(floorAt(tx), wy) - 6, fall = ph / 0.35;
+      if (fall < 1) circle(c, tx, lerp(ty, land, fall * fall), 5, 'rgba(170,215,230,0.85)');
+      else if (ph < 0.6) {
+        c.strokeStyle = `rgba(170,215,230,${0.8 * (1 - (ph - 0.35) / 0.25)})`; c.lineWidth = 2;
+        c.beginPath(); c.ellipse(tx, land + 4, 30 * (ph - 0.35) / 0.25 + 4, 6, 0, 0, TAU); c.stroke();
+      }
+    });
+  }
+  // пузыри у тех, кто под водой
+  for (const p of people.concat(crowd)) {
+    if (!p || p.pose !== 'swim') continue;
+    const hy = p.y ?? floorAt(p.x);
+    if (hy < wy) continue;
+    for (let i = 0; i < 6; i++) {
+      const k = (T * 0.8 + i / 6) % 1;
+      const bx = p.x + (p.facing || 1) * 250 * (p.scale ?? 1) + Math.sin(T * 3 + i) * 8, by = hy - 20 - k * 260;
+      if (by > wy) { c.strokeStyle = `rgba(210,235,255,${0.6 * (1 - k)})`; c.lineWidth = 2; c.beginPath(); c.arc(bx, by, 4 + i % 3 * 3, 0, TAU); c.stroke(); }
+    }
+  }
+  const lights = [];
+  for (const h of hands) lights.push({ x: h.x, y: h.y, a: h.a, spread: 0.38, len: 820, r: 180 });
+  for (const L of P.lights || []) lights.push(L);
+  darkness(c, P.dark ?? 0.6, lights, P.tint || '3,3,4');
+  if (P.surface) hillStrip(c, T, P.surface === true ? {} : P.surface);
+  for (const h of hands) { beam(c, h.x, h.y, h.a, 0.38, 760, h.y > wy ? 0.12 : 0.2); glow(c, h.x, h.y, 34, '255,250,230', 0.8); }
+  for (const L of P.lights || []) glow(c, L.x, L.y, L.len ? 60 : (L.r ?? 200) * 0.35, L.rgb || '255,230,180', 0.35);
+};
+
+// Полоска горы над пещерой: небо, склон в джунглях, дождь. o: time ('day' | 'dusk' | 'night'), rain (0..1).
+function hillStrip(c, T, o) {
+  const gy = 330, time = o.time || 'day';
+  const SKY = { day: ['#6fa6d6', '#d4e6ea'], dusk: ['#2c3e66', '#e59a6b'], night: ['#090d1a', '#1b2540'] };
+  c.save(); c.beginPath(); c.rect(-80, -80, W + 160, gy + 110); c.clip();
+  const g = c.createLinearGradient(0, 0, 0, gy);
+  g.addColorStop(0, SKY[time][0]); g.addColorStop(1, SKY[time][1]);
+  c.fillStyle = g; c.fillRect(-80, -80, W + 160, gy + 80);
+  if (o.rain) { c.fillStyle = `rgba(40,46,58,${0.45 * o.rain})`; c.fillRect(-80, -80, W + 160, gy + 80); }
+  const mg = time === 'night' ? '#122019' : time === 'dusk' ? '#24402f' : '#2f6140';
+  c.fillStyle = mg; c.beginPath(); c.moveTo(-80, gy + 110);
+  for (let x = -80; x <= W + 80; x += 20) c.lineTo(x, gy - 120 - 90 * noise1(x / 260, 8) + Math.abs(x - 540) * 0.12);
+  c.lineTo(W + 80, gy + 110); c.fill();
+  const r = rng(44);
+  for (let i = 0; i < 60; i++) {
+    const x = r() * W, y = gy - 100 + Math.abs(x - 540) * 0.12 + r() * 160;
+    c.fillStyle = shade(mg, (r() - 0.5) * 0.5); c.beginPath(); c.arc(x, y, 14 + r() * 20, 0, TAU); c.fill();
+  }
+  if (o.rain) {
+    c.strokeStyle = `rgba(190,205,230,${0.45 * o.rain})`; c.lineWidth = 2;
+    for (let i = 0; i < 90; i++) {
+      const x = (hash(i) * (W + 200) + T * 260) % (W + 200) - 100, y = (hash(i + 9) * gy + T * 1500 * (0.8 + hash(i + 3) * 0.4)) % (gy + 100);
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x - 10, y + 40); c.stroke();
+    }
+  }
+  c.restore();
+}
+
+// ───────────────────────── Гора и вход в пещеру ─────────────────────────
+// P: time ('day' | 'dusk' | 'night'), rain (0..1), lightning, bikes (сколько велосипедов у входа), sign (строки таблички),
+// camp (лагерь спасателей ночью: палатки, прожекторы, шланги), statue (памятник с кабанами), hero и people
+function drawBike(c, x, y, col) {
+  c.lineCap = 'round'; c.strokeStyle = '#1c1c1c'; c.lineWidth = 5;
+  c.beginPath(); c.arc(x - 38, y - 27, 25, 0, TAU); c.stroke(); c.beginPath(); c.arc(x + 38, y - 27, 25, 0, TAU); c.stroke();
+  c.strokeStyle = col; c.lineWidth = 6; c.beginPath();
+  c.moveTo(x - 38, y - 27); c.lineTo(x - 4, y - 27); c.lineTo(x - 16, y - 66); c.lineTo(x + 24, y - 66); c.lineTo(x + 38, y - 27);
+  c.moveTo(x - 4, y - 27); c.lineTo(x + 24, y - 66); c.moveTo(x + 24, y - 66); c.lineTo(x + 26, y - 80); c.stroke();
+  c.strokeStyle = '#1c1c1c'; c.lineWidth = 6; c.beginPath(); c.moveTo(x + 16, y - 82); c.lineTo(x + 34, y - 80); c.stroke();
+  c.fillStyle = '#1c1c1c'; rr(c, x - 28, y - 74, 26, 8, 4); c.fill();
+}
+function drawBoar(c, x, y, s, col) {
+  c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = col;
+  c.beginPath(); c.ellipse(0, -24, 32, 19, 0, 0, TAU); c.fill();
+  c.beginPath(); c.ellipse(28, -28, 15, 12, 0.3, 0, TAU); c.fill();
+  rr(c, 36, -30, 12, 10, 3); c.fill();
+  for (const lx of [-20, -8, 12, 22]) c.fillRect(lx, -10, 7, 12);
+  c.beginPath(); c.moveTo(20, -40); c.lineTo(26, -52); c.lineTo(30, -38); c.fill();
+  c.fillStyle = '#f2ead6'; c.fillRect(38, -22, 3, 7);
+  c.restore();
+}
+
+SCENES.mountain = (c, S) => {
+  const { t, T, P } = S;
+  const gy = 1180, ex = 560, time = P.time || 'day', night = time === 'night';
+  const SKY = { day: ['#6fa6d6', '#d4e6ea'], dusk: ['#2c3e66', '#e59a6b'], night: ['#090d1a', '#1b2540'] };
+  let g = c.createLinearGradient(0, 0, 0, gy);
+  g.addColorStop(0, SKY[time][0]); g.addColorStop(1, SKY[time][1]);
+  c.fillStyle = g; c.fillRect(-80, -80, W + 160, gy + 80);
+  const rain = P.rain === true ? 1 : (P.rain || 0);
+  if (rain) { c.fillStyle = `rgba(40,46,58,${0.45 * rain})`; c.fillRect(-80, -80, W + 160, gy + 80); }
+  const r = rng(9);
+  for (let i = 0; i < 7; i++) {
+    const cx = ((r() * (W + 600) + T * 12 * (1 + i % 3)) % (W + 600)) - 300, cy = 130 + r() * 260;
+    c.fillStyle = rain ? `rgba(58,64,76,${0.75})` : night ? 'rgba(40,48,70,0.5)' : 'rgba(255,255,255,0.7)';
+    for (let k = 0; k < 4; k++) { c.beginPath(); c.ellipse(cx + k * 60, cy + (k % 2) * 12, 90, 46, 0, 0, TAU); c.fill(); }
+  }
+  // дальние холмы и гора
+  const hills = night ? ['#141f1a', '#18261e'] : time === 'dusk' ? ['#3b4a46', '#2f4a3b'] : ['#6c9a78', '#4f805d'];
+  [[0, 640, 1.2], [1, 760, 0.9]].forEach(([i, hy, amp]) => {
+    c.fillStyle = hills[i]; c.beginPath(); c.moveTo(-80, gy);
+    for (let x = -80; x <= W + 80; x += 30) c.lineTo(x, hy - 120 * amp * noise1(x / 260, 11 + i));
+    c.lineTo(W + 80, gy); c.fill();
+  });
+  const mg = night ? '#122019' : time === 'dusk' ? '#24402f' : '#2f6140';
+  c.fillStyle = mg; c.beginPath(); c.moveTo(-80, gy);
+  for (let x = -80; x <= W + 80; x += 20) {
+    const k = 1 - Math.abs(x - 600) / 820;
+    c.lineTo(x, gy - 140 - 520 * Math.max(0, k) ** 1.4 - 30 * noise1(x / 70, 4));
+  }
+  c.lineTo(W + 80, gy); c.fill();
+  const tr = rng(21);
+  for (let i = 0; i < 130; i++) {
+    const x = tr() * W, k = 1 - Math.abs(x - 600) / 820, yTop = gy - 140 - 520 * Math.max(0, k) ** 1.4;
+    const y = lerp(yTop + 30, gy - 40, tr());
+    c.fillStyle = shade(mg, (tr() - 0.5) * 0.5); c.beginPath(); c.arc(x, y, 18 + tr() * 26, 0, TAU); c.fill();
+  }
+  // скала и вход
+  c.fillStyle = night ? '#2a2620' : '#6a5d4e';
+  c.beginPath(); c.moveTo(ex - 260, gy); c.quadraticCurveTo(ex - 240, gy - 330, ex, gy - 360); c.quadraticCurveTo(ex + 240, gy - 330, ex + 260, gy); c.fill();
+  c.fillStyle = '#080605';
+  c.beginPath(); c.moveTo(ex - 150, gy); c.lineTo(ex - 150, gy - 150); c.quadraticCurveTo(ex, gy - 300, ex + 150, gy - 150); c.lineTo(ex + 150, gy); c.fill();
+  // земля
+  c.fillStyle = night ? '#2a2318' : '#5e4b34'; c.fillRect(-80, gy, W + 160, H);
+  c.fillStyle = night ? '#1b2a1c' : '#3f6b3a';
+  for (let i = 0; i < 26; i++) { c.beginPath(); c.ellipse(tr() * W, gy + 20 + tr() * 240, 60 + tr() * 80, 12, 0, 0, TAU); c.fill(); }
+  c.fillStyle = night ? '#3a3022' : '#7a6446';
+  c.beginPath(); c.moveTo(ex - 120, gy); c.lineTo(ex + 120, gy); c.lineTo(ex + 260, H); c.lineTo(ex - 300, H); c.fill();
+  if (P.sign) {
+    const sx = 220, sy = gy - 330;
+    c.fillStyle = '#5b3d22'; c.fillRect(sx - 6, sy + 130, 12, 200);
+    c.fillStyle = '#d9b77a'; rr(c, sx - 130, sy, 260, 150, 10); c.fill();
+    c.strokeStyle = '#6b4b2a'; c.lineWidth = 6; c.stroke();
+    c.textAlign = 'center';
+    P.sign.forEach((ln, i) => {
+      c.fillStyle = i === 0 ? '#b3261e' : '#2a1d12'; c.font = `${i === 0 ? 900 : 800} ${i === 0 ? 34 : 26}px Montserrat`;
+      c.fillText(ln, sx, sy + 46 + i * 38);
+    });
+  }
+  const bikeCols = ['#d62828', '#1d4e89', '#f4a261', '#2a9d8f', '#e9c46a', '#6a4c93'];
+  for (let i = 0; i < (P.bikes || 0); i++) drawBike(c, 760 + i * 66 + (i % 2) * 10, gy + 6 + (i % 2) * 18, bikeCols[i % bikeCols.length]);
+  if (P.statue) {
+    const bz = '#8a5a2b';
+    c.fillStyle = '#a7a39a'; rr(c, 700, gy - 150, 240, 150, 8); c.fill();
+    c.fillStyle = '#8f8b82'; c.fillRect(700, gy - 150, 240, 16);
+    drawPerson(c, 820, gy - 150, 1.25, { ...HERO_DEFAULT, silhouette: bz, diver: true, hat: 'helmet', light: null, eyes: 0 });
+    glow(c, 800, gy - 380, 160, '255,200,120', 0.12);
+    for (let i = 0; i < 13; i++) drawBoar(c, 640 + (i % 7) * 52 + Math.floor(i / 7) * 26, gy + 26 + Math.floor(i / 7) * 46, 0.7, shade(bz, (i % 3) * 0.08));
+    c.fillStyle = 'rgba(255,255,255,0.5)'; c.font = '700 22px "JetBrains Mono"'; c.textAlign = 'center';
+    c.fillText('САМАН КУНАН', 820, gy - 60);
+  }
+  const people = [P.hero ? heroIn(S, { x: 840, light: null }) : null, ...(P.people || []).map((sp) => personIn(S, sp, { light: null }))];
+  drawPeople(c, people, gy + 4, 0.55);
+  if (P.camp) {
+    for (const [tx, col] of [[830, '#e9eef2'], [960, '#3a86ff'], [-10, '#e9eef2']]) {
+      c.fillStyle = col; c.beginPath(); c.moveTo(tx - 70, gy + 60); c.lineTo(tx, gy - 30); c.lineTo(tx + 70, gy + 60); c.fill();
+    }
+    c.strokeStyle = '#111'; c.lineWidth = 12; c.lineCap = 'round';
+    for (let k = 0; k < 3; k++) { c.beginPath(); c.moveTo(ex + 40 + k * 30, gy - 10); c.quadraticCurveTo(ex + 220, gy + 80 + k * 30, W + 60, gy + 30 + k * 40); c.stroke(); }
+    for (const lx of [300, 820]) {
+      c.fillStyle = '#2b2f36'; c.fillRect(lx, gy - 300, 10, 300); rr(c, lx - 30, gy - 320, 70, 34, 6); c.fill();
+      circle(c, lx + 5, gy - 300, 14, time === 'day' ? '#d9d4c0' : '#fffbe6');
+      if (time === 'day') continue;
+      glow(c, lx + 5, gy - 300, 180, '255,250,220', 0.6);
+      beam(c, lx + 5, gy - 300, Math.atan2(gy - 120 - (gy - 300), ex - lx), 0.3, 520, 0.25);
+    }
+    if (time !== 'day') glow(c, ex, gy - 80, 260, '255,240,200', 0.18);
+  }
+  if (rain) {
+    c.strokeStyle = `rgba(190,205,230,${0.45 * rain})`; c.lineWidth = 2;
+    const rr2 = rng(4);
+    for (let i = 0; i < 260 * rain; i++) {
+      const x = (rr2() * (W + 200) + T * 260) % (W + 200) - 100, y = (rr2() * H + T * 1800 * (0.8 + rr2() * 0.4)) % H;
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x - 10, y + 40); c.stroke();
+    }
+  }
+  if (P.lightning && hash(Math.floor(T * 6)) > 0.93) { c.fillStyle = 'rgba(230,235,255,0.35)'; c.fillRect(-80, -80, W + 160, H + 160); }
 };
 
 // ───────────────────────── Доска почёта ─────────────────────────

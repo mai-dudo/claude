@@ -94,6 +94,8 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | `phone` | экран телефона | `time`, `date`, `battery`, `net`, `notes: [{ title, text, at }]`, `call { name, at, ring }` — экран звонка |
 | `map` | схема линии метро | `stations: [{ name, pos }]`, `deadEnd`, `marker { pos, label }`, `measure { a, b, text }` |
 | `note` | записи в тетради при свете фонаря | `title`, `lines: [{ text, at, color, strike }]` |
+| `cave` | пещера в разрезе | `water` (0…1 или `[от, до]` — вода поднимается), `murk`, `dark`, `ledge`, `squeeze`, `drips`, `hole`, `guide`, `crowd { n, x0, x1, who, pose }`, `stretcher`, `surface`, `lights` |
+| `mountain` | гора со входом в пещеру | `time` (`day`/`dusk`/`night`), `rain`, `lightning`, `bikes`, `sign: ["строка", …]`, `camp`, `statue` |
 | `board` | доска почёта с фотографиями | `who` (кто из `cast` на выделенном фото), `focus` (номер рамки 0…5), `caption`, `at` |
 | `card` | титр, конец серии | `kicker`, `title: ["строка", { text, color }]`, `sub` |
 | `blank` | пустой фон под плашки | `bg` |
@@ -105,7 +107,9 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 
 Другие персонажи описываются в `cast` на верхнем уровне (`"cast": { "ded": { "hat": "helmet", … } }`) и выводятся
 в сцене списком `people: [{ "who": "ded", "walk": [100, 700] }]` с теми же полями, что у героя;
-`"dead": true` — фонарь в руке не светит. Пример — `stories/metro-tupik-2.json`.
+`"dead": true` — фонарь в руке не светит. Позы: `stand`, `walk`, `sit`, `sleep`, `swim` (плывёт), `lie` (лежит);
+`diver: true` — баллон и маска, `mask: true` — только маска, `light: "head"` — фонарь на каске, `dig` — машет руками
+у стены, `carry` — руки вперёд, `eyesClosed`. У пловца задаётся `y`. Примеры — `stories/metro-tupik-2.json` и `stories/tham-luang-1.json`.
 Новые сцены добавляются в `render/scenes.js`.
 
 ## Как писать истории, которые смотрят
