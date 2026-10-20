@@ -211,9 +211,11 @@ def main():
     tl = build(story, out, (a.tts, a.voice_id))
     print(f'  длина: {tl["duration"]:.1f} с, субтитров: {len(tl["captions"])}')
     post = story.get('post', {})
-    line = ' '.join([post.get('caption', story.get('title', out.name)), *post.get('hashtags', [])])
-    (out / 'post.txt').write_text(line + '\n', encoding='utf-8')
-    print(f'  подпись: {line}')
+    caption, tags = post.get('caption', story.get('title', out.name)), ' '.join(post.get('hashtags', []))
+    # С описанием — как у больших каналов: заголовок, абзацы, хэштеги в конце; без него — одна строка.
+    text = f'{caption}\n\n{post["description"].strip()}\n\n{tags}' if post.get('description') else f'{caption} {tags}'.strip()
+    (out / 'post.txt').write_text(text + '\n', encoding='utf-8')
+    print(f'  подпись: {caption}')
 
     if a.preview:
         httpd = serve(8090)
