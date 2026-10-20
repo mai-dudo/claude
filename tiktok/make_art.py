@@ -98,6 +98,31 @@ def write_prompts(story, out, size):
     return path
 
 
+def write_batch(story, out, size, done):
+    """Один текст для ChatGPT на все недостающие кадры: вставить в чат, где уже нарисован первый кадр."""
+    cast = {k: v for k, v in story.get('cast', {}).items() if v.get('look')}
+    todo = [fr for fr in all_frames(story) if Path(fr['name']).stem not in done]
+    lines = ['КАК ПОЛЬЗОВАТЬСЯ', '',
+             '1. Откройте в ChatGPT тот же чат, где уже нарисован первый кадр.',
+             '2. Скопируйте всё, что ниже линии, и отправьте одним сообщением.',
+             f'3. ChatGPT нарисует {len(todo)} картинок по очереди. Если остановится после одной — пишите «next», '
+             'пока не будут готовы все.',
+             '4. Скачайте все картинки (и самую первую тоже) и пришлите мне в чат по порядку.', '',
+             'Что будет на картинках:']
+    lines += [f'  Кадр {n}: {say_of(story, fr["scene"])}' for n, fr in enumerate(todo, 1)]
+    lines += ['', '─' * 60, '',
+              'Great. Keep exactly this style' + (' and the same character' if cast else '') + ' in every image. '
+              + (f'The character: {" ".join(c["look"] for c in cast.values())} ' if cast else '')
+              + f'Now draw the next {len(todo)} frames of the same story, one image per frame, in this order. '
+              f'Every image: {orientation(size)}, same style as the previous image. {NO_TEXT} '
+              'Draw them one after another without asking me questions. If you can only draw one image per reply, '
+              'draw the next frame every time I write "next".', '']
+    lines += [f'Frame {n}: {fr["draw"]}' for n, fr in enumerate(todo, 1)]
+    path = out / 'chatgpt.txt'
+    path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    return path, todo
+
+
 def save_jpeg(data, dst):
     with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
         f.write(data)
@@ -193,6 +218,8 @@ def main():
     ap.add_argument('--api', action='store_true', help='нарисовать недостающие картинки через OpenAI API')
     ap.add_argument('--add', nargs='+', metavar='ФАЙЛ', help='свои картинки (из ChatGPT, от художника) по кадрам')
     ap.add_argument('--force', nargs='*', default=[], metavar='КАДР', help='перерисовать эти кадры (05, 01a, имя героя)')
+    ap.add_argument('--done', nargs='*', default=[], metavar='КАДР',
+                    help='кадры, уже нарисованные в ChatGPT (не попадут в chatgpt.txt), например 01a')
     ap.add_argument('--quality', default='medium', help='low | medium | high (дороже и дольше)')
     ap.add_argument('--model', help='модель для новых картинок (по умолчанию gpt-image-2.5-flare)')
     ap.add_argument('--edit-model', help='модель для кадров с героями по образцам (по умолчанию gpt-image-2.5-sunburst)')
@@ -204,6 +231,9 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     size = story.get('artSize', '1024x1536')
     print(f'Промпты для ChatGPT: {write_prompts(story, out, size)}')
+    done = set(a.done) | {Path(fr['name']).stem for fr in all_frames(story) if (art / fr['name']).exists()}
+    batch, todo = write_batch(story, out, size, done)
+    print(f'Всё одним сообщением: {batch} (кадров: {len(todo)})')
     if a.add:
         add(story, art, a.add)
     if a.api:
