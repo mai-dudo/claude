@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 
 import audio
+import make_art
 import voice
 
 ROOT = Path(__file__).resolve().parent
@@ -53,7 +54,7 @@ def build(story, out):
     """Озвучка всех сцен, монтажный лист (timeline.json) и звуковая дорожка (audio.wav)."""
     v, rate, pitch = story.get('voice', 'ru-RU-DmitryNeural'), story.get('rate', '+0%'), story.get('pitch', '+0Hz')
     cache = ROOT / '.cache' / 'tts'
-    scenes, caps, clips, effects = [], [], [], []
+    scenes, caps, clips, effects, missing = [], [], [], [], []
     T = float(story.get('lead', 0.25))
     for i, sc in enumerate(story['scenes'], 1):
         say = sc.get('say', '').strip()
@@ -67,7 +68,16 @@ def build(story, out):
         dur = float(sc.get('dur') or spoken + sc.get('pause', story.get('pause', 0.3)))
         dur = max(dur, spoken + 0.05, 0.5)
         where = f'сцена {i}'
-        body = resolve({k: v2 for k, v2 in sc.items() if k not in ('say', 'sfx')}, words, dur, where)
+        body = {k: v2 for k, v2 in sc.items() if k not in ('say', 'sfx', 'images', 'draw', 'image', 'who')}
+        if sc.get('type') == 'art':
+            body['frames'] = []
+            for fr in make_art.scene_frames(sc, i):
+                ok = (ROOT / 'art' / out.name / fr['name']).exists()
+                body['frames'].append({'src': f'art/{out.name}/{fr["name"]}' if ok else None, 'name': fr['name'],
+                                       'draw': fr['draw'], 'at': fr['at']})
+                if not ok:
+                    missing.append(fr['name'])
+        body = resolve(body, words, dur, where)
         scenes.append({**body, 'start': round(T, 3), 'dur': round(dur, 3)})
         for e in sc.get('sfx', []):
             effects.append({**e, 'at': T + resolve_time(e.get('at', 0), words, dur, where)})
@@ -75,6 +85,8 @@ def build(story, out):
             caps.append({**c, 's': round(c['s'] + T, 3), 'e': round(c['e'] + T, 3)})
         print(f'  сцена {i:>2}: {sc.get("type", "blank"):<7} {dur:5.1f} с  {say[:60]}')
         T += dur
+    if missing:
+        print(f'  ! нет картинок ({len(missing)}): {", ".join(missing)} — вместо них заглушки; см. python make_art.py')
     total = round(T + float(story.get('tail', 0.0)), 3)
     timeline = {'duration': total, 'hero': story.get('hero', {}), 'cast': story.get('cast', {}), 'scenes': scenes, 'captions': caps,
                 'captionY': story.get('captionY', 1400), 'captionSize': story.get('captionSize', 86)}

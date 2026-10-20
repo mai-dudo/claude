@@ -1,0 +1,420 @@
+{
+  "title": "Ночь в метро. Часть 1 (рисованная)",
+  "slug": "metro-art-1",
+  "voice": "ru-RU-DmitryNeural",
+  "rate": "+12%",
+  "pitch": "-4Hz",
+  "pause": 0.2,
+  "cover": 0.6,
+  "style": "Hand-drawn digital illustration like a frame from a moody indie animated short film: loose sketchy black ink outlines, flat cel-shaded characters with soft painted shadows, slightly desaturated muted colours, painterly softly blurred backgrounds, dramatic cinematic lighting, subtle film grain. Semi-realistic proportions, expressive faces.",
+  "hero": {
+    "hat": "hair",
+    "hair": "#2b1d14",
+    "jacket": "#2a9d8f",
+    "stripes": false,
+    "pants": "#2d3142",
+    "backpack": "#e76f51",
+    "light": "phone"
+  },
+  "cast": {
+    "lyosha": {
+      "look": "Lyosha is a 20-year-old Russian student: slim, pale, short messy dark-brown hair, tired dark eyes, teal hoodie, dark jeans, white sneakers, orange backpack."
+    }
+  },
+  "post": {
+    "caption": "Уснул в метро и проснулся в тупике 😨 Часть 1",
+    "hashtags": [
+      "#метро",
+      "#страшныеистории",
+      "#истории"
+    ]
+  },
+  "scenes": [
+    {
+      "type": "art",
+      "say": "Если ты уснул в последнем поезде метро и проснулся в [полной темноте] — {не выходи} из вагона. Хотя очень захочется.",
+      "chip": {
+        "text": "Ночь в метро",
+        "color": "red"
+      },
+      "sfx": [
+        {
+          "type": "hit",
+          "at": 0
+        },
+        {
+          "type": "click",
+          "at": "проснулся"
+        }
+      ],
+      "images": [
+        {
+          "draw": "Inside an empty Moscow metro car late at night. Harsh white fluorescent ceiling lights, rows of blue seats, black windows reflecting the interior. Lyosha is asleep, sitting on the bench with his head leaning against the glass partition and the backpack on his lap. Wide shot from the opposite side of the car.",
+          "who": [
+            "lyosha"
+          ]
+        },
+        {
+          "draw": "The same empty metro car from the same angle, but in total darkness: the lights are off. Lyosha has just woken up and sits frozen on the bench, his scared face lit only by the cold glow of his phone screen. Deep black shadows.",
+          "who": [
+            "lyosha"
+          ],
+          "at": "проснулся"
+        }
+      ],
+      "move": "in",
+      "focus": [
+        0.45,
+        0.55
+      ],
+      "fx": [
+        "grain",
+        "vignette"
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Студент Лёша открывает глаза в [час ночи]. Связи нет. Заряда — {14 процентов}.",
+      "sfx": [
+        {
+          "type": "whoosh",
+          "at": 0
+        },
+        {
+          "type": "beep",
+          "at": "Заряда"
+        }
+      ],
+      "draw": "Extreme close-up of Lyosha's worried face in complete darkness, lit from below by the cold blue light of a phone screen he holds in his hands. The screen glow reflects in his eyes.",
+      "who": [
+        "lyosha"
+      ],
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette"
+      ],
+      "glows": [
+        {
+          "x": 0.5,
+          "y": 0.88,
+          "r": 300,
+          "color": "150,180,255",
+          "a": 0.22,
+          "pulse": 2
+        }
+      ],
+      "cards": [
+        {
+          "label": "время",
+          "value": "01:12"
+        },
+        {
+          "label": "заряд",
+          "value": "14%",
+          "color": "red",
+          "at": "Заряда"
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Поезд загнали в [тупик] за конечной станцией. Наверху спит город.",
+      "chip": {
+        "text": "Оборотный тупик",
+        "color": "white"
+      },
+      "draw": "Night establishing shot of a sleeping residential district on the outskirts of Moscow: Soviet panel apartment blocks with only a few lit windows, an empty wet street under orange sodium street lamps, a small metro entrance pavilion with a glowing red letter M sign on a pole. Calm, quiet, slightly eerie.",
+      "move": "out",
+      "fx": [
+        "grain",
+        "vignette",
+        "dust"
+      ]
+    },
+    {
+      "type": "map",
+      "say": "До платформы — метров [триста]. Кажется, можно просто дойти пешком.",
+      "chip": {
+        "text": "Оборотный тупик",
+        "color": "white"
+      },
+      "stations": [
+        {
+          "name": "Заречная",
+          "pos": 0.08
+        },
+        {
+          "name": "Лесная",
+          "pos": 0.45
+        },
+        {
+          "name": "Северная",
+          "pos": 0.76
+        }
+      ],
+      "deadEnd": 0.78,
+      "marker": {
+        "pos": 0.94,
+        "label": "ЛЁША",
+        "at": 0.7
+      },
+      "measure": {
+        "a": 0.76,
+        "b": 0.94,
+        "text": "≈ 300 м",
+        "at": "триста"
+      }
+    },
+    {
+      "type": "art",
+      "say": "Двери можно открыть [рычагом] экстренного открытия. Но за ними — тоннель. А у тоннеля есть {три правила}.",
+      "chip": {
+        "text": "Экстренный выход",
+        "color": "red"
+      },
+      "sfx": [
+        {
+          "type": "whoosh",
+          "at": "три"
+        }
+      ],
+      "draw": "Inside the dark metro car: Lyosha stands by the closed sliding doors, holding his phone up as a flashlight. The beam lights a small red emergency door release handle on the wall next to the doors. Tense, claustrophobic.",
+      "who": [
+        "lyosha"
+      ],
+      "move": "right",
+      "fx": [
+        "grain",
+        "vignette"
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Первое — [рельс]. Сбоку от путей идёт третий, [контактный]. В московском метро на нём {825 вольт}.",
+      "chip": {
+        "text": "Правило 1. Рельс",
+        "color": "yellow"
+      },
+      "sfx": [
+        {
+          "type": "zap",
+          "at": "825"
+        }
+      ],
+      "big": {
+        "text": "825 В",
+        "sub": "постоянный ток",
+        "at": "825",
+        "y": 560
+      },
+      "draw": "A dark metro tunnel: Lyosha walks carefully along the tracks between the rails, lighting the way with his phone flashlight. Along the side runs the third (contact) rail under a yellowish protective cover on brackets. Bundles of cables on the curved concrete tunnel wall disappear into darkness.",
+      "who": [
+        "lyosha"
+      ],
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "sparks"
+      ],
+      "sparksFrom": "825",
+      "sparksY": 0.9
+    },
+    {
+      "type": "art",
+      "say": "Сверху его прикрывает короб, и в темноте он похож на [ступеньку]. Ночью ток снимают, но не сразу и не везде. Поэтому правило одно: рельс {всегда под током}.",
+      "chip": {
+        "text": "Правило 1. Рельс",
+        "color": "yellow"
+      },
+      "sfx": [
+        {
+          "type": "zap",
+          "at": "всегда",
+          "db": -18
+        }
+      ],
+      "stamp": {
+        "text": "Рельс всегда под током",
+        "at": "всегда"
+      },
+      "draw": "Low-angle close-up of the metro third rail with its yellowish protective cover in a dark tunnel. A faint blue electric spark crackles under the cover. A white sneaker stands dangerously close to the rail, lit by a phone flashlight.",
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "sparks"
+      ],
+      "sparksFrom": "всегда",
+      "sparksY": 0.7
+    },
+    {
+      "type": "art",
+      "say": "Второе — [темнота]. Под землёй она абсолютная. Глаза к ней не привыкают: им просто не к чему привыкать. А потом мозг начинает [дорисовывать] огоньки, которых нет.",
+      "chip": {
+        "text": "Правило 2. Темнота",
+        "color": "yellow"
+      },
+      "sfx": [
+        {
+          "type": "click",
+          "at": "темнота"
+        },
+        {
+          "type": "drip",
+          "at": "привыкают"
+        },
+        {
+          "type": "drip",
+          "at": "огоньки"
+        }
+      ],
+      "tags": [
+        {
+          "text": "Света: 0 люкс",
+          "x": 540,
+          "y": 760,
+          "at": "абсолютная"
+        }
+      ],
+      "draw": "Almost pitch-black metro tunnel. Only a faint outline of Lyosha standing still, hands slightly raised, unsure where to step. In the darkness float faint blurry colourful spots of light, like the phosphenes the brain imagines in total darkness.",
+      "who": [
+        "lyosha"
+      ],
+      "move": "drift",
+      "fx": [
+        "grain",
+        "vignette",
+        "phantoms"
+      ],
+      "phantoms": "дорисовывать"
+    },
+    {
+      "type": "art",
+      "say": "Третье — [звук]. Ночью по тоннелям ходят путейцы и [мотовозы], маленькие рабочие локомотивы. Услышал гул — прижмись к стене в {нише} и не двигайся.",
+      "chip": {
+        "text": "Правило 3. Звук",
+        "color": "yellow"
+      },
+      "sfx": [
+        {
+          "type": "rumble",
+          "at": "мотовозы",
+          "dur": 8
+        }
+      ],
+      "cam": {
+        "shake": 3
+      },
+      "draw": "In a dark metro tunnel a small yellow diesel maintenance locomotive approaches, its single headlight blinding. Lyosha presses himself flat into a narrow arched niche in the tunnel wall, eyes shut, hiding from the light.",
+      "who": [
+        "lyosha"
+      ],
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "dust"
+      ]
+    },
+    {
+      "type": "note",
+      "say": "Лёша достаёт тетрадь и пишет при свете телефона. Вода — полбутылки. Еда — одна шоколадка. Заряд — 11 процентов. До утра — четыре часа.",
+      "chip": {
+        "text": "Что у него есть",
+        "color": "white"
+      },
+      "title": "Тупик. Ночь. 01:30",
+      "lines": [
+        {
+          "text": "Вода: ½ бутылки",
+          "at": "Вода"
+        },
+        {
+          "text": "Еда: 1 шоколадка",
+          "at": "Еда"
+        },
+        {
+          "text": "Заряд: 11%",
+          "at": "Заряд",
+          "color": "#c0392b"
+        },
+        {
+          "text": "До 5:30 — 4 часа",
+          "at": "утра"
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Он решает ждать в вагоне. В половине шестого поезд выйдет на линию, и Лёшу [найдут].",
+      "chip": {
+        "text": "Решение",
+        "color": "green"
+      },
+      "draw": "Lyosha sits alone in the dark metro car, hugging his orange backpack, his tired face lit by the phone, waiting for morning. Empty seats around him, lonely and quiet.",
+      "who": [
+        "lyosha"
+      ],
+      "move": "out",
+      "fx": [
+        "grain",
+        "vignette"
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Но в три часа ночи в тоннеле раздаются [шаги]. Кто-то идёт по шпалам прямо к поезду. Медленно. В полной темноте. {Без фонаря}.",
+      "chip": {
+        "text": "03:07",
+        "color": "red"
+      },
+      "sfx": [
+        {
+          "type": "steps",
+          "at": "шаги",
+          "n": 12,
+          "gap": 0.8
+        }
+      ],
+      "cam": {
+        "zoom": [
+          1,
+          1.12
+        ],
+        "focus": [
+          320,
+          1000
+        ],
+        "shake": 4
+      },
+      "draw": "A dark metro tunnel at 3 AM. A red signal light glows on the left. On the right a parked metro train with one dimly lit window. In the middle of the tracks a tall dark human silhouette walks toward the train with no light at all, barely visible against the red glow. Horror atmosphere.",
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "fog"
+      ]
+    },
+    {
+      "type": "card",
+      "dur": 3.4,
+      "kicker": "часть 2",
+      "title": [
+        "Кто ходит",
+        {
+          "text": "без света",
+          "color": "red"
+        }
+      ],
+      "sub": "подпишись, чтобы узнать",
+      "sfx": [
+        {
+          "type": "hit",
+          "at": 0.05
+        }
+      ]
+    }
+  ]
+}

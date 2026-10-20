@@ -11,6 +11,7 @@ async function setup(timeline, opts = {}) {
   cv.width = Math.round(W * SCALE); cv.height = Math.round(H * SCALE);
   await Promise.all(['900 80px Montserrat', '500 80px Montserrat', '600 60px Caveat', '700 30px "JetBrains Mono"']
     .map((f) => document.fonts.load(f, 'Ёё АБВ abc 0123')));
+  await loadImages(TL);
   TL.scenes.forEach((s, i) => {
     const prev = TL.scenes[i - 1];
     s._chipKeep = !!(prev && prev.chip && s.chip && prev.chip.text === s.chip.text);
@@ -26,7 +27,7 @@ function sceneIndex(T) {
 
 function camera(c, S) {
   const cam = S.P.cam || {};
-  const [z0, z1] = cam.zoom || [1, 1.05];
+  const [z0, z1] = cam.zoom || (S.P.type === 'art' ? [1, 1] : [1, 1.05]);
   const [fx, fy] = cam.focus || [W / 2, H * 0.45];
   let z = lerp(z0, z1, ease.inOut(S.p));
   if (cam.punch !== false) z *= 1 + 0.05 * (1 - ease.out(S.t / 0.5));
