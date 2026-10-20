@@ -24,6 +24,7 @@ import voice
 
 ROOT = Path(__file__).resolve().parent
 # Поля, где время можно задать словом из текста сцены («at»: «гул») или секундами от начала сцены.
+VOICE_KEYS = ('tts', 'voiceId', 'voiceModel', 'voiceSettings', 'voice', 'rate', 'pitch')
 TIME_KEYS = {'at', 'from', 'until', 'rail', 'lightsOff', 'lightOff', 'handle', 'phantoms', 'glowFrom', 'wind'}
 
 
@@ -62,7 +63,9 @@ def build(story, out, tts=(None, None)):
         words, spoken = [], 0.0
         if say:
             text, marked = voice.parse(say)
-            mp3, bounds = voice.speak(text, cfg, cache, prev=texts[i - 2] if i > 1 else '',
+            own = {k: sc[k] for k in VOICE_KEYS if k in sc}  # свой голос у сцены: например, реплика героя
+            scfg = voice.config({**story, **own}, *tts) if own else cfg
+            mp3, bounds = voice.speak(text, scfg, cache, prev=texts[i - 2] if i > 1 else '',
                                       nxt=texts[i] if i < len(texts) else '')
             spoken = audio.duration(mp3)
             words = voice.align(marked, bounds)

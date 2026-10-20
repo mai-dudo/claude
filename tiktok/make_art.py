@@ -208,6 +208,7 @@ def add(story, art, files):
         if name in plan:
             save_jpeg(Path(plan[name]).read_bytes(), art / name)
             print(f'  {name} ← {plan[name]}')
+    left = [n for n in left if not (art / n).exists()]
     if left:
         print(f'  ещё нет: {", ".join(left)}')
 
