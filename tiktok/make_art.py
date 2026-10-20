@@ -226,7 +226,7 @@ def main():
     a = ap.parse_args()
     story = json.loads(Path(a.story).read_text(encoding='utf-8'))
     slug = story.get('slug') or Path(a.story).stem
-    art, out = ROOT / 'art' / slug, ROOT / 'out' / slug
+    art, out = ROOT / 'art' / (story.get('art') or slug), ROOT / 'out' / slug
     art.mkdir(parents=True, exist_ok=True)
     out.mkdir(parents=True, exist_ok=True)
     size = story.get('artSize', '1024x1536')

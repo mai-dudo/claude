@@ -112,6 +112,40 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 у стены, `carry` — руки вперёд, `eyesClosed`. У пловца задаётся `y`. Примеры — `stories/metro-tupik-2.json` и `stories/tham-luang-1.json`.
 Новые сцены добавляются в `render/scenes.js`.
 
+## Рисованные ролики
+
+Вместо плоской графики сцена `art` показывает готовую иллюстрацию и оживляет её: наезд или панорама камеры,
+пыль, дождь, туман, мерцание, зерно плёнки, свет телефона. Пример — `stories/metro-art-1.json`: тот же текст,
+что у первой серии про метро, но у сцен вместо координат описание кадра `draw` и герои `who`.
+
+```
+python make_art.py stories/metro-art-1.json --done 01a          # out/metro-art-1/chatgpt.txt — все кадры одним сообщением
+python make_art.py stories/metro-art-1.json --add ~/Downloads/*.png   # разложить картинки по кадрам по порядку
+python make_art.py stories/metro-art-1.json --api               # или нарисовать через OpenAI API (ключ OPENAI_API_KEY)
+python make_video.py stories/metro-art-1.json
+```
+
+Картинки лежат в `art/<slug>/` (01.jpg, 01a.jpg, 01b.jpg …). Пока какой-то нет, в ролике на её месте заглушка
+с описанием кадра. Поля сцены `art`: `move` (`in`, `out`, `left`, `right`, `up`, `down`, `drift`), `focus` [x, y] в долях
+картинки, `fx` (`grain`, `vignette`, `dust`, `rain`, `fog`, `flicker`, `phantoms`, `sparks`, `embers`, `snow`),
+`glows` [{ x, y, r, color, pulse, at }] — свет в долях картинки, `dim` { at, amount } — свет гаснет,
+`fit` (`cover`, `letterbox`, `blur`), `images` [{ draw, who, at }] — несколько кадров в одной сцене со сменой на слове.
+На верхнем уровне сценария: `style` — описание стиля для всех картинок, `cast.<имя>.look` — внешность героя.
+
+## Голос ElevenLabs
+
+Живой голос вместо бесплатного: ключ ElevenLabs в переменной `ELEVENLABS_API_KEY` и голос в сценарии:
+
+```json
+"tts": "elevenlabs", "voiceId": "…", "voiceModel": "eleven_multilingual_v2",
+"voiceSettings": { "stability": 0.45, "style": 0.15, "speed": 1.0 }
+```
+
+`python voice.py voices` покажет ваши голоса и популярные русские голоса из библиотеки ElevenLabs. Любой ролик
+можно переозвучить без правки сценария: `python make_video.py stories/… --tts elevenlabs --voice-id …`.
+ElevenLabs отдаёт время каждой буквы, поэтому субтитры совпадают с голосом так же точно. Без ключа
+ролик озвучивается бесплатным голосом с предупреждением.
+
 ## Как писать истории, которые смотрят
 
 1. Первая фраза — крючок с запретом или парадоксом: «Если …, {не делай} вот это».

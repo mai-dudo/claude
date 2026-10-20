@@ -144,7 +144,9 @@ const FX = {
 // 'blur' (по ширине на размытом фоне из той же картинки); y — центр картинки для letterbox и blur.
 // move: 'in' | 'out' | 'left' | 'right' | 'up' | 'down' | 'drift' | 'none'; focus: [x, y] — доли картинки.
 // fx: ['grain', 'vignette', 'dust', 'rain', 'fog', 'flicker', 'phantoms', 'sparks', 'embers', 'snow'];
-// glows: [{ x, y, r, color, pulse }] — свет в долях рамки (экран телефона, фонарь); grade — заливка цветом.
+// glows: [{ x, y, r, color, pulse, at }] — свет в долях картинки (экран телефона, фонарь), едет вместе с ней;
+// grade — заливка цветом;
+// dim: { at, amount } — свет гаснет в момент at (одна картинка вместо пары «светло/темно»).
 SCENES.art = (c, S) => {
   const { t, T, P } = S;
   c.fillStyle = '#000'; c.fillRect(-80, -80, W + 160, H + 160);
@@ -163,20 +165,31 @@ SCENES.art = (c, S) => {
   const [mz, mx, my] = (MOVES[P.move || 'drift'] || MOVES.drift)(ease.inOut(S.p));
   const [fx0, fy0] = P.focus || [0.5, 0.5];
   c.save(); c.beginPath(); c.rect(box.x, box.y, box.w, box.h); c.clip();
+  let place = [box.x, box.y, box.w, box.h], zoom = 1;
   (P.frames || []).forEach((f, i) => {
     const k = i === 0 ? 1 : after(t, f.at ?? 0, 0.25);
     if (k <= 0) return;
     c.globalAlpha = k;
     const img = IMAGES[f.src];
     if (!img) { placeholder(c, box, f); return; }
-    const [dx, dy, dw, dh] = artPlace(img, box, mz * (P.zoom || 1), fx0 + mx, fy0 + my);
-    c.drawImage(img, dx, dy, dw, dh);
+    place = artPlace(img, box, mz * (P.zoom || 1), fx0 + mx, fy0 + my);
+    zoom = mz * (P.zoom || 1);
+    c.drawImage(img, ...place);
   });
   c.globalAlpha = 1;
   if (P.grade) { c.fillStyle = P.grade; c.fillRect(box.x, box.y, box.w, box.h); }
+  if (P.dim) {
+    // «Свет погас»: перед моментом at лампы мигают, потом кадр темнеет.
+    const at = P.dim.at ?? 0;
+    let a = t >= at ? P.dim.amount ?? 0.8 : 0;
+    if (t < at && t > at - 0.45) a = hash(Math.floor(T * 22)) > 0.5 ? (P.dim.amount ?? 0.8) * 0.8 : 0;
+    c.fillStyle = `rgba(2,3,8,${a})`; c.fillRect(box.x, box.y, box.w, box.h);
+  }
   for (const g of P.glows || []) {
+    if (g.at != null && t < g.at) continue;
     const pulse = g.pulse ? 0.75 + 0.25 * Math.sin(T * (g.pulse === true ? 3 : g.pulse)) : 1;
-    glow(c, box.x + g.x * box.w, box.y + g.y * box.h, g.r ?? 200, g.color || '255,240,210', (g.a ?? 0.35) * pulse);
+    const k = g.at != null ? after(t, g.at, 0.4) : 1;
+    glow(c, place[0] + g.x * place[2], place[1] + g.y * place[3], (g.r ?? 200) * zoom, g.color || '255,240,210', (g.a ?? 0.35) * pulse * k);
   }
   for (const name of P.fx || ['grain', 'vignette']) if (FX[name]) FX[name](c, S, box);
   c.restore();

@@ -50,9 +50,10 @@ def resolve(obj, words, dur, where):
     return obj
 
 
-def build(story, out):
+def build(story, out, tts=(None, None)):
     """Озвучка всех сцен, монтажный лист (timeline.json) и звуковая дорожка (audio.wav)."""
-    v, rate, pitch = story.get('voice', 'ru-RU-DmitryNeural'), story.get('rate', '+0%'), story.get('pitch', '+0Hz')
+    cfg = voice.config(story, *tts)
+    texts = [voice.parse(sc.get('say', '').strip())[0] for sc in story['scenes']]
     cache = ROOT / '.cache' / 'tts'
     scenes, caps, clips, effects, missing = [], [], [], [], []
     T = float(story.get('lead', 0.25))
@@ -61,7 +62,8 @@ def build(story, out):
         words, spoken = [], 0.0
         if say:
             text, marked = voice.parse(say)
-            mp3, bounds = voice.speak(text, v, rate, pitch, cache)
+            mp3, bounds = voice.speak(text, cfg, cache, prev=texts[i - 2] if i > 1 else '',
+                                      nxt=texts[i] if i < len(texts) else '')
             spoken = audio.duration(mp3)
             words = voice.align(marked, bounds)
             clips.append((T, mp3))
@@ -71,9 +73,10 @@ def build(story, out):
         body = {k: v2 for k, v2 in sc.items() if k not in ('say', 'sfx', 'images', 'draw', 'image', 'who')}
         if sc.get('type') == 'art':
             body['frames'] = []
+            art = story.get('art') or out.name
             for fr in make_art.scene_frames(sc, i):
-                ok = (ROOT / 'art' / out.name / fr['name']).exists()
-                body['frames'].append({'src': f'art/{out.name}/{fr["name"]}' if ok else None, 'name': fr['name'],
+                ok = (ROOT / 'art' / art / fr['name']).exists()
+                body['frames'].append({'src': f'art/{art}/{fr["name"]}' if ok else None, 'name': fr['name'],
                                        'draw': fr['draw'], 'at': fr['at']})
                 if not ok:
                     missing.append(fr['name'])
@@ -143,8 +146,8 @@ async def frames(timeline, times, scale, workers, sink):
     httpd.shutdown()
 
 
-def render(timeline, out, fps, scale, workers):
-    n = math.ceil(timeline['duration'] * fps)
+def render(timeline, out, fps, scale, workers, until=None):
+    n = math.ceil(min(timeline['duration'], until or timeline['duration']) * fps)
     times = [i / fps for i in range(n)]
     tmp = out / 'video.tmp.mp4'
     cmd = ['ffmpeg', '-y', '-v', 'error', '-f', 'image2pipe', '-c:v', 'mjpeg', '-framerate', str(fps), '-i', '-',
@@ -193,13 +196,16 @@ def main():
     ap.add_argument('--stills', type=int, metavar='N', help='только N кадров по одному из середины каждой сцены (или равномерно)')
     ap.add_argument('--at', help='только кадры в эти секунды, через запятую: --at 3,12.5')
     ap.add_argument('--preview', action='store_true', help='не рендерить, а открыть просмотр в браузере')
+    ap.add_argument('--until', type=float, metavar='СЕК', help='собрать только начало ролика, до этой секунды')
+    ap.add_argument('--tts', choices=['edge', 'elevenlabs'], help='чем озвучивать (по умолчанию — как в сценарии)')
+    ap.add_argument('--voice-id', help='голос ElevenLabs (voice_id), см. python voice.py voices')
     a = ap.parse_args()
 
     story = json.loads(Path(a.story).read_text(encoding='utf-8'))
     out = ROOT / 'out' / (story.get('slug') or Path(a.story).stem)
     out.mkdir(parents=True, exist_ok=True)
     print(f'«{story.get("title", out.name)}»: озвучка и монтаж')
-    tl = build(story, out)
+    tl = build(story, out, (a.tts, a.voice_id))
     print(f'  длина: {tl["duration"]:.1f} с, субтитров: {len(tl["captions"])}')
     post = story.get('post', {})
     line = ' '.join([post.get('caption', story.get('title', out.name)), *post.get('hashtags', [])])
@@ -224,7 +230,7 @@ def main():
         return
 
     fps, scale = (15, 0.5) if a.draft else (a.fps, 1.0)
-    render(tl, out, fps, scale, a.workers)
+    render(tl, out, fps, scale, a.workers, a.until)
     cover_at = story.get('cover', 1.2)
     subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', str(cover_at), '-i', str(out / 'video.mp4'), '-frames:v', '1',
                     '-q:v', '2', str(out / 'cover.jpg')], check=True)
