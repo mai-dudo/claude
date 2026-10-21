@@ -1,0 +1,357 @@
+{
+  "title": "Если ты стал Локи. Часть 1",
+  "slug": "loki-1",
+  "voice": "ru-RU-DmitryNeural",
+  "rate": "+12%",
+  "pitch": "-4Hz",
+  "tts": "fish",
+  "voiceId": "7312c38557eb4fb384e3874e8e9cea67",
+  "pause": 0.25,
+  "cover": 1.2,
+  "style": "Hand-drawn digital illustration like a frame from a moody indie animated short film: loose sketchy black ink outlines, flat cel-shaded characters with soft painted shadows, slightly desaturated muted colours, painterly softly blurred backgrounds, dramatic cinematic lighting, subtle film grain. Semi-realistic proportions, expressive faces. Magic appears as soft glowing green-and-gold light.",
+  "cast": {
+    "dima": {
+      "look": "Dima is a 19-year-old Russian delivery courier: lean, short ash-blond hair, light stubble, sharp grey eyes, dark green bomber jacket over a black hoodie, black cargo pants, white sneakers, a big square courier backpack."
+    },
+    "loki": {
+      "look": "Loki, the Marvel god of mischief: tall and pale, slicked-back shoulder-length black hair, piercing green eyes, green-and-gold leather armor with a long green cape and a golden helmet with long curved horns."
+    }
+  },
+  "post": {
+    "caption": "Часть 1 | ⚡ ЧТО БУДЕТ, ЕСЛИ ТЫ СТАНЕШЬ БОГОМ ОБМАНА ЛОКИ?",
+    "description": "Представь: ты просыпаешься, а из зеркала на тебя смотрит Локи в золотом рогатом шлеме. 😳 Теперь ты умеешь создавать двойников, превращаться в кого угодно и уговаривать любого.\n\nЗвучит как мечта. Но в скандинавских мифах за силу Локи платили очень дорого: боги привязали его в пещере к трём камням, а над лицом повесили змею. Её яд капает ему на лицо, и от его судорог трясётся земля — так древние скандинавы объясняли землетрясения.\n\nА какую силу Локи ты взял бы себе? Иллюзии, превращения или серебряный язык? И кто такие «они», которые уже знают?\n\nПиши в комментариях 👇 Подпишись, чтобы не пропустить вторую часть.\n\nФан-история по мотивам скандинавских мифов и фильмов Marvel.",
+    "hashtags": [
+      "#локи",
+      "#марвел",
+      "#мифология"
+    ]
+  },
+  "scenes": [
+    {
+      "type": "art",
+      "say": "Если однажды утром ты проснёшься богом обмана Локи — {не спеши радоваться}. В скандинавских мифах за эту силу [платили дорого].",
+      "chip": {
+        "text": "Что если…",
+        "color": "red"
+      },
+      "who": [
+        "dima"
+      ],
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "dust"
+      ],
+      "draw": "Early morning in a small, messy Russian apartment bedroom. Dima has just woken up and sits on the edge of his bed, staring at his hands in shock: faint green-and-gold magical light flickers around his fingers. Cold dawn light from the window, a mirror on the wall.",
+      "sfx": [
+        {
+          "type": "hit",
+          "at": 0
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Курьер Дима, девятнадцать лет, умывается и смотрит в зеркало. А из зеркала на него смотрит [Локи] — в золотом рогатом шлеме. И улыбается. Хотя сам Дима {не улыбается}.",
+      "chip": {
+        "text": "Утро",
+        "color": "white"
+      },
+      "who": [
+        "dima",
+        "loki"
+      ],
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "flicker"
+      ],
+      "draw": "Dima in a small bathroom, face wet, looking into the mirror above the sink in shock. In the mirror there is not his own reflection but Loki in his golden horned helmet, smiling a sly, unsettling smile. Dim bathroom light, uncanny atmosphere.",
+      "sfx": [
+        {
+          "type": "whoosh",
+          "at": "Локи"
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Первая сила — [иллюзии]. Локи создаёт двойников, которых не отличить от настоящих. В фильмах Марвел он так обманывал даже {Тора}.",
+      "chip": {
+        "text": "Сила 1. Иллюзии",
+        "color": "yellow"
+      },
+      "who": [
+        "dima"
+      ],
+      "move": "right",
+      "fx": [
+        "grain",
+        "vignette"
+      ],
+      "draw": "Dima's apartment: two identical Dimas stand facing each other in the middle of the room. One is real; the other is a perfect copy with a faint shimmering green outline, grinning. The real Dima stares at his double in disbelief.",
+      "sfx": [
+        {
+          "type": "whoosh",
+          "at": "иллюзии"
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Дима отправляет двойника на работу, а сам остаётся дома. Двойник развозит все заказы. Но вечером он начинает [отвечать на сообщения] — {сам}.",
+      "chip": {
+        "text": "Сила 1. Иллюзии",
+        "color": "yellow"
+      },
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette"
+      ],
+      "images": [
+        {
+          "draw": "Evening city street in Russia: Dima's double rides an electric bike with the big square courier backpack, delivering orders, a faint green shimmer around him. Wet asphalt, street lights, motion.",
+          "who": [
+            "dima"
+          ]
+        },
+        {
+          "draw": "Night, dark apartment: Dima's double sits on the couch typing on Dima's phone, his face lit by the screen, eyes glowing faintly green, while the real Dima watches from the doorway, alarmed.",
+          "who": [
+            "dima"
+          ],
+          "at": "вечером"
+        }
+      ],
+      "sfx": [
+        {
+          "type": "beep",
+          "at": "сообщения"
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Вторая сила — [превращения]. В мифах Локи становился кобылой, лососем и мухой. Мухой он мешал гномам ковать молот Тора, и поэтому у Мьёльнира такая {короткая рукоять}.",
+      "chip": {
+        "text": "Сила 2. Превращения",
+        "color": "yellow"
+      },
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "embers"
+      ],
+      "draw": "Norse myth scene in a dark dwarven forge inside a mountain: a bearded dwarf works the bellows while another dwarf hammers a glowing war hammer on an anvil; a small fly bites the dwarf at the bellows on the eyelid. Sparks, firelight, epic mythological atmosphere.",
+      "sfx": [
+        {
+          "type": "whoosh",
+          "at": "превращения"
+        },
+        {
+          "type": "knock",
+          "at": "ковать",
+          "n": 4,
+          "gap": 0.45,
+          "db": -12
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Дима пробует превратиться в кота. Получается с первого раза. А вот вернуться обратно он не может [три часа].",
+      "chip": {
+        "text": "Сила 2. Превращения",
+        "color": "yellow"
+      },
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette"
+      ],
+      "draw": "Dima's apartment floor: a grey cat sits in a pile of Dima's clothes (green bomber jacket, black hoodie, cargo pants), staring at its own paws in panic; faint green sparkles fade around it. Funny and a little eerie."
+    },
+    {
+      "type": "art",
+      "say": "Третья сила — [серебряный язык]. Недаром это одно из прозвищ Локи: он уговорит кого угодно. Одна фраза — и начальник даёт Диме отпуск {на целый месяц}.",
+      "chip": {
+        "text": "Сила 3. Серебряный язык",
+        "color": "yellow"
+      },
+      "who": [
+        "dima"
+      ],
+      "move": "left",
+      "fx": [
+        "grain",
+        "vignette"
+      ],
+      "draw": "A delivery warehouse office: Dima calmly speaks to his middle-aged boss across a desk; the boss smiles with a dazed, hypnotized look while a faint green-gold glow swirls in the air between them like whispering smoke.",
+      "sfx": [
+        {
+          "type": "whoosh",
+          "at": "серебряный"
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "А ещё Дима узнаёт, кто он на самом деле. В Марвел Локи — приёмный сын Одина, а родился он [ледяным великаном]. Дима берёт в руку кусок льда, и его кожа {синеет}.",
+      "chip": {
+        "text": "Кто он на самом деле",
+        "color": "blue"
+      },
+      "who": [
+        "dima"
+      ],
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "snow"
+      ],
+      "draw": "Dima's kitchen at night: Dima holds a piece of ice in his hand and stares in horror as his hand and face turn deep blue with raised frost-giant markings spreading across the skin, his eyes glowing red; frost creeps over the table. Cold blue light.",
+      "sfx": [
+        {
+          "type": "whoosh",
+          "at": "синеет"
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Но Дима читает, чем закончилась история Локи в мифах. Боги поймали его и привязали в пещере к трём камням. А над лицом повесили [ядовитую змею].",
+      "chip": {
+        "text": "Цена",
+        "color": "red"
+      },
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "flicker"
+      ],
+      "draw": "Norse myth scene: in a dark cave, a lean Norse god with long tangled red hair lies bound to three stones with thick ropes; above his face a large venomous serpent hangs from the rock, a drop of venom forming on its fangs. Torchlight, dread.",
+      "sfx": [
+        {
+          "type": "hit",
+          "at": "змею",
+          "db": -10
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Жена Локи Сигюн держит над ним чашу. Но когда она уходит её вылить, яд капает ему на лицо, и он бьётся так, что [трясётся земля]. Так скандинавы объясняли {землетрясения}.",
+      "chip": {
+        "text": "Цена",
+        "color": "red"
+      },
+      "move": "out",
+      "fx": [
+        "grain",
+        "vignette",
+        "dust"
+      ],
+      "cam": {
+        "shake": 3
+      },
+      "draw": "Norse myth scene in the same dark cave: a woman in a simple Norse dress holds a stone bowl above the bound red-haired god's face to catch the dripping serpent venom; behind them the cave walls crack and dust falls as the ground shakes.",
+      "sfx": [
+        {
+          "type": "drip",
+          "at": "капает"
+        },
+        {
+          "type": "rumble",
+          "at": "трясётся",
+          "dur": 4,
+          "db": -10
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Он пролежит так до [Рагнарёка] — конца света. А потом вырвется и поведёт великанов против богов.",
+      "chip": {
+        "text": "Рагнарёк",
+        "color": "red"
+      },
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "embers",
+        "fog"
+      ],
+      "draw": "Norse myth Ragnarok: a huge dark ship sails through a stormy sea toward a burning sky; on its deck stand giants, led by a lean red-haired god with a wild grin; in the distance, silhouettes of gods on a rainbow bridge prepare for battle. Epic apocalyptic atmosphere.",
+      "sfx": [
+        {
+          "type": "rumble",
+          "at": 0.3,
+          "dur": 6,
+          "db": -12
+        },
+        {
+          "type": "hit",
+          "at": "богов",
+          "db": -10
+        }
+      ]
+    },
+    {
+      "type": "art",
+      "say": "Ночью Дима просыпается от стука. В зеркале снова стоит [Локи]. Он подносит палец к губам и шепчет: {«Они уже знают»}.",
+      "chip": {
+        "text": "03:00",
+        "color": "red"
+      },
+      "who": [
+        "dima",
+        "loki"
+      ],
+      "move": "in",
+      "fx": [
+        "grain",
+        "vignette",
+        "flicker"
+      ],
+      "stamp": {
+        "text": "Они уже знают",
+        "at": "знают"
+      },
+      "draw": "Night, Dima's dark bedroom: Dima sits up in bed, terrified, looking at the mirror on the wall. In the mirror stands Loki in his golden horned helmet, raising a finger to his lips, eyes glowing green, with a sly smile.",
+      "sfx": [
+        {
+          "type": "knock",
+          "at": "стука",
+          "n": 3,
+          "gap": 0.45
+        }
+      ]
+    },
+    {
+      "type": "card",
+      "dur": 3.6,
+      "kicker": "часть 2",
+      "title": [
+        "Кто",
+        {
+          "text": "уже знает?",
+          "color": "red"
+        }
+      ],
+      "sub": "подпишись, чтобы узнать",
+      "sfx": [
+        {
+          "type": "hit",
+          "at": 0.05
+        }
+      ]
+    }
+  ]
+}

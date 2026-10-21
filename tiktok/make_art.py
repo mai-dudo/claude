@@ -99,28 +99,55 @@ def write_prompts(story, out, size):
 
 
 def write_batch(story, out, size, done):
-    """Один текст для ChatGPT на все недостающие кадры: вставить в чат, где уже нарисован первый кадр."""
+    """Один текст для ChatGPT на все недостающие кадры. Если уже есть нарисованные кадры — его вставляют в тот же чат,
+    если ещё нет ни одного — в новый, и первым делом он задаёт стиль и героев."""
     cast = {k: v for k, v in story.get('cast', {}).items() if v.get('look')}
     todo = [fr for fr in all_frames(story) if Path(fr['name']).stem not in done]
+    fresh = len(todo) == len(all_frames(story))
     lines = ['КАК ПОЛЬЗОВАТЬСЯ', '',
-             '1. Откройте в ChatGPT тот же чат, где уже нарисован первый кадр.',
+             '1. ' + ('Откройте в ChatGPT новый чат.' if fresh else 'Откройте в ChatGPT тот же чат, где уже нарисован первый кадр.'),
              '2. Скопируйте всё, что ниже линии, и отправьте одним сообщением.',
              f'3. ChatGPT нарисует {len(todo)} картинок по очереди. Если остановится после одной — пишите «next», '
              'пока не будут готовы все.',
-             '4. Скачайте все картинки (и самую первую тоже) и пришлите мне в чат по порядку.', '',
+             '4. Скачайте все картинки' + ('' if fresh else ' (и самую первую тоже)') + ' и пришлите мне в чат по порядку.', '',
              'Что будет на картинках:']
     lines += [f'  Кадр {n}: {say_of(story, fr["scene"])}' for n, fr in enumerate(todo, 1)]
-    lines += ['', '─' * 60, '',
-              'Great. Keep exactly this style' + (' and the same character' if cast else '') + ' in every image. '
-              + (f'The character: {" ".join(c["look"] for c in cast.values())} ' if cast else '')
-              + f'Now draw the next {len(todo)} frames of the same story, one image per frame, in this order. '
-              f'Every image: {orientation(size)}, same style as the previous image. {NO_TEXT} '
-              'Draw them one after another without asking me questions. If you can only draw one image per reply, '
-              'draw the next frame every time I write "next".', '']
+    who = (f'The character: {" ".join(c["look"] for c in cast.values())} ' if cast else '')
+    rules = (f'Every image: {orientation(size)}. {NO_TEXT} Draw them one after another without asking me questions. '
+             'If you can only draw one image per reply, draw the next frame every time I write "next".')
+    if fresh:
+        intro = (f'We are making a series of {len(todo)} illustrations for one short animated story. Every image must use '
+                 'exactly the same style' + (' and the same character' if cast else '') + '. '
+                 f'Style: {story.get("style", "")} {who}Draw the frames one image per frame, in this order. {rules}')
+    else:
+        intro = ('Great. Keep exactly this style' + (' and the same character' if cast else '') + ' in every image. ' + who
+                 + f'Now draw the next {len(todo)} frames of the same story, one image per frame, in this order, '
+                 f'same style as the previous image. {rules}')
+    lines += ['', '─' * 60, '', intro, '']
     lines += [f'Frame {n}: {fr["draw"]}' for n, fr in enumerate(todo, 1)]
     path = out / 'chatgpt.txt'
     path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
     return path, todo
+
+
+def write_grok(story, out, size):
+    """Промпты для Grok: каждый кадр — полный самостоятельный промпт (стиль, внешность героев, сцена), потому что
+    Grok держит стиль между сообщениями хуже ChatGPT."""
+    cast = story.get('cast', {})
+    frames = all_frames(story)
+    lines = ['КАК ПОЛЬЗОВАТЬСЯ (Grok)', '',
+             '1. Откройте Grok, режим Imagine (или обычный чат с Grok), формат — вертикальный 2:3 или 9:16.',
+             '2. Вставляйте промпты по одному: один промпт — один кадр. Если Grok даёт несколько вариантов, берите тот, '
+             'где герой больше похож на героя в остальных кадрах.',
+             f'3. Скачайте все {len(frames)} картинок и пришлите мне в чат по порядку.', '']
+    for n, fr in enumerate(frames, 1):
+        who = ' '.join(cast[w]['look'] for w in fr['who'] if cast.get(w, {}).get('look'))
+        lines += ['─' * 60, f'Кадр {n} ({fr["name"]}) — {say_of(story, fr["scene"])}', '',
+                  f'{orientation(size).capitalize()} illustration. Style: {story.get("style", "")} '
+                  + (f'Characters: {who} ' if who else '') + f'Scene: {fr["draw"]} {NO_TEXT}', '']
+    path = out / 'grok.txt'
+    path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    return path
 
 
 def save_jpeg(data, dst):
@@ -235,6 +262,7 @@ def main():
     done = set(a.done) | {Path(fr['name']).stem for fr in all_frames(story) if (art / fr['name']).exists()}
     batch, todo = write_batch(story, out, size, done)
     print(f'Всё одним сообщением: {batch} (кадров: {len(todo)})')
+    print(f'Для Grok: {write_grok(story, out, size)}')
     if a.add:
         add(story, art, a.add)
     if a.api:
