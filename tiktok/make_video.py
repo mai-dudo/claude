@@ -8,6 +8,7 @@ import argparse
 import asyncio
 import base64
 import functools
+import hashlib
 import http.server
 import json
 import math
@@ -51,11 +52,42 @@ def resolve(obj, words, dur, where):
     return obj
 
 
-def build(story, out, tts=(None, None)):
-    """Озвучка всех сцен, монтажный лист (timeline.json) и звуковая дорожка (audio.wav)."""
-    cfg = voice.config(story, *tts)
+def split_narration(path, texts, cache):
+    """Своя озвучка всего ролика одним файлом → куски по сценам. Распознаём речь, сопоставляем со сценарием
+    и режем посередине пауз между сценами. Возвращает {номер сцены: (кусок, тайминги слов от начала куска)}."""
+    flat, owner = [], []
+    for i, t in enumerate(texts):
+        for w in t.split():
+            if voice.norm(w):
+                flat.append(w)
+                owner.append(i)
+    print(f'  распознаю свою озвучку: {path}')
+    timed = voice.asr_align(' '.join(flat), voice.transcribe(path))
+    spans = {}
+    for w, i in zip(timed, owner):
+        a, b = spans.get(i, (w['s'], w['e']))
+        spans[i] = (min(a, w['s']), max(b, w['e']))
+    order, total = sorted(spans), audio.duration(path)
+    tag = hashlib.sha1(Path(path).read_bytes()).hexdigest()[:10]
+    res = {}
+    for k, i in enumerate(order):
+        start = 0.0 if k == 0 else (spans[order[k - 1]][1] + spans[i][0]) / 2
+        end = total if k == len(order) - 1 else (spans[i][1] + spans[order[k + 1]][0]) / 2
+        clip = cache / f'narration-{tag}-{i}.wav'
+        subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', f'{start:.3f}', '-to', f'{end:.3f}', '-i', str(path),
+                        '-ac', '1', '-ar', '48000', str(clip)], check=True)
+        res[i] = (clip, [{'t': w['t'], 's': w['s'] - start, 'e': w['e'] - start} for w, o in zip(timed, owner) if o == i])
+    return res
+
+
+def build(story, out, tts=(None, None), narration=None):
+    """Озвучка всех сцен, монтажный лист (timeline.json) и звуковая дорожка (audio.wav).
+    narration — своя озвучка всего текста одним файлом (вместо синтеза по сценам)."""
+    cfg = voice.config(story, *tts) if not narration else None
     texts = [voice.parse(sc.get('say', '').strip())[0] for sc in story['scenes']]
     cache = ROOT / '.cache' / 'tts'
+    cache.mkdir(parents=True, exist_ok=True)
+    pieces = split_narration(narration, texts, cache) if narration else None
     scenes, caps, clips, effects, missing = [], [], [], [], []
     T = float(story.get('lead', 0.25))
     for i, sc in enumerate(story['scenes'], 1):
@@ -63,14 +95,18 @@ def build(story, out, tts=(None, None)):
         words, spoken = [], 0.0
         if say:
             text, marked = voice.parse(say)
-            own = {k: sc[k] for k in VOICE_KEYS if k in sc}  # свой голос у сцены: например, реплика героя
-            scfg = voice.config({**story, **own}, *tts) if own else cfg
-            mp3, bounds = voice.speak(text, scfg, cache, prev=texts[i - 2] if i > 1 else '',
-                                      nxt=texts[i] if i < len(texts) else '')
+            if pieces is not None:
+                mp3, bounds = pieces[i - 1]
+            else:
+                own = {k: sc[k] for k in VOICE_KEYS if k in sc}  # свой голос у сцены: например, реплика героя
+                scfg = voice.config({**story, **own}, *tts) if own else cfg
+                mp3, bounds = voice.speak(text, scfg, cache, prev=texts[i - 2] if i > 1 else '',
+                                          nxt=texts[i] if i < len(texts) else '')
             spoken = audio.duration(mp3)
             words = voice.align(marked, bounds)
             clips.append((T, mp3))
-        dur = float(sc.get('dur') or spoken + sc.get('pause', story.get('pause', 0.3)))
+        # В своей озвучке паузы между сценами уже есть — лишних не добавляем.
+        dur = float(sc.get('dur') or spoken + sc.get('pause', 0.0 if pieces is not None else story.get('pause', 0.3)))
         dur = max(dur, spoken + 0.05, 0.5)
         where = f'сцена {i}'
         body = {k: v2 for k, v2 in sc.items() if k not in ('say', 'sfx', 'images', 'draw', 'image', 'who')}
@@ -202,13 +238,15 @@ def main():
     ap.add_argument('--until', type=float, metavar='СЕК', help='собрать только начало ролика, до этой секунды')
     ap.add_argument('--tts', choices=['edge', 'elevenlabs', 'fish'], help='чем озвучивать (по умолчанию — как в сценарии)')
     ap.add_argument('--voice-id', help='голос: voice_id ElevenLabs (python voice.py voices) или id голоса Fish Audio')
+    ap.add_argument('--narration', help='своя озвучка всего текста одним аудиофайлом (mp3, wav, m4a…)')
     a = ap.parse_args()
 
     story = json.loads(Path(a.story).read_text(encoding='utf-8'))
     out = ROOT / 'out' / (story.get('slug') or Path(a.story).stem)
     out.mkdir(parents=True, exist_ok=True)
     print(f'«{story.get("title", out.name)}»: озвучка и монтаж')
-    tl = build(story, out, (a.tts, a.voice_id))
+    narration = a.narration or (str(ROOT / story['narration']) if story.get('narration') else None)
+    tl = build(story, out, (a.tts, a.voice_id), narration)
     print(f'  длина: {tl["duration"]:.1f} с, субтитров: {len(tl["captions"])}')
     post = story.get('post', {})
     caption, tags = post.get('caption', story.get('title', out.name)), ' '.join(post.get('hashtags', []))
