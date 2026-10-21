@@ -38,7 +38,7 @@ def scene_frames(sc, i):
     for j, it in enumerate(items):
         suffix = chr(ord('a') + j) if len(items) > 1 else ''
         res.append({'name': it.get('image') or f'{i:02d}{suffix}.jpg', 'draw': it.get('draw', ''),
-                    'who': it.get('who', sc.get('who', [])), 'at': it.get('at')})
+                    'who': it.get('who', sc.get('who', [])), 'at': it.get('at'), 'fx': it.get('fx')})
     return res
 
 

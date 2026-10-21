@@ -138,7 +138,7 @@ const FX = {
 };
 
 // ───────────────────────── Иллюстрация ─────────────────────────
-// P.frames: [{ src, name, draw, at }] — картинки сцены (make_video.py собирает их из image / images);
+// P.frames: [{ src, name, draw, at, fx }] — картинки сцены (make_video.py собирает их из image / images);
 // следующая сменяет предыдущую в момент at быстрым наплывом.
 // fit: 'cover' (на весь кадр, по умолчанию), 'letterbox' (по ширине, чёрные поля, как в кино),
 // 'blur' (по ширине на размытом фоне из той же картинки); y — центр картинки для letterbox и blur.
@@ -191,6 +191,8 @@ SCENES.art = (c, S) => {
     const k = g.at != null ? after(t, g.at, 0.4) : 1;
     glow(c, place[0] + g.x * place[2], place[1] + g.y * place[3], (g.r ?? 200) * zoom, g.color || '255,240,210', (g.a ?? 0.35) * pulse * k);
   }
-  for (const name of P.fx || ['grain', 'vignette']) if (FX[name]) FX[name](c, S, box);
+  // У картинки внутри сцены могут быть свои эффекты (дождь на улице, но не в комнате после смены кадра).
+  const cur = (P.frames || []).filter((f, i) => i === 0 || t >= (f.at ?? 0)).pop();
+  for (const name of (cur && cur.fx) || P.fx || ['grain', 'vignette']) if (FX[name]) FX[name](c, S, box);
   c.restore();
 };

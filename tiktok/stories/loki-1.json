@@ -6,6 +6,7 @@
   "pitch": "-4Hz",
   "tts": "fish",
   "voiceId": "7312c38557eb4fb384e3874e8e9cea67",
+  "narration": "narration/loki-1.mp3",
   "pause": 0.25,
   "cover": 1.2,
   "style": "Hand-drawn digital illustration like a frame from a moody indie animated short film: loose sketchy black ink outlines, flat cel-shaded characters with soft painted shadows, slightly desaturated muted colours, painterly softly blurred backgrounds, dramatic cinematic lighting, subtle film grain. Semi-realistic proportions, expressive faces. Magic appears as soft glowing green-and-gold light.",
@@ -49,6 +50,20 @@
           "type": "hit",
           "at": 0
         }
+      ],
+      "focus": [
+        0.42,
+        0.42
+      ],
+      "glows": [
+        {
+          "x": 0.43,
+          "y": 0.36,
+          "r": 160,
+          "color": "120,255,140",
+          "a": 0.3,
+          "pulse": 3
+        }
       ]
     },
     {
@@ -74,6 +89,10 @@
           "type": "whoosh",
           "at": "Локи"
         }
+      ],
+      "focus": [
+        0.72,
+        0.3
       ]
     },
     {
@@ -97,6 +116,10 @@
           "type": "whoosh",
           "at": "иллюзии"
         }
+      ],
+      "focus": [
+        0.5,
+        0.45
       ]
     },
     {
@@ -116,6 +139,11 @@
           "draw": "Evening city street in Russia: Dima's double rides an electric bike with the big square courier backpack, delivering orders, a faint green shimmer around him. Wet asphalt, street lights, motion.",
           "who": [
             "dima"
+          ],
+          "fx": [
+            "grain",
+            "vignette",
+            "rain"
           ]
         },
         {
@@ -131,6 +159,10 @@
           "type": "beep",
           "at": "сообщения"
         }
+      ],
+      "focus": [
+        0.5,
+        0.42
       ]
     },
     {
@@ -159,6 +191,10 @@
           "gap": 0.45,
           "db": -12
         }
+      ],
+      "focus": [
+        0.62,
+        0.32
       ]
     },
     {
@@ -173,7 +209,11 @@
         "grain",
         "vignette"
       ],
-      "draw": "Dima's apartment floor: a grey cat sits in a pile of Dima's clothes (green bomber jacket, black hoodie, cargo pants), staring at its own paws in panic; faint green sparkles fade around it. Funny and a little eerie."
+      "draw": "Dima's apartment floor: a grey cat sits in a pile of Dima's clothes (green bomber jacket, black hoodie, cargo pants), staring at its own paws in panic; faint green sparkles fade around it. Funny and a little eerie.",
+      "focus": [
+        0.72,
+        0.3
+      ]
     },
     {
       "type": "art",
@@ -185,7 +225,7 @@
       "who": [
         "dima"
       ],
-      "move": "left",
+      "move": "in",
       "fx": [
         "grain",
         "vignette"
@@ -196,6 +236,10 @@
           "type": "whoosh",
           "at": "серебряный"
         }
+      ],
+      "focus": [
+        0.5,
+        0.45
       ]
     },
     {
@@ -220,6 +264,10 @@
           "type": "whoosh",
           "at": "синеет"
         }
+      ],
+      "focus": [
+        0.6,
+        0.5
       ]
     },
     {
@@ -242,6 +290,10 @@
           "at": "змею",
           "db": -10
         }
+      ],
+      "focus": [
+        0.5,
+        0.35
       ]
     },
     {
@@ -272,6 +324,10 @@
           "dur": 4,
           "db": -10
         }
+      ],
+      "focus": [
+        0.45,
+        0.45
       ]
     },
     {
@@ -301,6 +357,10 @@
           "at": "богов",
           "db": -10
         }
+      ],
+      "focus": [
+        0.4,
+        0.4
       ]
     },
     {
@@ -320,10 +380,6 @@
         "vignette",
         "flicker"
       ],
-      "stamp": {
-        "text": "Они уже знают",
-        "at": "знают"
-      },
       "draw": "Night, Dima's dark bedroom: Dima sits up in bed, terrified, looking at the mirror on the wall. In the mirror stands Loki in his golden horned helmet, raising a finger to his lips, eyes glowing green, with a sly smile.",
       "sfx": [
         {
@@ -332,6 +388,10 @@
           "n": 3,
           "gap": 0.45
         }
+      ],
+      "focus": [
+        0.75,
+        0.3
       ]
     },
     {
