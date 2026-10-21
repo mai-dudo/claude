@@ -1,0 +1,15 @@
+{
+  "name": "alexandria",
+  "version": "1.0.0",
+  "private": true,
+  "description": "30-second vertical film: what if the Library of Alexandria never disappeared",
+  "type": "module",
+  "scripts": {
+    "preview": "node render.mjs --preview 1,5,9,13,19,23,28",
+    "render": "node render.mjs --all --workers 2"
+  },
+  "dependencies": {
+    "playwright": "1.56.1",
+    "three": "0.160.0"
+  }
+}

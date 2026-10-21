@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Александрия</title>
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+  html, body { margin: 0; background: #000; overflow: hidden; }
+  #gl, #ov { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "../node_modules/three/build/three.module.js", "three/addons/": "../node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="gl" width="1080" height="1920"></canvas>
+<canvas id="ov" width="1080" height="1920"></canvas>
+<script type="module">
+  const { registerShots } = await import('./schedule.js');
+  await registerShots();
+  await import('./main.js');
+</script>
+</body>
+</html>
