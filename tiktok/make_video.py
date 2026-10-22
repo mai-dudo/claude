@@ -26,7 +26,8 @@ import voice
 ROOT = Path(__file__).resolve().parent
 # Поля, где время можно задать словом из текста сцены («at»: «гул») или секундами от начала сцены.
 VOICE_KEYS = ('tts', 'voiceId', 'voiceModel', 'voiceSettings', 'voice', 'rate', 'pitch')
-TIME_KEYS = {'at', 'from', 'until', 'rail', 'lightsOff', 'lightOff', 'handle', 'phantoms', 'glowFrom', 'wind'}
+TIME_KEYS = {'at', 'from', 'until', 'rail', 'lightsOff', 'lightOff', 'handle', 'phantoms', 'glowFrom', 'wind',
+             'enter', 'vanish', 'prune', 'glowAt', 'magic', 'mirrorAt', 'sparksFrom'}
 
 
 def resolve_time(value, words, dur, where):

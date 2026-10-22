@@ -99,18 +99,23 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | `board` | доска почёта с фотографиями | `who` (кто из `cast` на выделенном фото), `focus` (номер рамки 0…5), `caption`, `at` |
 | `card` | титр, конец серии | `kicker`, `title: ["строка", { text, color }]`, `sub` |
 | `blank` | пустой фон под плашки | `bg` |
+| `room` | комната с окном, кроватью и зеркалом | `time` (`night`/`morning`), `mirror` (`loki` — в отражении рогатый шлем, `empty`), `mirrorAt`, `portal { at, x }`, `dark`, `people` |
+| `timeline` | светящаяся временная линия | `reveal`, `branches: [{ at, from, dir, color: orange/green, grown, prune, glowAt }]` |
+| `void` | Пустота на краю времени: руины и брошенная машина | `alioth { at, rise }` — фиолетовая грозовая туча, `alligators: [{ x, scale, facing, at }]`, `magic` (у героя светятся руки), `people` |
+| `myth` | северное сияние и восьминогий конь | `walk: [x0, x1]`, `legs`, `scale` |
 
-Герой: `hero` на верхнем уровне — внешность (`hat`: `hair`/`helmet`/`cap`/`none`, `hair`, `skin`, `jacket`,
+Герой: `hero` на верхнем уровне — внешность (`hat`: `hair`/`helmet`/`cap`/`none`/`horns` — шлем с рогами длиной `horns`, `hair`, `skin`, `jacket`,
 `stripes`, `pants`, `backpack`, `light`: `phone`/`torch`); `hero` в сцене — где он и что делает:
 `x`, `walk: [x0, x1]` с `from`/`until`, `pose`, `light`, `lightOff`, `then: { at, …что поменять }`.
 `"hero": false` — героя в сцене нет.
 
 Другие персонажи описываются в `cast` на верхнем уровне (`"cast": { "ded": { "hat": "helmet", … } }`) и выводятся
 в сцене списком `people: [{ "who": "ded", "walk": [100, 700] }]` с теми же полями, что у героя;
-`"dead": true` — фонарь в руке не светит. Позы: `stand`, `walk`, `sit`, `sleep`, `swim` (плывёт), `lie` (лежит);
+`"dead": true` — фонарь в руке не светит. В сценах `room` и `void` у персонажей ещё есть `ghost: true` (иллюзия),
+`enter` (выходит из портала в это слово) и `vanish` (исчезает со вспышкой). Позы: `stand`, `walk`, `sit`, `sleep`, `swim` (плывёт), `lie` (лежит);
 `diver: true` — баллон и маска, `mask: true` — только маска, `light: "head"` — фонарь на каске, `dig` — машет руками
 у стены, `carry` — руки вперёд, `eyesClosed`. У пловца задаётся `y`. Примеры — `stories/metro-tupik-2.json` и `stories/tham-luang-1.json`.
-Новые сцены добавляются в `render/scenes.js`.
+Новые сцены добавляются в `render/scenes.js` (фэнтези-сцены — в `render/fantasy.js`).
 
 ## Рисованные ролики
 

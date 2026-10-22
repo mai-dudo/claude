@@ -96,7 +96,8 @@ function vignette(c, a = 0.55, inner = 0.45) {
 // o: pose ('stand' | 'walk' | 'sit' | 'sleep' | 'swim' | 'lie' — swim и lie лёжа, голова в сторону facing),
 // phase (фаза шага), facing (1 вправо, -1 влево), light ('phone' | 'torch' в руке, 'head' — фонарь на каске),
 // silhouette (цвет — нарисовать силуэтом), seat (высота сиденья для sit/sleep), zombie или carry (руки вперёд),
-// dig (машет руками у стены), diver (баллон и маска), mask (только маска), eyesClosed и одежда из HERO_DEFAULT.
+// dig (машет руками у стены), diver (баллон и маска), mask (только маска), eyesClosed, hat: 'horns' (шлем Локи,
+// длина рогов — horns) и одежда из HERO_DEFAULT.
 // Возвращает точку и направление фонаря в координатах сцены.
 const HERO_DEFAULT = {
   hat: 'helmet', hatColor: '#F4B400', hair: '#2b1d14', skin: '#F1C7A1', jacket: '#F07D1A', stripes: true,
@@ -170,6 +171,18 @@ function drawPerson(c, x, y, s, o) {
   if (o.hat === 'helmet') {
     c.fillStyle = col('hatColor');
     c.beginPath(); c.arc(2, -40, 34, Math.PI, TAU); c.fill(); rr(c, -32, -44, 78, 9, 4); c.fill();
+  } else if (o.hat === 'horns') {
+    // золотой шлем с длинными изогнутыми рогами (horns — длина рогов, 1 обычные, 1.7 огромные)
+    const k = o.horns ?? 1, gold = sil || '#d6a531';
+    c.fillStyle = col('hair'); c.beginPath(); c.ellipse(-14, -22, 16, 30, 0.15, 0, TAU); c.fill();
+    c.fillStyle = gold;
+    c.beginPath(); c.arc(2, -40, 34, Math.PI, TAU); c.fill(); rr(c, -32, -46, 70, 12, 5); c.fill();
+    c.fillRect(20, -46, 12, 30);
+    for (const [bx, w, shade2] of [[-8, 1, 0.82], [8, 1, 1]]) {
+      c.fillStyle = sil || (shade2 < 1 ? '#a87f1f' : gold);
+      c.beginPath(); c.moveTo(bx - 7, -66); c.quadraticCurveTo(bx - 4, -100 * k, bx - 46 * k, -148 * k);
+      c.quadraticCurveTo(bx + 10, -104 * k, bx + 9, -66); c.closePath(); c.fill();
+    }
   } else if (o.hat === 'cap') {
     c.fillStyle = col('hatColor');
     c.beginPath(); c.arc(2, -42, 32, Math.PI, TAU); c.fill(); rr(c, 10, -46, 42, 9, 4); c.fill();
