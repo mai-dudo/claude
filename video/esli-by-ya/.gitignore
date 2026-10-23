@@ -1,0 +1,4 @@
+out/
+scene/fonts/
+voice/*
+!voice/README.md

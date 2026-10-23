@@ -1,0 +1,11 @@
+{
+  "name": "esli-by-ya-video",
+  "private": true,
+  "type": "module",
+  "description": "Ролик «Если бы я...»: сцены в HTML, кадры через Playwright, сборка через ffmpeg",
+  "scripts": {
+    "fonts": "bash tools/fetch-fonts.sh",
+    "script": "node tools/make-script.js",
+    "render": "bash tools/build.sh"
+  }
+}
