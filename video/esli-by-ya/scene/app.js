@@ -706,7 +706,7 @@ class Sources extends Scene {
     this.el.append(deco('cookie', 1480, -180, 600, 'alt'));
     this.title = h('<h2>Источники</h2>');
     this.list = h(`<ol>${data.items.map((s, i) => `<li><i>${i + 1}</i>${s}</li>`).join('')}</ol>`);
-    this.foot = h(`<div class="foot">${icon("school")}«${story.title}» · ${story.subtitle}</div>`);
+    this.foot = h(`<div class="foot">${icon("groups")}Выполнили: ${story.team.join(', ')} · ${story.subtitle}</div>`);
     this.el.append(this.title, this.list, this.foot);
   }
   update(t) {

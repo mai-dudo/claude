@@ -45,8 +45,8 @@ function wrap(inner, { back = '', viewBox = '0 0 600 720', cls = '' } = {}) {
   </svg>`;
 }
 
-// Азиз — лидер молодёжи махалли: худи, бейдж на шнурке.
-function aziz() {
+// Гутко — лидер молодёжи махалли: худи, бейдж на шнурке.
+function gutko() {
   const skin = '#E2A77F', shade = '#C4865E', hair = '#1E1A19';
   return {
     body: `
@@ -69,38 +69,39 @@ function aziz() {
   };
 }
 
-// Малика — председатель махалли: пучок, зелёный жакет, шарф из адраса.
-function malika() {
-  const skin = '#EDBA93', shade = '#D09872', hair = '#3B2A22';
+// Бурханов — председатель махалли: тюбетейка-дуппи, зелёный пиджак, платок из адраса в кармане.
+function burkhanov() {
+  const skin = '#DDA27A', shade = '#BF845C', hair = '#1F1A18';
   const id = `ikat${++uid}`;
+  const pepper = (x, y, r) => `<path transform="translate(${x} ${y}) rotate(${r})" d="M0 12 C-11 2 -7 -14 6 -14 C1 -7 4 2 0 12 Z" fill="#fff"/>`;
   return {
-    back: `<circle cx="300" cy="150" r="52" fill="${hair}"/>`,
     body: `
       <defs>
-        <pattern id="${id}" width="44" height="30" patternUnits="userSpaceOnUse">
-          <rect width="44" height="30" fill="#C2185B"/>
-          <path d="M0 15 L11 4 L22 15 L33 4 L44 15 L44 30 L33 19 L22 30 L11 19 L0 30 Z" fill="#FBC02D"/>
-          <path d="M0 15 L11 9 L22 15 L33 9 L44 15 L33 21 L22 15 L11 21 Z" fill="#1565C0"/>
-          <circle cx="22" cy="15" r="3" fill="#fff"/>
+        <pattern id="${id}" width="22" height="15" patternUnits="userSpaceOnUse">
+          <rect width="22" height="15" fill="#C2185B"/>
+          <path d="M0 7.5 L5.5 2 L11 7.5 L16.5 2 L22 7.5 L22 15 L16.5 9.5 L11 15 L5.5 9.5 L0 15 Z" fill="#FBC02D"/>
+          <path d="M0 7.5 L5.5 4.5 L11 7.5 L16.5 4.5 L22 7.5 L16.5 10.5 L11 7.5 L5.5 10.5 Z" fill="#1565C0"/>
         </pattern>
       </defs>
       <path d="${NECK}" fill="${shade}"/>
       <path d="${SHOULDERS}" fill="#386A20"/>
-      <path d="M252 514 L300 610 L348 514 Z" fill="#FFFFFF"/>
-      <path d="M248 516 L302 612 L262 720 L204 720 L176 560 Z" fill="#2B5317"/>
-      <path d="M352 516 L298 612 L338 720 L396 720 L424 560 Z" fill="#2B5317"/>
-      <path d="M220 494 C254 540 346 540 380 494 L392 522 C350 576 250 576 208 522 Z" fill="url(#${id})"/>
-      <path d="M352 540 L392 524 L414 690 L376 700 Z" fill="url(#${id})"/>
-      <path d="M376 700 L414 690 L418 712 L380 720 Z" fill="#FBC02D"/>`,
-    head: `${face({ skin, shade, blush: '#E58C78', hair, eyeRy: 13 })}
-      <circle cx="190" cy="334" r="7" fill="#F2B33D"/><circle cx="410" cy="334" r="7" fill="#F2B33D"/>
-      <path d="M186 290 C176 196 230 146 300 144 C370 146 424 196 414 290 C406 226 362 196 304 198 C296 222 250 228 214 240 C200 252 190 270 186 290 Z" fill="${hair}"/>
-      <path d="M304 198 C350 196 398 214 414 290 C420 240 400 190 352 168 Z" fill="${hair}"/>`,
+      <path d="M250 512 L300 604 L350 512 Z" fill="#FFFFFF"/>
+      <path d="M262 506 L300 530 L338 506 L344 520 L300 548 L256 520 Z" fill="#E8F5E9"/>
+      <path d="M246 516 L300 612 L262 720 L200 720 L174 560 Z" fill="#2B5317"/>
+      <path d="M354 516 L300 612 L338 720 L400 720 L426 560 Z" fill="#2B5317"/>
+      <path d="M362 610 L404 602 L410 632 L366 640 Z" fill="url(#${id})"/>
+      <path d="M358 638 L414 628 L416 640 L360 650 Z" fill="#244A13"/>`,
+    head: `${face({ skin, shade, blush: '#D98670', hair, eyeRy: 12, browW: 9 })}
+      <path d="M190 290 C186 246 194 226 206 214 L214 266 Z" fill="${hair}"/>
+      <path d="M410 290 C414 246 406 226 394 214 L386 266 Z" fill="${hair}"/>
+      <path d="M202 226 L212 158 C252 136 348 136 388 158 L398 226 C342 206 258 206 202 226 Z" fill="#1A1A1A"/>
+      <path d="M206 218 C262 200 338 200 394 218" stroke="#fff" stroke-width="5" fill="none"/>
+      ${pepper(250, 182, -20)}${pepper(300, 176, 0)}${pepper(350, 182, 20)}`,
   };
 }
 
-// Тимур — хоким: костюм, галстук, значок с флагом, усы.
-function timur() {
+// Усманов — хоким: костюм, галстук, значок с флагом, усы.
+function usmanov() {
   const skin = '#D49A6E', shade = '#B57B52', hair = '#2A2522';
   return {
     body: `
@@ -126,29 +127,30 @@ function timur() {
   };
 }
 
-// Нилуфар — министр водного хозяйства: длинные волосы, очки, значок-капля.
-function nilufar() {
-  const skin = '#EEC09A', shade = '#D4A07A', hair = '#2B1D16';
+// Тропачев — министр водного хозяйства: очки, костюм цвета воды, значок-капля.
+function tropachev() {
+  const skin = '#F0C8A8', shade = '#D8A886', hair = '#6B4A33';
   return {
-    back: `<path d="M172 292 C160 168 228 132 300 132 C372 132 440 168 428 292 C432 400 448 500 444 620 L156 620 C152 500 168 400 172 292 Z" fill="${hair}"/>`,
     body: `
       <path d="${NECK}" fill="${shade}"/>
       <path d="${SHOULDERS}" fill="#006A6A"/>
-      <path d="M256 506 C270 540 330 540 344 506 L356 520 C340 566 260 566 244 520 Z" fill="#E0F7F7"/>
-      <path d="M244 520 C260 566 340 566 356 520 L368 540 L302 640 L232 540 Z" fill="#F4FBFA"/>
-      <path d="M232 540 L302 640 L262 720 L196 720 L172 572 Z" fill="#004F4F"/>
-      <path d="M368 540 L302 640 L342 720 L404 720 L428 572 Z" fill="#004F4F"/>
+      <path d="M248 512 L300 600 L352 512 Z" fill="#FFFFFF"/>
+      <path d="M286 528 L314 528 L320 548 L300 562 L280 548 Z" fill="#01579B"/>
+      <path d="M282 556 L300 562 L318 556 L330 690 L300 720 L270 690 Z" fill="#0288D1"/>
+      <path d="M288 600 L312 590 M284 640 L318 626 M280 680 L322 664" stroke="#4FC3F7" stroke-width="5" stroke-linecap="round"/>
+      <path d="M244 514 L298 612 L258 720 L196 720 L172 562 Z" fill="#004F4F"/>
+      <path d="M356 514 L302 612 L342 720 L404 720 L428 562 Z" fill="#004F4F"/>
       <path d="M380 596 C380 596 368 612 368 620 A12 12 0 0 0 392 620 C392 612 380 596 380 596 Z" fill="#4DD0E1"/>`,
     head: `${face({ skin, shade, blush: '#E8907C', hair, eyeRy: 13 })}
-      <circle cx="190" cy="334" r="6" fill="#F5F5F5"/><circle cx="410" cy="334" r="6" fill="#F5F5F5"/>
       <rect x="226" y="278" width="64" height="46" rx="18" fill="none" stroke="#3A2E2A" stroke-width="5"/>
       <rect x="310" y="278" width="64" height="46" rx="18" fill="none" stroke="#3A2E2A" stroke-width="5"/>
       <path d="M290 298 Q300 290 310 298" stroke="#3A2E2A" stroke-width="5" fill="none"/>
-      <path d="M184 292 C178 192 234 144 304 144 C374 144 424 196 416 292 C402 230 372 204 332 198 C292 232 232 244 200 308 Z" fill="${hair}"/>`,
+      <path d="M186 282 C176 190 228 138 304 136 C380 136 428 188 414 282 C408 238 392 214 368 204 C330 216 270 212 238 194 C216 214 198 240 186 282 Z" fill="${hair}"/>
+      <path d="M238 194 C262 156 336 146 384 176 C346 168 290 174 238 194 Z" fill="#8A6446"/>`,
   };
 }
 
-const BUILDERS = { A: aziz, M: malika, T: timur, N: nilufar };
+const BUILDERS = { A: gutko, M: burkhanov, T: usmanov, N: tropachev };
 
 export function characterSVG(who, opts = {}) {
   const parts = BUILDERS[who]();

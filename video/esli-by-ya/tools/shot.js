@@ -3,7 +3,7 @@
 import { mkdirSync } from 'node:fs';
 import { serve, launch, openPage } from './serve.js';
 
-const out = new URL('../out/shots/', import.meta.url);
+const out = new URL(process.env.SHOTS || '../out/shots/', import.meta.url);
 mkdirSync(out, { recursive: true });
 const { server, url } = await serve();
 const browser = await launch();

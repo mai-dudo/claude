@@ -1,6 +1,6 @@
 # Prepares the voice-overs: put files into voice/ and run python3 tools/voices.py
 #  - one file per line, named by its id: A1.mp3, I2.ogg, M4.m4a ...
-#  - or one file per character (Азиз.mp3, Малика.ogg, Тимур.wav, Нилуфар.m4a) with
+#  - or one file per character (Гутко.mp3, Бурханов.ogg, Усманов.wav, Тропачев.m4a) with
 #    the lines read in order and a pause between them; it is cut on the pauses.
 # Writes voice/_norm/<id>.wav (trimmed, levelled, 48 kHz mono) and voice/timing.json
 # (duration of each line plus a mouth-opening envelope for the lip-sync).
@@ -22,7 +22,8 @@ for sc in story['scenes']:
         lines += p['lines']
 ids = [l['id'] for l in lines]
 by_who = {k: [l['id'] for l in lines if l['who'] == k] for k in story['cast']}
-name_to_who = {c['name'].lower(): k for k, c in story['cast'].items()}
+norm = lambda s: s.strip().lower().replace('ё', 'е')
+name_to_who = {norm(c['name']): k for k, c in story['cast'].items()}
 
 def decode(path):
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-f', 'f32le', '-ac', '1', '-ar', str(SR), '-'],
@@ -99,8 +100,8 @@ for f in sorted(os.listdir(VOICE)):
     key = stem.strip().upper()
     if key in ids:
         found[key] = trim(decode(os.path.join(VOICE, f)))
-    elif stem.strip().lower() in name_to_who:
-        who = name_to_who[stem.strip().lower()]
+    elif norm(stem) in name_to_who:
+        who = name_to_who[norm(stem)]
         pieces = split(decode(os.path.join(VOICE, f)), len(by_who[who]))
         for lid, piece in zip(by_who[who], pieces):
             found.setdefault(lid, trim(piece))
