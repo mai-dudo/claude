@@ -71,4 +71,14 @@ for (const [k, c] of Object.entries(story.cast)) {
   writeFileSync(new URL(`тексты/${c.name}.txt`, root), '﻿' + txt.join('\r\n'));
 }
 
+// The same texts as one line each, for TTS sites that dislike line breaks (ElevenLabs).
+mkdirSync(new URL('тексты/одной-строкой/', root), { recursive: true });
+for (const [k, c] of Object.entries(story.cast)) {
+  const flat = tl.lines
+    .filter((l) => l.who === k)
+    .map((l) => spoken(l).replace(/^[.…\s]+/, '').replace(/^./, (ch) => ch.toUpperCase()))
+    .join(' ');
+  writeFileSync(new URL(`тексты/одной-строкой/${c.name}.txt`, root), flat);
+}
+
 console.log(`СЦЕНАРИЙ.md: ${tl.lines.length} реплик, ~${tc(tl.duration)}`);
