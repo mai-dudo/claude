@@ -45,6 +45,21 @@ node tools/shot.js 30 95   # отдельные кадры для проверк
 Посмотреть вживую: `python3 -m http.server` в этой папке и открыть `http://localhost:8000/scene/` (пробел — пауза,
 стрелки — перемотка на 5 секунд).
 
+### Голоса нейросетью
+
+`tools/ai_voices.py` озвучивает все реплики локальной нейросетью XTTS-v2 (Coqui, лицензия CPML — только
+некоммерческое использование) по одной записи голоса, а потом делает из него четыре разных подростковых
+голоса сдвигом высоты и тембра (Praat). Каждую реплику проверяет распознавание речи (faster-whisper):
+если фраза вышла смазанной, она генерируется заново, а лишние звуки в конце обрезаются.
+
+```
+python3 -m venv .venv-tts
+.venv-tts/bin/pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+.venv-tts/bin/pip install "coqui-tts[codec]" praat-parselmouth faster-whisper
+COQUI_TOS_AGREED=1 .venv-tts/bin/python tools/ai_voices.py путь/к/записи.ogg
+bash tools/build.sh
+```
+
 Пока озвучки нет, длина реплик оценивается по количеству слогов, а рот двигается условно. После того как файлы
 появятся в `voice/`, `tools/build.sh` подстроит тайминг под реальные фразы, губы — под громкость голоса, а музыку
 приглушит под речь.
