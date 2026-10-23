@@ -1,6 +1,6 @@
-// Writes СЦЕНАРИЙ.md (texts for the voice-overs) from story.json.
+// Writes СЦЕНАРИЙ.md and тексты/<фамилия>.txt (texts for the voice-overs) from story.json.
 // Usage: node tools/make-script.js
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { buildTimeline, spoken } from '../scene/timeline.js';
 
 const root = new URL('..', import.meta.url);
@@ -53,4 +53,22 @@ for (const sc of tl.scenes) {
 }
 
 writeFileSync(new URL('СЦЕНАРИЙ.md', root), out.join('\n'));
+
+// One plain-text file per person to read from while recording.
+mkdirSync(new URL('тексты/', root), { recursive: true });
+for (const [k, c] of Object.entries(story.cast)) {
+  const own = tl.lines.filter((l) => l.who === k);
+  const txt = [
+    `${c.name} — ${c.role}`,
+    `Как читать: ${c.voice.toLowerCase()}.`,
+    '',
+    'Как записать: читай реплики по порядку, между репликами пауза 2 секунды.',
+    `Можно одним файлом (назови его «${c.name}») или каждую реплику отдельным файлом (имя = номер, например ${own[0].id}).`,
+    'Цифры уже написаны словами — читай как написано. Номера реплик вслух не читай.',
+    '',
+    ...own.flatMap((l) => [`${l.id}. ${spoken(l)}`, '']),
+  ];
+  writeFileSync(new URL(`тексты/${c.name}.txt`, root), '﻿' + txt.join('\r\n'));
+}
+
 console.log(`СЦЕНАРИЙ.md: ${tl.lines.length} реплик, ~${tc(tl.duration)}`);
