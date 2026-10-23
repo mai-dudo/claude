@@ -46,6 +46,12 @@ body { font-family: 'Google Sans', 'Roboto', sans-serif; color: var(--on-surface
 .layer { position: absolute; inset: 0; }
 .fx { will-change: transform, opacity; }
 
+/* Pixel-art students: one sprite sheet per person, 8 frames in a row (mouth × blink).
+   Sizes are whole multiples of the 120×144 sprite so every pixel stays square. */
+.char .sheet { width: 100%; aspect-ratio: 600 / 720; background-size: 800% 100%; background-repeat: no-repeat; image-rendering: pixelated; }
+.char--avatar { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.char--avatar .sheet { position: absolute; width: 176.5%; left: -38.2%; top: -29.4%; }
+
 /* Decorative Material 3 Expressive shapes */
 .deco { position: absolute; fill: var(--pc); opacity: .55; }
 .deco.alt { fill: var(--soft); opacity: 1; }
@@ -68,7 +74,7 @@ body { font-family: 'Google Sans', 'Roboto', sans-serif; color: var(--on-surface
 .big-sub { position: absolute; left: 0; right: 0; top: 278px; text-align: center; font-size: 32px; color: var(--on-surface-v); font-weight: 500; }
 .cast { position: absolute; left: 130px; right: 130px; top: 350px; display: flex; gap: 40px; }
 .ccard { position: relative; flex: 1; height: 560px; border-radius: 48px; background: var(--pc); overflow: hidden; box-shadow: var(--e1); }
-.ccard .char { position: absolute; left: -10px; right: -10px; bottom: 26px; width: calc(100% + 20px); }
+.ccard .char { position: absolute; left: 50%; bottom: 0; width: 360px; margin-left: -180px; }
 .ccard .deco { opacity: .9; fill: rgba(255,255,255,.35); }
 .ccard .tag { z-index: 2; position: absolute; left: 20px; right: 20px; bottom: 20px; background: var(--surface); border-radius: 28px; padding: 16px 22px; box-shadow: var(--e1); }
 .ccard .tag b { display: block; font-size: 34px; font-weight: 700; color: var(--opc); }
@@ -110,7 +116,7 @@ body { font-family: 'Google Sans', 'Roboto', sans-serif; color: var(--on-surface
 .step.done i { background: var(--primary); color: var(--on-primary); }
 
 .stagecard { position: absolute; left: 60px; top: 166px; width: 700px; height: 740px; border-radius: 56px; background: var(--pc); overflow: hidden; }
-.stagecard .char { position: absolute; left: 20px; bottom: -28px; width: 660px; }
+.stagecard .char { position: absolute; left: 50px; bottom: 0; width: 600px; }
 .stagecard .deco { fill: rgba(255,255,255,.4); opacity: 1; }
 .stagecard .topic { position: absolute; left: 28px; top: 28px; display: flex; align-items: center; gap: 12px; background: var(--surface); color: var(--opc);
   padding: 12px 26px 12px 14px; border-radius: 99px; font-size: 26px; font-weight: 500; box-shadow: var(--e1); }

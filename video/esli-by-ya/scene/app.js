@@ -1,7 +1,7 @@
 // «Если бы я...» — every frame is a pure function of time: renderAt(t).
 // tools/render.js calls it frame by frame; opening the page in a browser plays it live.
 import { buildTimeline } from './timeline.js';
-import { characterSVG, avatarSVG, mouthPath } from './characters.js';
+import { characterHTML, frameIndex, FRAMES } from './characters.js';
 
 const params = new URLSearchParams(location.search);
 const RENDER = params.has('render');
@@ -83,17 +83,10 @@ function spinDeco(root, t) {
 const chars = [];
 const BLINK = { A: [3.6, 0.4], M: [4.3, 1.7], T: [5.1, 2.6], N: [3.9, 3.1] };
 function mountChar(parent, who, avatar = false) {
-  const svg = h(avatar ? avatarSVG(who) : characterSVG(who));
-  parent.appendChild(svg);
-  const mouth = svg.querySelector('.c-mouth');
-  chars.push({
-    who, svg,
-    body: svg.querySelector('.c-body'),
-    heads: [...svg.querySelectorAll('.c-head')],
-    eyes: svg.querySelector('.c-eyes'),
-    mouth, cy: +mouth.dataset.cy, last: -1,
-  });
-  return svg;
+  const el = h(characterHTML(who, avatar));
+  parent.appendChild(el);
+  chars.push({ who, el, avatar, sheet: el.querySelector('.sheet'), last: -1 });
+  return el;
 }
 
 let TL, TIMING, BY_WHO;
@@ -113,18 +106,18 @@ function mouthOpen(line, t) {
 function animateChar(c, t) {
   const [period, off] = BLINK[c.who];
   const line = speakingLine(c.who, t);
-  const lt = (t + off) % period;
-  const blink = lt < 0.16 ? 1 - Math.sin((Math.PI * lt) / 0.16) * 0.9 : 1;
-  c.eyes.style.transform = `scaleY(${blink.toFixed(3)})`;
-  const talk = line ? win(t, line.start, line.end, 0.3) : 0;
-  const rot = Math.sin(t * 0.9 + off) * 1.2 + talk * Math.sin(t * 3.3 + off) * 1.8;
-  for (const hd of c.heads) hd.style.transform = `rotate(${rot.toFixed(2)}deg)`;
-  c.body.style.transform = `translateY(${(Math.sin(t * 1.7 + off) * 3).toFixed(2)}px)`;
+  const blink = (t + off) % period < 0.14;
   const open = line ? mouthOpen(line, t) : 0;
-  const q = Math.round(open * 40);
-  if (q !== c.last) {
-    c.mouth.setAttribute('d', mouthPath(q / 40, c.cy));
-    c.last = q;
+  const mouth = open < 0.15 ? 0 : open < 0.45 ? 1 : open < 0.75 ? 2 : 3;
+  const idx = frameIndex(mouth, blink);
+  if (idx !== c.last) {
+    c.sheet.style.backgroundPositionX = `${((idx / (FRAMES - 1)) * 100).toFixed(4)}%`;
+    c.last = idx;
+  }
+  if (!c.avatar) {
+    const talk = line ? win(t, line.start, line.end, 0.3) : 0;
+    const y = Math.sin(t * 1.7 + off) * 3 - talk * (1.5 + Math.sin(t * 3.3 + off) * 1.5);
+    c.sheet.style.transform = `translateY(${y.toFixed(2)}px)`;
   }
 }
 
@@ -748,12 +741,18 @@ function renderAt(t) {
     if (vis) s.update(t);
   }
   for (const c of chars) {
-    if (c.svg.closest('.scene')?.style.visibility === 'hidden') continue;
+    if (c.el.closest('.scene')?.style.visibility === 'hidden') continue;
     animateChar(c, t);
   }
   subs.update(t);
 }
 
+// sprite sheets must be loaded before the first frame is captured
+await Promise.all(Object.keys(story.cast).map((k) => new Promise((ok) => {
+  const img = new Image();
+  img.onload = img.onerror = ok;
+  img.src = `sprites/${k}.png`;
+})));
 await document.fonts.ready;
 await Promise.all([
   document.fonts.load('700 40px "Google Sans"', 'АБВ'),

@@ -1,4 +1,6 @@
 out/
 scene/fonts/
+scene/sprites/
+.venv/
 voice/*
 !voice/README.md
