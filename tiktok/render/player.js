@@ -112,7 +112,7 @@ function stamp(c, s, t, T) {
 // Карточка с цифрой вверху кадра: { label, value, color, at }
 function card(c, cd, i, n, k) {
   if (k <= 0) return;
-  const cw = n > 1 ? 420 : 560, gap = 40, x = W / 2 - (n * cw + (n - 1) * gap) / 2 + i * (cw + gap), y = 330;
+  const cw = n > 2 ? 310 : n > 1 ? 420 : 560, gap = n > 2 ? 24 : 40, x = W / 2 - (n * cw + (n - 1) * gap) / 2 + i * (cw + gap), y = 330;
   c.save(); c.globalAlpha = k; c.translate(0, (1 - ease.out(k)) * 30);
   c.fillStyle = 'rgba(14,16,22,0.9)'; rr(c, x, y, cw, 170, 20); c.fill();
   c.textAlign = 'center'; c.fillStyle = 'rgba(255,255,255,0.6)'; c.font = '700 26px "JetBrains Mono"';

@@ -236,38 +236,56 @@ SCENES.phone = (c, S) => {
 // ───────────────────────── Ночной город ─────────────────────────
 // P: ground (y улицы), dawn (рассвет), danger (зарево), rain, metro (павильон с буквой М), figures { n, kind: 'people' | 'zombie' },
 // hero и people (люди на улице, как в тоннеле),
-// cutaway (разрез под землёй: эскалатор, станция, тоннель с тупиком), train (поезд в тупике)
-function skyline(c, seed, base, hmin, hmax, wmin, wmax, fill, lit, T) {
+// cutaway (разрез под землёй: эскалатор, станция, тоннель с тупиком), train (поезд в тупике),
+// blackout (at — дома гаснут один за другим; 0 — света нет с начала сцены), flash (at — вспышка на подстанции),
+// snow (идёт снег; под улицей заснеженный двор вместо земли)
+
+// Сколько города уже погасло к моменту t: 0..1. at == null — блэкаута нет, at около 0 — темно с начала сцены.
+const offK = (t, at) => (at == null ? 0 : at <= 0.05 ? 1 : clamp((t - at) / 1.4));
+
+// off — доля погасших домов (блэкаут): дом гаснет целиком, кое-где в окнах светят фонарики телефонов.
+function skyline(c, seed, base, hmin, hmax, wmin, wmax, fill, lit, T, off = 0) {
   const r = rng(seed);
-  let x = -90;
+  let x = -90, b = 0;
   while (x < W + 90) {
     const w = lerp(wmin, wmax, r()), h = lerp(hmin, hmax, r());
     c.fillStyle = fill; c.fillRect(x, base - h, w, h + 2);
     if (r() < 0.3) c.fillRect(x + w * 0.6, base - h - 50, 5, 50);
+    const dark = off > 0 && hash(seed * 31 + b * 7) < off;
     const cols = Math.floor((w - 24) / 32), rows = Math.floor((h - 36) / 46);
     for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
       const id = seed * 7919 + Math.round(x) * 13 + i * 131 + j * 17;
+      if (dark) {
+        if (hash(id + 77) < 0.03) {
+          c.fillStyle = `rgba(205,220,255,${0.18 + 0.22 * noise1(T * 1.5 + i + j * 3, 4)})`;
+          c.fillRect(x + 16 + i * 32, base - h + 26 + j * 46, 15, 22);
+        }
+        continue;
+      }
       const flip = Math.floor(T / 6 + hash(id) * 6);
       if (hash(id + flip * 0.37) < lit) {
         c.fillStyle = `rgba(242,${170 + Math.floor(hash(id + 3) * 50)},${90 + Math.floor(hash(id + 5) * 40)},${0.45 + hash(id + 9) * 0.45})`;
         c.fillRect(x + 16 + i * 32, base - h + 26 + j * 46, 15, 22);
       }
     }
-    x += w + lerp(6, 34, r());
+    x += w + lerp(6, 34, r()); b++;
   }
 }
 
 SCENES.city = (c, S) => {
   const { t, T, P } = S;
   const gy = P.ground ?? (P.cutaway ? 700 : 1150), dawn = !!P.dawn;
+  const off = offK(t, P.blackout), off2 = P.blackout == null || P.blackout <= 0.05 ? off : offK(t, P.blackout + 0.35);
   let g = c.createLinearGradient(0, 0, 0, gy);
   g.addColorStop(0, dawn ? '#27365c' : '#0a0e1a'); g.addColorStop(1, dawn ? '#f0a378' : '#1e2539');
   c.fillStyle = g; c.fillRect(-80, -80, W + 160, gy + 80);
+  // без городской засветки небо темнеет и проступают звёзды
+  if (off > 0) { c.fillStyle = `rgba(4,6,12,${0.45 * off})`; c.fillRect(-80, -80, W + 160, gy + 80); }
   if (!dawn) {
     const r = rng(7);
-    for (let i = 0; i < 70; i++) {
-      c.globalAlpha = 0.25 + 0.5 * noise1(T * 0.7 + i, 2);
-      c.fillStyle = '#fff'; c.fillRect(r() * W, r() * gy * 0.55, 2.5, 2.5);
+    for (let i = 0; i < 70 + Math.round(90 * off); i++) {
+      c.globalAlpha = clamp((0.25 + 0.5 * noise1(T * 0.7 + i, 2)) * (i < 70 ? 1 + off * 0.5 : off));
+      c.fillStyle = '#fff'; c.fillRect(r() * W, r() * gy * (i < 70 ? 0.55 : 0.75), 2.5, 2.5);
     }
     c.globalAlpha = 1;
     if (P.moon !== false) { circle(c, 190, 150, 50, '#e9e4d0'); glow(c, 190, 150, 200, '233,228,208', 0.12); }
@@ -275,19 +293,25 @@ SCENES.city = (c, S) => {
     glow(c, 620, gy - 40, 620, '255,170,110', 0.45);
     circle(c, 620, gy - 120, 60, 'rgba(255,214,160,0.9)');
   }
-  skyline(c, 3, gy, gy * 0.42, gy * 0.8, 110, 200, dawn ? '#2c3554' : '#151b2b', dawn ? 0.08 : 0.22, T);
+  skyline(c, 3, gy, gy * 0.42, gy * 0.8, 110, 200, dawn ? '#2c3554' : '#151b2b', dawn ? 0.08 : 0.22, T, off);
   if (P.danger) {
     for (let i = 0; i < 4; i++) glow(c, 120 + i * 270, gy - 80 - (i % 2) * 120, 260, '255,90,50', 0.18 + 0.08 * Math.sin(T * 2.3 + i * 2));
   }
-  skyline(c, 11, gy, gy * 0.2, gy * 0.5, 140, 240, dawn ? '#343e5e' : '#1a2134', dawn ? 0.1 : 0.3, T);
+  if (P.flash != null && t >= P.flash && t < P.flash + 0.9) {
+    const k = 1 - (t - P.flash) / 0.9;
+    glow(c, 800, gy - 90, 520, '150,200,255', 0.9 * k);
+    circle(c, 800, gy - 90, 26 * k, `rgba(235,245,255,${k})`);
+  }
+  skyline(c, 11, gy, gy * 0.2, gy * 0.5, 140, 240, dawn ? '#343e5e' : '#1a2134', dawn ? 0.1 : 0.3, T, off2);
   // улица
   c.fillStyle = '#3a404c'; c.fillRect(-80, gy - 14, W + 160, 16);
   c.fillStyle = '#272c36'; c.fillRect(-80, gy, W + 160, 66);
   c.fillStyle = '#5b616c';
   for (let x = -40; x < W + 40; x += 110) c.fillRect(x, gy + 30, 56, 6);
   // фонари
-  for (const lx of [90, 470]) {
+  for (const [li, lx] of [[0, 90], [1, 470]]) {
     c.fillStyle = '#2d323d'; c.fillRect(lx, gy - 230, 8, 230); c.fillRect(lx, gy - 230, 46, 8);
+    if (off2 > 0.3 + li * 0.4) { circle(c, lx + 44, gy - 220, 8, '#3a3f48'); continue; }
     circle(c, lx + 44, gy - 220, 8, '#ffe6b0');
     glow(c, lx + 44, gy - 220, 90, '255,214,150', dawn ? 0.12 : 0.35);
     if (dawn) continue;
@@ -301,13 +325,13 @@ SCENES.city = (c, S) => {
   if (P.metro) {
     const mx = 700, mw = 270;
     c.fillStyle = '#2a303d'; c.fillRect(mx, gy - 170, mw, 170);
-    c.fillStyle = '#ffd99a'; c.globalAlpha = 0.55; c.fillRect(mx + 20, gy - 140, mw - 40, 110); c.globalAlpha = 1;
-    glow(c, mx + mw / 2, gy - 85, 200, '255,210,140', 0.18);
+    c.fillStyle = '#ffd99a'; c.globalAlpha = 0.55 * (1 - off); c.fillRect(mx + 20, gy - 140, mw - 40, 110); c.globalAlpha = 1;
+    glow(c, mx + mw / 2, gy - 85, 200, '255,210,140', 0.18 * (1 - off));
     c.fillStyle = '#1e232d'; c.fillRect(mx - 14, gy - 186, mw + 28, 22);
     c.fillStyle = '#1e232d'; c.fillRect(mx + mw / 2 - 4, gy - 300, 8, 116);
     circle(c, mx + mw / 2, gy - 330, 50, '#1b1f27');
     c.fillStyle = '#E4252D'; c.font = '900 72px Montserrat'; c.textAlign = 'center'; c.fillText('М', mx + mw / 2, gy - 304);
-    glow(c, mx + mw / 2, gy - 330, 140, '228,37,45', 0.35 + 0.1 * Math.sin(T * 3));
+    glow(c, mx + mw / 2, gy - 330, 140, '228,37,45', (0.35 + 0.1 * Math.sin(T * 3)) * (1 - off));
   }
   // прохожие
   if (P.figures) {
@@ -323,8 +347,15 @@ SCENES.city = (c, S) => {
   if (P.hero || P.people) {
     drawPeople(c, [P.hero ? heroIn(S, { x: 840, light: null }) : null, ...(P.people || []).map((sp) => personIn(S, sp, { light: null }))], gy + 4, 0.8);
   }
-  // под землёй
-  if (P.cutaway || gy < H - 100) {
+  // под землёй (или заснеженный двор)
+  if (P.snow && !P.cutaway) {
+    const sg = c.createLinearGradient(0, gy + 66, 0, H);
+    sg.addColorStop(0, '#3a4252'); sg.addColorStop(1, '#1b2029');
+    c.fillStyle = sg; c.fillRect(-80, gy + 66, W + 160, H - gy + 14);
+    c.fillStyle = 'rgba(220,230,255,0.06)';
+    const rd = rng(15);
+    for (let i = 0; i < 9; i++) { c.beginPath(); c.ellipse(rd() * W, gy + 110 + rd() * (H - gy - 160), 160 + rd() * 200, 18 + rd() * 20, 0, 0, TAU); c.fill(); }
+  } else if (P.cutaway || gy < H - 100) {
     earth(c, gy + 66, H + 80, 9);
   }
   if (P.cutaway) {
@@ -350,6 +381,14 @@ SCENES.city = (c, S) => {
       drawTrain(c, 100, sy + 34, { cars: 1, scale: 0.3, lit: false });
       const k = 0.5 + 0.5 * Math.sin(T * 4);
       glow(c, 215, sy - 6, 70 + k * 30, '255,212,59', 0.35);
+    }
+  }
+  if (P.snow) {
+    const rs = rng(8);
+    for (let i = 0; i < 150; i++) {
+      const sp = 50 + rs() * 80, x0 = rs() * (W + 200) - 100, ph = rs() * 10, sz = 2 + rs() * 3.5;
+      const y = ((rs() * H + T * sp) % (H + 40)) - 20, x = x0 + Math.sin(T * 0.8 + ph) * 26;
+      circle(c, x, y, sz, `rgba(235,240,255,${0.35 + 0.4 * (sz - 2) / 3.5})`);
     }
   }
   if (P.rain) {

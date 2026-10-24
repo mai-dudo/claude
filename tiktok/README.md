@@ -78,7 +78,7 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | `meters: [{ label, value: [от, до], text, at }]` | полоски-шкалы, значения 0…1 |
 | `timer: { from, to, at }` | табло обратного отсчёта, секунды |
 | `cam: { zoom: [1, 1.2], focus: [x, y], punch, shake }` | наезд камеры к точке, тряска |
-| `sfx: [{ type, at, db }]` | `hit`, `whoosh`, `knock`, `steps`, `zap`, `rumble`, `beep`, `click`, `drip`, `wind` |
+| `sfx: [{ type, at, db }]` | `hit`, `whoosh`, `knock`, `steps`, `zap`, `rumble`, `beep`, `click`, `drip`, `wind`, `powerdown` (гаснет свет), `static` (шипение радио), `water` (вода из крана), `fire` (треск огня) |
 | `fade` | появление из чёрного |
 
 Кадр 1080×1920, координаты в пикселях. Субтитры на высоте `captionY` (1400). Нижнюю четверть кадра
@@ -90,7 +90,7 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | --- | --- | --- |
 | `wagon` | вагон метро изнутри | `lights` (`on`/`off`/`flicker`), `lightsOff`, `handle`, `hero { x, pose: sleep/sit/stand, light }` |
 | `tunnel` | тоннель в разрезе (`style`: `metro` или кирпичный `brick`) | `dark` 0…1, `rail`, `train`, `loco`, `niche`, `signal`, `figure`, `phantoms`, `fog`, `water`, `surface`, `tint`, `people`, `lights`, `pickets: [{ x, text, at }]`, `wind` |
-| `city` | ночной город | `metro` (павильон «М»), `cutaway` (разрез: эскалатор, станция, тупик), `dawn` (рассвет), `danger`, `rain`, `figures { n, kind: people/zombie }`, `hero`, `people` |
+| `city` | ночной город | `metro` (павильон «М»), `cutaway` (разрез: эскалатор, станция, тупик), `dawn` (рассвет), `danger`, `rain`, `snow` (снег и заснеженный двор), `blackout` (дома гаснут; `0` — уже темно), `flash` (вспышка на подстанции), `figures { n, kind: people/zombie }`, `hero`, `people` |
 | `phone` | экран телефона | `time`, `date`, `battery`, `net`, `notes: [{ title, text, at }]`, `call { name, at, ring }` — экран звонка |
 | `map` | схема линии метро | `stations: [{ name, pos }]`, `deadEnd`, `marker { pos, label }`, `measure { a, b, text }` |
 | `note` | записи в тетради при свете фонаря | `title`, `lines: [{ text, at, color, strike }]` |
@@ -99,10 +99,15 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | `board` | доска почёта с фотографиями | `who` (кто из `cast` на выделенном фото), `focus` (номер рамки 0…5), `caption`, `at` |
 | `card` | титр, конец серии | `kicker`, `title: ["строка", { text, color }]`, `sub` |
 | `blank` | пустой фон под плашки | `bg` |
-| `room` | комната с окном, кроватью и зеркалом | `time` (`night`/`morning`), `mirror` (`loki` — в отражении рогатый шлем, `empty`), `mirrorAt`, `portal { at, x }`, `dark`, `people` |
+| `room` | комната с окном, кроватью и зеркалом | `time` (`night`/`morning`), `mirror` (`loki` — в отражении рогатый шлем, `empty`, `false` — шкаф), `mirrorAt`, `portal { at, x }`, `blackout`, `frost { at, until }` (иней на стекле), `blanket` (окно завешивают одеялом), `dark`, `people` |
 | `timeline` | светящаяся временная линия | `reveal`, `branches: [{ at, from, dir, color: orange/green, grown, prune, glowAt }]` |
 | `void` | Пустота на краю времени: руины и брошенная машина | `alioth { at, rise }` — фиолетовая грозовая туча, `alligators: [{ x, scale, facing, at }]`, `magic` (у героя светятся руки), `people` |
 | `myth` | северное сияние и восьминогий конь | `walk: [x0, x1]`, `legs`, `scale` |
+| `kitchen` | кухня: холодильник, кран, чайник с розеткой, плита, окно | `time` (`night`/`day`), `blackout`, `tap { at, until }`, `pot: "full"`, `bottles: [{ at }]`, `unplug`, `spark`, `candle`, `candleOff`, `fire { at, until }` (горит штора), `gas`, `co` (угарный газ), `radio`, `fridge { open }`, `dark`, `hero`, `people` |
+| `block` | многоэтажка в разрезе: квартиры, стояк с водой, насос в подвале, лифт | `floors`, `blackout`, `pumpOff` (насос встаёт, вода уходит с верхних этажей), `dryTo`, `lift` |
+| `tower` | вышка сотовой связи и индикатор её аккумулятора | `drain { at, until }` — заряд падает до нуля, потом вышка молчит |
+| `shop` | магазин без света: вывеска, витрина, дверь, банкомат | `time`, `sign` (на двери «только наличные»), `atm`, `queue` (сколько людей в очереди), `dark` |
+| `kit` | карточки «что держать дома» с галочками | `title`, `titleAt`, `items: [{ icon: water/food/torch/power/radio/cash/meds, text, at }]` |
 
 Герой: `hero` на верхнем уровне — внешность (`hat`: `hair`/`helmet`/`cap`/`none`/`horns` — шлем с рогами длиной `horns`, `hair`, `skin`, `jacket`,
 `stripes`, `pants`, `backpack`, `light`: `phone`/`torch`); `hero` в сцене — где он и что делает:
@@ -115,7 +120,10 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 `enter` (выходит из портала в это слово) и `vanish` (исчезает со вспышкой). Позы: `stand`, `walk`, `sit`, `sleep`, `swim` (плывёт), `lie` (лежит);
 `diver: true` — баллон и маска, `mask: true` — только маска, `light: "head"` — фонарь на каске, `dig` — машет руками
 у стены, `carry` — руки вперёд, `eyesClosed`. У пловца задаётся `y`. Примеры — `stories/metro-tupik-2.json` и `stories/tham-luang-1.json`.
-Новые сцены добавляются в `render/scenes.js` (фэнтези-сцены — в `render/fantasy.js`).
+Новые сцены добавляются в `render/scenes.js` (фэнтези-сцены — в `render/fantasy.js`, сцены о выживании — в `render/survival.js`).
+В `kitchen`, `shop` и в `blackout` время `0` (например, `"unplug": 0` или бутылки с `"at": 0`) значит «уже случилось
+до сцены» — без анимации появления.
+Пример ролика на этих сценах — `stories/blackout-1.json`.
 
 ## Рисованные ролики
 

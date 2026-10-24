@@ -11,6 +11,35 @@ function burst(c, x, y, k, rgb) {
   glow(c, x, y, 200, rgb, 0.6 * (1 - k));
 }
 
+// Иней на стекле: k 0..1 — насколько окно затянуло. Рисуется внутри уже обрезанного окна.
+function frost(c, x, y, w, h, k) {
+  if (k <= 0) return;
+  for (const [cx, cy] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) {
+    const g = c.createRadialGradient(cx, cy, 0, cx, cy, 340 * k);
+    g.addColorStop(0, `rgba(225,238,255,${0.75 * k})`); g.addColorStop(1, 'rgba(225,238,255,0)');
+    c.fillStyle = g; c.fillRect(x, y, w, h);
+  }
+  const r = rng(12);
+  c.strokeStyle = `rgba(240,248,255,${0.55 * k})`; c.lineWidth = 2;
+  for (let i = 0; i < 46; i++) {
+    const side = i % 4, u = r();
+    let px = side === 0 ? x + u * w : side === 1 ? x + w : side === 2 ? x + u * w : x;
+    let py = side === 0 ? y : side === 1 ? y + u * h : side === 2 ? y + h : y + u * h;
+    let a = side === 0 ? Math.PI / 2 : side === 1 ? Math.PI : side === 2 ? -Math.PI / 2 : 0;
+    a += (r() - 0.5) * 1.2;
+    const len = (40 + r() * 110) * k;
+    c.beginPath(); c.moveTo(px, py);
+    for (let s2 = 0; s2 < 4; s2++) {
+      const nx = px + Math.cos(a) * len / 4, ny = py + Math.sin(a) * len / 4;
+      c.lineTo(nx, ny);
+      c.moveTo(nx, ny); c.lineTo(nx + Math.cos(a + 0.8) * len / 7, ny + Math.sin(a + 0.8) * len / 7);
+      c.moveTo(nx, ny); c.lineTo(nx + Math.cos(a - 0.8) * len / 7, ny + Math.sin(a - 0.8) * len / 7);
+      c.moveTo(nx, ny); px = nx; py = ny;
+    }
+    c.stroke();
+  }
+}
+
 // people: [{ …персонаж, ghost, enter: at, vanish: at }] → точки фонарей
 function drawFolk(c, S, list, y, scale) {
   const hands = [];
@@ -40,8 +69,9 @@ function eyeGlow(c, p, y, s, k) {
 }
 
 // ───────────────────────── Комната ─────────────────────────
-// P: time ('night' | 'morning'), mirror ('loki' | 'empty'), mirrorAt, portal { at, x }, hero и people
-// (ghost, enter, vanish), dark (0..1, ночью по умолчанию 0.5)
+// P: time ('night' | 'morning'), mirror ('loki' | 'empty' | false — вместо зеркала шкаф), mirrorAt, portal { at, x },
+// hero и people (ghost, enter, vanish), dark (0..1, ночью по умолчанию 0.5), blackout (at — город за окном гаснет),
+// frost { at, until } (окно затягивает инеем), blanket (at — окно завешивают одеялом)
 SCENES.room = (c, S) => {
   const { t, T, P } = S;
   const night = (P.time || 'night') === 'night', floor = 1270;
@@ -56,7 +86,17 @@ SCENES.room = (c, S) => {
   g = c.createLinearGradient(0, wy, 0, wy + wh);
   g.addColorStop(0, night ? '#070b18' : '#9fbde3'); g.addColorStop(1, night ? '#1a2440' : '#f2b98e');
   c.fillStyle = g; c.fillRect(wx, wy, ww, wh);
-  skyline(c, 31, wy + wh, 120, 300, 50, 90, night ? '#111827' : '#7d879b', night ? 0.35 : 0.05, T);
+  const off = offK(t, P.blackout);
+  if (night && off > 0) {
+    // без засветки за окном видно луну, а дома стоят тёмными силуэтами
+    g = c.createLinearGradient(0, wy, 0, wy + wh);
+    g.addColorStop(0, '#0f1830'); g.addColorStop(1, '#2c3a5e');
+    c.globalAlpha = off; c.fillStyle = g; c.fillRect(wx, wy, ww, wh); c.globalAlpha = 1;
+    circle(c, wx + ww * 0.74, wy + 92, 30, `rgba(236,232,214,${off})`);
+    glow(c, wx + ww * 0.74, wy + 92, 160, '236,232,214', 0.18 * off);
+  }
+  skyline(c, 31, wy + wh, 120, 300, 50, 90, night ? (off > 0 ? '#080b13' : '#111827') : '#7d879b', night ? 0.35 : 0.05, T, off);
+  if (P.frost) frost(c, wx, wy, ww, wh, ease.inOut((t - (P.frost.at ?? 0)) / Math.max(0.1, (P.frost.until ?? S.d) - (P.frost.at ?? 0))));
   c.restore();
   c.fillStyle = '#d6d0c2'; c.fillRect(wx - 12, wy - 12, ww + 24, 14); c.fillRect(wx - 12, wy + wh - 2, ww + 24, 16);
   c.fillRect(wx - 12, wy, 12, wh); c.fillRect(wx + ww, wy, 12, wh); c.fillRect(wx + ww / 2 - 5, wy, 10, wh);
@@ -64,6 +104,19 @@ SCENES.room = (c, S) => {
   for (const [x0, dir] of [[wx - 60, 1], [wx + ww + 10, -1]]) {
     c.beginPath(); c.moveTo(x0, wy - 40); c.lineTo(x0 + 50, wy - 40);
     c.quadraticCurveTo(x0 + 25 + dir * 18, wy + wh / 2, x0 + 60, wy + wh + 120); c.lineTo(x0 - 10, wy + wh + 120); c.fill();
+  }
+  const quilt = P.blanket == null ? 0 : ease.out(after(t, P.blanket, 0.9));
+  if (quilt > 0) {
+    // одеяло на карнизе: опускается сверху и закрывает окно
+    const qh = (wh + 60) * quilt;
+    c.save(); c.beginPath(); c.rect(wx - 40, wy - 30, ww + 80, qh); c.clip();
+    for (let y = wy - 30, row = 0; y < wy - 30 + wh + 60; y += 70, row++) for (let x = wx - 40, col2 = 0; x < wx + ww + 40; x += 70, col2++) {
+      c.fillStyle = (row + col2) % 2 ? '#7a4b5c' : '#8f6475'; c.fillRect(x, y, 70, 70);
+    }
+    c.strokeStyle = 'rgba(255,240,220,0.25)'; c.lineWidth = 2; c.setLineDash([6, 6]);
+    for (let y = wy - 30; y < wy + wh + 30; y += 70) { c.beginPath(); c.moveTo(wx - 40, y); c.lineTo(wx + ww + 40, y); c.stroke(); }
+    c.setLineDash([]); c.restore();
+    c.fillStyle = '#3a3f48'; c.fillRect(wx - 60, wy - 40, ww + 120, 10);
   }
   // пол
   g = c.createLinearGradient(0, floor, 0, H);
@@ -76,8 +129,13 @@ SCENES.room = (c, S) => {
   c.fillStyle = '#c9c2b4'; rr(c, 30, 1070, 540, 70, 20); c.fill();
   c.fillStyle = night ? '#25405e' : '#2f5578'; rr(c, 150, 1060, 430, 110, 30); c.fill();
   c.fillStyle = '#e6e1d6'; rr(c, 40, 1030, 120, 60, 22); c.fill();
-  // зеркало
+  // зеркало (или шкаф)
   const mx = 660, my = 360, mw = 300, mh = 720;
+  if (P.mirror === false) {
+    c.fillStyle = '#4a3a2c'; rr(c, mx - 20, my - 30, mw + 40, floor - my + 30, 8); c.fill();
+    c.fillStyle = '#56443a'; rr(c, mx - 4, my - 14, mw / 2 - 2, floor - my - 10, 6); c.fill(); rr(c, mx + mw / 2 + 6, my - 14, mw / 2 - 2, floor - my - 10, 6); c.fill();
+    c.fillStyle = '#c9a66b'; rr(c, mx + mw / 2 - 16, my + 380, 8, 64, 4); c.fill(); rr(c, mx + mw / 2 + 12, my + 380, 8, 64, 4); c.fill();
+  } else {
   c.fillStyle = '#8a6a3a'; rr(c, mx - 18, my - 18, mw + 36, mh + 36, 26); c.fill();
   c.save(); rr(c, mx, my, mw, mh, 16); c.clip();
   g = c.createLinearGradient(mx, my, mx + mw, my + mh);
@@ -95,6 +153,7 @@ SCENES.room = (c, S) => {
   c.fillStyle = 'rgba(255,255,255,0.06)';
   c.beginPath(); c.moveTo(mx + 40, my); c.lineTo(mx + 120, my); c.lineTo(mx + 10, my + mh); c.lineTo(mx - 70, my + mh); c.fill();
   c.restore();
+  }
   // портал
   let portal = null;
   if (P.portal && t >= (P.portal.at ?? 0)) {
@@ -116,7 +175,7 @@ SCENES.room = (c, S) => {
   const hands = drawFolk(c, S, people, floor + 6, 1.45);
   // свет
   const lights = [];
-  if (night) lights.push({ x: wx + ww / 2, y: wy + wh / 2, r: 520, k: 0.45 });
+  if (night) lights.push({ x: wx + ww / 2, y: wy + wh / 2, r: 520, k: 0.45 * (1 - 0.3 * off) * (1 - quilt) });
   if (portal) lights.push({ x: portal.x, y: portal.y, r: 900, k: 0.9 * clamp(portal.k) });
   if (P.mirror === 'loki' && t >= (P.mirrorAt ?? 0)) lights.push({ x: mx + mw / 2, y: my + mh * 0.4, r: 420, k: 0.6 });
   for (const h of hands) lights.push({ x: h.x, y: h.y, r: 220, k: 0.6 });

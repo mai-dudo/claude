@@ -135,10 +135,53 @@ def fx_wind(dur=6.0, **_):
     return norm((band(noise(dur), 150, 1200) + band(noise(dur), 1200, 4000) * 0.25) * swell * e)
 
 
+def fx_powerdown(dur=1.8, **_):
+    """Свет гаснет: щелчок реле и гудение трансформатора, которое сползает вниз и затихает."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    f = 100 * np.exp(-t / (dur * 0.4)) + 16
+    hum = np.sin(2 * np.pi * np.cumsum(f) / SR) + 0.45 * np.sin(2 * np.pi * np.cumsum(2 * f) / SR)
+    whine = np.sin(2 * np.pi * np.cumsum(1500 * np.exp(-t / (dur * 0.25)) + 90) / SR) * 0.12
+    out = (hum + whine) * np.exp(-t / (dur * 0.33))
+    m = int(0.2 * SR)
+    place(out, band(noise(0.2), 400, 6000) * env(m, 0.0005, 0.01) * 1.5, 0)
+    return norm(out.astype(np.float32))
+
+
+def fx_static(dur=1.2, **_):
+    """Шипение радио с плавающим свистом настройки."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    hiss = band(noise(dur), 700, 6000) * (0.6 + 0.4 * np.sin(2 * np.pi * t * 7))
+    whistle = np.sin(2 * np.pi * np.cumsum(900 + 500 * np.sin(2 * np.pi * t * 0.8)) / SR) * 0.12
+    e = np.minimum(1, np.minimum(t / 0.05, (dur - t) / 0.25))
+    return norm((hiss + whistle) * e)
+
+
+def fx_water(dur=3.0, **_):
+    """Вода из крана."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    stream = band(noise(dur), 350, 3200) * (0.75 + 0.25 * np.sin(2 * np.pi * t * 3.3) * np.sin(2 * np.pi * t * 1.1))
+    e = np.minimum(1, np.minimum(t / 0.12, (dur - t) / 0.4))
+    return norm(stream * e)
+
+
+def fx_fire(dur=2.5, **_):
+    """Треск огня: низкий шум и щелчки."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    roar = band(np.cumsum(noise(dur)).astype(np.float32), 40, 400)
+    pops = band(((rng.random(n) < 0.0015) * rng.standard_normal(n)).astype(np.float32), 900, 7000) * 8
+    e = np.minimum(1, np.minimum(t / 0.4, (dur - t) / 0.5))
+    return norm((norm(roar) + pops) * e)
+
+
 FX = {'hit': fx_hit, 'whoosh': fx_whoosh, 'knock': fx_knock, 'steps': fx_steps, 'zap': fx_zap,
-      'rumble': fx_rumble, 'beep': fx_beep, 'click': fx_click, 'drip': fx_drip, 'wind': fx_wind}
+      'rumble': fx_rumble, 'beep': fx_beep, 'click': fx_click, 'drip': fx_drip, 'wind': fx_wind,
+      'powerdown': fx_powerdown, 'static': fx_static, 'water': fx_water, 'fire': fx_fire}
 DEFAULT_DB = {'hit': -8, 'whoosh': -16, 'knock': -6, 'steps': -10, 'zap': -14, 'rumble': -9, 'beep': -14,
-              'click': -10, 'drip': -16, 'wind': -16}
+              'click': -10, 'drip': -16, 'wind': -16, 'powerdown': -8, 'static': -18, 'water': -20, 'fire': -16}
 
 
 def drone(sec):
