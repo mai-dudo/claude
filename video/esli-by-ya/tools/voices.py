@@ -25,8 +25,10 @@ by_who = {k: [l['id'] for l in lines if l['who'] == k] for k in story['cast']}
 norm = lambda s: s.strip().lower().replace('ё', 'е')
 name_to_who = {norm(c['name']): k for k, c in story['cast'].items()}
 
+TEMPO = float(story.get('voiceTempo', 1.0))  # e.g. 1.03 reads 3 % faster, pitch unchanged
+
 def decode(path):
-    raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-f', 'f32le', '-ac', '1', '-ar', str(SR), '-'],
+    raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-af', f'atempo={TEMPO}', '-f', 'f32le', '-ac', '1', '-ar', str(SR), '-'],
                          capture_output=True, check=True).stdout
     return np.frombuffer(raw, dtype=np.float32).astype(np.float64)
 

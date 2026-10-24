@@ -2,14 +2,14 @@
 // and by the Node/Python tools, so it must not touch the DOM.
 
 export const T = {
-  introPre: 1.6,
-  introPost: 0.6,
-  blockTitle: 2.0,
-  blockPost: 0.6,
-  outroPre: 0.8,
-  outroPost: 1.4,
-  lineGap: 0.3,
-  partGap: 0.5,
+  introPre: 1.3,
+  introPost: 0.5,
+  blockTitle: 1.7,
+  blockPost: 0.5,
+  outroPre: 0.7,
+  outroPost: 1.0,
+  lineGap: 0.22,
+  partGap: 0.35,
 };
 
 const VOWELS = /[аеёиоуыэюяaeiouy]/gi;
