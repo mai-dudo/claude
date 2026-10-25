@@ -651,7 +651,7 @@ SCENES.tunnel = (c, S) => {
   if (P.figure) {
     const fg = P.figure, t0 = fg.from ?? 0, t1 = fg.until ?? S.d;
     const k = clamp((t - t0) / Math.max(0.1, t1 - t0));
-    if (t >= t0) {
+    if (t >= t0 || t0 <= 0) { // с from: 0 силуэт виден и в паузе перед первой сценой
       drawPerson(c, lerp(fg.walk[0], fg.walk[1], k), floor - 8, fg.scale ?? 1.32, {
         pose: k < 1 ? 'walk' : 'stand', phase: T * 3.2, facing: Math.sign(fg.walk[1] - fg.walk[0]) || 1, silhouette: '#020203', hat: 'none', light: null, eyes: fg.eyes,
       });
