@@ -95,7 +95,8 @@ function vignette(c, a = 0.55, inner = 0.45) {
 }
 
 // Плоский человечек в профиль. (x, y) — точка между ступнями, s — масштаб (рост ≈ 270·s).
-// o: pose ('stand' | 'walk' | 'sit' | 'sleep' | 'swim' | 'lie' — swim и lie лёжа, голова в сторону facing),
+// o: pose ('stand' | 'walk' | 'sit' | 'sleep' | 'swim' | 'lie' — swim и lie лёжа, голова в сторону facing; 'crouch' —
+// идёт пригнувшись),
 // phase (фаза шага), facing (1 вправо, -1 влево), light ('phone' | 'torch' в руке, 'head' — фонарь на каске),
 // silhouette (цвет — нарисовать силуэтом), seat (высота сиденья для sit/sleep), zombie или carry (руки вперёд),
 // dig (машет руками у стены), diver (баллон и маска), mask (только маска), eyesClosed, hat: 'horns' (шлем Локи,
@@ -106,6 +107,16 @@ const HERO_DEFAULT = {
   pants: '#2d3a55', shoes: '#1b1f27', backpack: null, light: 'torch',
 };
 function drawPerson(c, x, y, s, o) {
+  if (o.pose === 'crouch') {
+    // пригнувшись: наклон вперёд и ниже ростом, ноги идут шагом
+    const f0 = o.facing || 1, th = 0.3 * f0, sq = 0.82;
+    c.save(); c.translate(x, y); c.rotate(th); c.scale(1, sq);
+    const hd = drawPerson(c, 0, 0, s, { ...o, pose: 'walk' });
+    c.restore();
+    if (!hd) return null;
+    const hx = hd.x, hy = hd.y * sq;
+    return { x: x + hx * Math.cos(th) - hy * Math.sin(th), y: y + hx * Math.sin(th) + hy * Math.cos(th), a: hd.a + th };
+  }
   const f = o.facing || 1, ph = o.phase || 0, pose = o.pose || 'stand';
   const sil = o.silhouette;
   const col = (k) => sil || o[k];

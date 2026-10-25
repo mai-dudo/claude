@@ -29,7 +29,7 @@ VOICE_KEYS = ('tts', 'voiceId', 'voiceModel', 'voiceSettings', 'voice', 'rate', 
 TIME_KEYS = {'at', 'from', 'until', 'rail', 'lightsOff', 'lightOff', 'handle', 'phantoms', 'glowFrom', 'wind',
              'enter', 'vanish', 'prune', 'glowAt', 'magic', 'mirrorAt', 'sparksFrom', 'blackout', 'flash', 'pumpOff',
              'unplug', 'spark', 'candle', 'candleOff', 'gas', 'co', 'radio', 'open', 'sign', 'blanket', 'titleAt',
-             'zoomAt', 'zoomUntil', 'eyesAt', 'smoke', 'intercom'}
+             'zoomAt', 'zoomUntil', 'eyesAt', 'smoke', 'intercom', 'cab'}
 
 
 def resolve_time(value, words, dur, where):

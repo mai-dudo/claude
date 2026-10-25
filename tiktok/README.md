@@ -92,13 +92,14 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | `type` | Что рисует | Основные поля |
 | --- | --- | --- |
 | `wagon` | вагон метро изнутри | `lights` (`on`/`off`/`flicker`), `lightsOff`, `handle`, `hero { x, pose: sleep/sit/stand, light }`, `people` (пассажиры), `smoke` (из-под пола тянет дымом), `intercom` (подсветить кнопку связи с машинистом) |
-| `tunnel` | тоннель в разрезе (`style`: `metro` или кирпичный `brick`) | `dark` 0…1, `rail`, `train`, `loco`, `niche`, `signal`, `figure`, `phantoms`, `fog`, `water`, `surface`, `tint`, `people`, `lights`, `pickets: [{ x, text, at }]`, `wind`, `smoke` (дым под сводом), `lantern { x, at }` (разбитый фонарь на путях) |
+| `tunnel` | тоннель в разрезе (`style`: `metro` или кирпичный `brick`) | `dark` 0…1, `rail`, `train`, `loco`, `niche`, `signal`, `figure`, `phantoms`, `fog`, `water`, `surface`, `tint`, `people`, `lights`, `pickets: [{ x, text, at }]`, `wind`, `smoke` (дым под сводом), `lantern { x, at }` (разбитый фонарь на путях), `flash` (вспышка фотоаппарата), у `train` — `cab` (машинист открывает кабину, спущена лесенка) |
 | `city` | ночной город | `metro` (павильон «М»), `cutaway` (разрез: эскалатор, станция, тупик), `dawn` (рассвет), `danger`, `rain`, `snow` (снег и заснеженный двор), `blackout` (дома гаснут; `0` — уже темно), `flash` (вспышка на подстанции), `figures { n, kind: people/zombie }`, `hero`, `people` |
 | `phone` | экран телефона | `time`, `date`, `battery`, `net`, `notes: [{ title, text, at }]`, `call { name, at, ring }` — экран звонка, `photo { at, zoomAt, zoomUntil, zoomFrom, zoom, focus, eyesAt, title }` — снимок из галереи с увеличением, `slide: false` — телефон не выезжает снизу |
 | `map` | схема линии метро | `stations: [{ name, pos }]`, `deadEnd`, `marker { pos, label }`, `measure { a, b, text }` |
 | `note` | записи в тетради при свете фонаря | `title`, `lines: [{ text, at, color, strike }]` |
 | `cave` | пещера в разрезе | `water` (0…1 или `[от, до]` — вода поднимается), `murk`, `dark`, `ledge`, `squeeze`, `drips`, `hole`, `guide`, `crowd { n, x0, x1, who, pose }`, `stretcher`, `surface`, `lights` |
 | `mountain` | гора со входом в пещеру | `time` (`day`/`dusk`/`night`), `rain`, `lightning`, `bikes`, `sign: ["строка", …]`, `camp`, `statue` |
+| `duty` | дежурка службы пути: стол с лампой и дисковым телефоном, схема путей, часы | `people` (кто сидит за столом), `hero` (стоит у стола), `night`, `dark` |
 | `board` | доска почёта с фотографиями | `who` (кто из `cast` на выделенном фото), `focus` (номер рамки 0…5), `caption`, `at` |
 | `card` | титр, конец серии | `kicker`, `title: ["строка", { text, color }]`, `sub` |
 | `blank` | пустой фон под плашки | `bg` |
@@ -120,7 +121,7 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 Другие персонажи описываются в `cast` на верхнем уровне (`"cast": { "ded": { "hat": "helmet", … } }`) и выводятся
 в сцене списком `people: [{ "who": "ded", "walk": [100, 700] }]` с теми же полями, что у героя;
 `"dead": true` — фонарь в руке не светит. В сценах `room` и `void` у персонажей ещё есть `ghost: true` (иллюзия),
-`enter` (выходит из портала в это слово) и `vanish` (исчезает со вспышкой). Позы: `stand`, `walk`, `sit`, `sleep`, `swim` (плывёт), `lie` (лежит);
+`enter` (выходит из портала в это слово) и `vanish` (исчезает со вспышкой). Позы: `stand`, `walk`, `sit`, `sleep`, `swim` (плывёт), `lie` (лежит), `crouch` (идёт пригнувшись);
 `diver: true` — баллон и маска, `mask: true` — только маска, `light: "head"` — фонарь на каске, `dig` — машет руками
 у стены, `carry` — руки вперёд, `eyesClosed`. У пловца задаётся `y`. Примеры — `stories/metro-tupik-2.json` и `stories/tham-luang-1.json`.
 Новые сцены добавляются в `render/scenes.js` (фэнтези-сцены — в `render/fantasy.js`, сцены о выживании — в `render/survival.js`).

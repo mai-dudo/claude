@@ -18,7 +18,7 @@ function personIn(S, spec, def = {}) {
     const k = clamp((S.t - t0) / Math.max(0.1, t1 - t0));
     h.x = lerp(h.walk[0], h.walk[1], k);
     h.facing = h.facing || Math.sign(h.walk[1] - h.walk[0]) || 1;
-    if (h.pose !== 'swim') h.pose = k > 0 && k < 1 ? 'walk' : (h.pose === 'walk' ? 'stand' : h.pose);
+    if (h.pose !== 'swim' && h.pose !== 'crouch') h.pose = k > 0 && k < 1 ? 'walk' : (h.pose === 'walk' ? 'stand' : h.pose);
   }
   h.phase = h.phase ?? S.T * (h.pose === 'swim' ? 3 : 5.2) + (h.x || 0) * 0.01;
   if (h.then && S.t >= (h.then.at ?? 0)) Object.assign(h, h.then);
@@ -460,7 +460,7 @@ SCENES.city = (c, S) => {
 };
 
 // Вагон метро сбоку. (x, yRail) — левый край и уровень рельса. opts: cars, scale, lit (свет в окнах),
-// head ('left' | 'right' — где кабина и фары), headlights.
+// head ('left' | 'right' — где кабина и фары), headlights, cab (0..1 — машинист открывает дверь кабины, спущена лесенка).
 function drawTrain(c, x, yRail, o = {}) {
   const s = o.scale ?? 1, cars = o.cars ?? 1, len = 780;
   c.save(); c.translate(x, yRail); c.scale(s, s);
@@ -493,6 +493,20 @@ function drawTrain(c, x, yRail, o = {}) {
       circle(c, hx + 6, hy, 9, o.headlights ? '#fff8de' : '#8d99a8');
       if (o.headlights) glow(c, hx + 6, hy, 120, '255,240,200', 0.5);
     }
+    if (o.cab > 0) {
+      // открытая дверь кабины: тёплый свет внутри, створка отходит наружу, лесенка до путей
+      const dir = o.head === 'left' ? -1 : 1, k = ease.out(o.cab);
+      c.fillStyle = '#f3d27a'; rr(c, hx - 8, -300, 28, 210, 6); c.fill();
+      glow(c, hx + 6, -200, 160, '255,214,140', 0.5 * k);
+      c.fillStyle = '#1f3f73';
+      c.beginPath(); c.moveTo(hx + 6 + dir * 14, -306); c.lineTo(hx + 6 + dir * (14 + 70 * k), -296 + 10 * k);
+      c.lineTo(hx + 6 + dir * (14 + 70 * k), -94 - 10 * k); c.lineTo(hx + 6 + dir * 14, -84); c.closePath(); c.fill();
+      c.strokeStyle = '#9aa3ae'; c.lineWidth = 6; c.globalAlpha = k;
+      const lx0 = hx + 6 + dir * 20, lx1 = hx + 6 + dir * 70;
+      c.beginPath(); c.moveTo(lx0, -90); c.lineTo(lx1, 0); c.moveTo(lx0 + dir * 30, -90); c.lineTo(lx1 + dir * 30, 0); c.stroke();
+      for (let i = 1; i < 5; i++) { const q = i / 5; c.beginPath(); c.moveTo(lerp(lx0, lx1, q), -90 + 90 * q); c.lineTo(lerp(lx0, lx1, q) + dir * 30, -90 + 90 * q); c.stroke(); }
+      c.globalAlpha = 1;
+    }
   }
   c.restore();
 }
@@ -503,7 +517,8 @@ function drawTrain(c, x, yRail, o = {}) {
 // niche (x ниши), signal { x, color }, figure { walk: [x0, x1], from, until, eyes }, phantoms (at), tint (цвет темноты),
 // fog { color, from }, water (уровень, 0..1), surface (город над разрезом), hero { walk, x, light, lightOff, pose },
 // people [{ who, …как hero }], lights [{ x, y, r } или конус { x, y, a, spread, len }], pickets [{ x, text, at }],
-// wind (at — пошёл ветер от поезда), smoke (at — дым под сводом), lantern { x, at } (разбитый фонарь на путях)
+// wind (at — пошёл ветер от поезда), smoke (at — дым под сводом), lantern { x, at } (разбитый фонарь на путях),
+// flash (at — вспышка фотоаппарата: на миг видно весь тоннель)
 SCENES.tunnel = (c, S) => {
   const { t, T, P } = S;
   const top = 500, floor = 1210, base = 1290;
@@ -577,7 +592,8 @@ SCENES.tunnel = (c, S) => {
 
   // поезд в тупике
   if (P.train) {
-    drawTrain(c, P.train.x ?? 520, floor - 22, { cars: P.train.cars ?? 2, scale: P.train.scale ?? 0.95, lit: P.train.lit, head: P.train.head, headlights: P.train.headlights });
+    drawTrain(c, P.train.x ?? 520, floor - 22, { cars: P.train.cars ?? 2, scale: P.train.scale ?? 0.95, lit: P.train.lit, head: P.train.head, headlights: P.train.headlights,
+      cab: P.train.cab != null ? after(t, P.train.cab, 0.6) : 0 });
   }
   // герой
   if (P.pickets) pickets(c, P.pickets, t, T, top);
@@ -626,8 +642,11 @@ SCENES.tunnel = (c, S) => {
   if (P.signal) lights.push({ x: (P.signal.x ?? 80) + 22, y: floor - 336, r: 380, k: 0.75 });
   if (P.train && P.train.glowAt != null) lights.push({ x: (P.train.x ?? 520) + P.train.glowAt * (P.train.scale ?? 0.95), y: floor - 260, r: 180, k: 0.7 });
   if (hot) lights.push({ x: W / 2, y: floor + 12, r: 900, k: 0.35 + 0.25 * pulse });
+  const flashK = P.flash != null && t >= P.flash ? Math.pow(1 - clamp((t - P.flash) / 0.7), 2) : 0;
+  if (flashK > 0) lights.push({ x: W / 2, y: floor - 300, r: 1600, k: flashK });
   darkness(c, P.dark ?? 0, lights, P.tint || '2,3,6');
   if (P.smoke != null && t >= P.smoke) smoke(c, t - P.smoke, T, top, 'ceiling');
+  if (flashK > 0) { c.fillStyle = `rgba(255,255,255,${0.75 * flashK})`; c.fillRect(-80, -80, W + 160, H + 160); }
   // силуэт поверх темноты, чтобы читался на фоне стены
   if (P.figure) {
     const fg = P.figure, t0 = fg.from ?? 0, t1 = fg.until ?? S.d;
@@ -1194,6 +1213,49 @@ function drawBust(c, x, y, s, o) { // портрет анфас: (x, y) — ни
   if (o.mustache) { c.fillStyle = o.hair; rr(c, -28, -176, 56, 12, 6); c.fill(); }
   c.restore();
 }
+
+// ───────────────────────── Дежурка службы пути ─────────────────────────
+// P: hero (стоит у стола), people (дежурная сидит за столом: pose 'sit'), night (вечер: темнее, горит лампа), dark
+SCENES.duty = (c, S) => {
+  const { t, T, P } = S;
+  const floor = 1300, desk = 1115;
+  c.fillStyle = '#d8d3c3'; c.fillRect(-80, -80, W + 160, 760);
+  c.fillStyle = '#4f6b5a'; c.fillRect(-80, 680, W + 160, floor - 680);
+  c.fillStyle = '#3c5446'; c.fillRect(-80, 672, W + 160, 12);
+  // схема путей на стене
+  c.fillStyle = '#f4f1e6'; rr(c, 110, 300, 540, 300, 6); c.fill();
+  c.strokeStyle = '#8a8270'; c.lineWidth = 6; c.stroke();
+  c.strokeStyle = '#c0392b'; c.lineWidth = 10; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(170, 520); c.lineTo(330, 520); c.lineTo(420, 430); c.lineTo(600, 430); c.stroke();
+  for (const [sx, sy] of [[170, 520], [270, 520], [420, 430], [510, 430], [600, 430]]) { circle(c, sx, sy, 14, '#fff'); c.lineWidth = 5; c.beginPath(); c.arc(sx, sy, 14, 0, TAU); c.stroke(); }
+  c.fillStyle = '#16181c'; c.font = '800 26px "JetBrains Mono"'; c.textAlign = 'left'; c.fillText('СХЕМА ПУТЕЙ · УЧАСТОК 3', 140, 350);
+  c.fillStyle = '#c0392b'; c.fillRect(600, 410, 14, 40);
+  // часы
+  circle(c, 860, 380, 74, '#f4f1e6'); c.strokeStyle = '#2b2f36'; c.lineWidth = 8; c.beginPath(); c.arc(860, 380, 74, 0, TAU); c.stroke();
+  c.lineWidth = 6; const ha = -Math.PI / 2 + 0.4, ma = -Math.PI / 2 + T * 0.4;
+  c.beginPath(); c.moveTo(860, 380); c.lineTo(860 + Math.cos(ha) * 38, 380 + Math.sin(ha) * 38); c.moveTo(860, 380); c.lineTo(860 + Math.cos(ma) * 58, 380 + Math.sin(ma) * 58); c.stroke();
+  // пол
+  c.fillStyle = '#5a4a3c'; c.fillRect(-80, floor, W + 160, H - floor + 80);
+  c.fillStyle = 'rgba(0,0,0,0.18)'; for (let y = floor + 50; y < H; y += 80) c.fillRect(-80, y, W + 160, 4);
+  // дежурная за столом
+  const seated = (P.people || []).map((sp) => personIn(S, sp, { light: null, pose: 'sit', seat: 72 }));
+  const hands = drawPeople(c, seated, floor + 4, 1.5);
+  // стол перед ней
+  c.fillStyle = '#6b4f3a'; c.fillRect(170, desk, 560, 34); c.fillStyle = '#58402f'; c.fillRect(190, desk + 34, 520, floor - desk - 34);
+  c.fillStyle = '#4a3527'; rr(c, 230, desk + 70, 200, 60, 6); c.fill(); rr(c, 470, desk + 70, 200, 60, 6); c.fill();
+  // лампа, дисковый телефон, журнал
+  c.fillStyle = '#2b2f36'; rr(c, 230, desk - 14, 90, 14, 6); c.fill(); c.fillRect(268, desk - 120, 12, 110);
+  c.fillStyle = '#2f6b4a'; c.beginPath(); c.moveTo(220, desk - 120); c.lineTo(330, desk - 120); c.lineTo(300, desk - 160); c.lineTo(250, desk - 160); c.closePath(); c.fill();
+  c.fillStyle = '#e8e2cf'; rr(c, 380, desk - 22, 150, 22, 3); c.fill(); c.fillStyle = '#7a2e2a'; rr(c, 384, desk - 30, 142, 10, 3); c.fill();
+  c.fillStyle = '#1d1f24'; rr(c, 580, desk - 46, 110, 46, 12); c.fill(); circle(c, 635, desk - 30, 16, '#3a3f48'); circle(c, 635, desk - 30, 6, '#1d1f24');
+  c.fillStyle = '#1d1f24'; rr(c, 590, desk - 66, 90, 18, 9); c.fill();
+  // Лёша стоит перед столом
+  const hero = heroIn(S, { x: 860, light: 'phone', facing: -1 });
+  const hh = drawPeople(c, [hero], floor + 4, 1.5);
+  const lights = [{ x: 275, y: desk - 100, r: 520, k: 0.85 }, ...[...hands, ...hh].map((h) => ({ x: h.x, y: h.y, r: 220, k: 0.6 }))];
+  darkness(c, P.dark ?? (P.night ? 0.55 : 0.2), lights, '6,8,14');
+  glow(c, 275, desk - 110, 160, '255,214,140', 0.35);
+};
 
 SCENES.board = (c, S) => {
   const { t, T, P } = S;
