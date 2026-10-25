@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Делает вертикальный ролик для TikTok из сценария: python make_video.py stories/metro-tupik.json
 
-Что получается в out/<имя>/: video.mp4 (1080×1920, 30 к/с), cover.jpg, post.txt (название ролика и хэштеги одной строкой),
+Что получается в out/<имя>/: video.mp4 (1080×1920 или size из сценария, 30 к/с), cover.jpg, post.txt (название ролика и хэштеги одной строкой),
 audio.wav и timeline.json (для просмотра в браузере с --preview).
 """
 import argparse
@@ -133,7 +133,8 @@ def build(story, out, tts=(None, None), narration=None):
         print(f'  ! нет картинок ({len(missing)}): {", ".join(missing)} — вместо них заглушки; см. python make_art.py')
     total = round(T + float(story.get('tail', 0.0)), 3)
     timeline = {'duration': total, 'hero': story.get('hero', {}), 'cast': story.get('cast', {}), 'scenes': scenes, 'captions': caps,
-                'captionY': story.get('captionY', 1400), 'captionSize': story.get('captionSize', 86)}
+                'captionY': story.get('captionY', 1400), 'captionSize': story.get('captionSize', 86),
+                'size': story.get('size', [1080, 1920]), 'captionsOn': story.get('captions', True), 'series': story.get('series')}
     (out / 'timeline.json').write_text(json.dumps(timeline, ensure_ascii=False, indent=1))
     music = story.get('music')
     audio.mix(total, clips, effects, out / 'audio.wav', ambient=story.get('ambient', 'drone'),
@@ -165,7 +166,8 @@ async def frames(timeline, times, scale, workers, sink):
         browser = await p.chromium.launch()
         pages = []
         for _ in range(max(1, min(workers, len(times)))):
-            ctx = await browser.new_context(viewport={'width': round(1080 * scale), 'height': round(1920 * scale)})
+            w, h = timeline.get('size', [1080, 1920])
+            ctx = await browser.new_context(viewport={'width': round(w * scale), 'height': round(h * scale)})
             page = await ctx.new_page()
             page.on('pageerror', lambda e: print(f'  ! ошибка на странице: {e}'))
             await page.goto(url)
@@ -194,7 +196,7 @@ def render(timeline, out, fps, scale, workers, until=None):
     cmd = ['ffmpeg', '-y', '-v', 'error', '-f', 'image2pipe', '-c:v', 'mjpeg', '-framerate', str(fps), '-i', '-',
            '-i', str(out / 'audio.wav'), '-map', '0:v', '-map', '1:a',
            '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-maxrate', '5M', '-bufsize', '10M', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
-           '-vf', 'scale=1080:1920:flags=lanczos', '-r', str(fps),
+           '-vf', 'scale={}:{}:flags=lanczos'.format(*timeline.get('size', [1080, 1920])), '-r', str(fps),
            '-af', 'highpass=f=40,loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-c:a', 'aac', '-b:a', '192k',
            '-movflags', '+faststart', '-shortest', str(tmp)]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
@@ -221,10 +223,12 @@ def stills(timeline, out, times, scale=0.5):
     for f in d.glob('*.jpg'):
         f.unlink()
     asyncio.run(frames(timeline, times, scale, 4, lambda i, jpg: (d / f'{i:03d}_{times[i]:06.2f}.jpg').write_bytes(jpg)))
-    cols = min(len(times), 5)
+    w, h = timeline.get('size', [1080, 1920])
+    tw, th = (270, 480) if h > w else (480, 270)
+    cols = min(len(times), 5 if h > w else 4)
     rows = math.ceil(len(times) / cols)
     subprocess.run(['ffmpeg', '-y', '-v', 'error', '-pattern_type', 'glob', '-i', str(d / '*.jpg'),
-                    '-vf', f'scale=270:480,tile={cols}x{rows}:padding=6', '-frames:v', '1', str(out / 'sheet.jpg')], check=True)
+                    '-vf', f'scale={tw}:{th},tile={cols}x{rows}:padding=6', '-frames:v', '1', str(out / 'sheet.jpg')], check=True)
     print(f'  кадры: {d}\n  лист:  {out / "sheet.jpg"}')
 
 
@@ -232,7 +236,7 @@ def main():
     ap = argparse.ArgumentParser(description='Ролик для TikTok из сценария')
     ap.add_argument('story', help='путь к сценарию .json')
     ap.add_argument('--fps', type=int, default=30)
-    ap.add_argument('--draft', action='store_true', help='черновик: 540×960 и 15 к/с, в 4–6 раз быстрее')
+    ap.add_argument('--draft', action='store_true', help='черновик: вдвое меньше по размеру и 15 к/с, в 4–6 раз быстрее')
     ap.add_argument('--workers', type=int, default=3, help='сколько вкладок Chromium рисуют кадры одновременно')
     ap.add_argument('--stills', type=int, metavar='N', help='только N кадров по одному из середины каждой сцены (или равномерно)')
     ap.add_argument('--at', help='только кадры в эти секунды, через запятую: --at 3,12.5')

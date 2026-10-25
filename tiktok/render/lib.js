@@ -1,7 +1,9 @@
 'use strict';
 // Общие помощники для сцен: математика, случайные числа, человечки, свет.
 
-const W = 1080, H = 1920, TAU = Math.PI * 2;
+// Размер кадра: по умолчанию вертикальный 1080×1920, сценарий может задать свой (size: [1920, 1080]).
+let W = 1080, H = 1920;
+const TAU = Math.PI * 2;
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
 const lerp = (a, b, x) => a + (b - a) * x;
 const ease = {

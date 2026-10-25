@@ -8,6 +8,7 @@ let TL = null, SCALE = 1;
 
 async function setup(timeline, opts = {}) {
   TL = timeline; SCALE = opts.scale || 1;
+  if (TL.size) [W, H] = TL.size;
   cv.width = Math.round(W * SCALE); cv.height = Math.round(H * SCALE);
   await Promise.all(['900 80px Montserrat', '500 80px Montserrat', '600 60px Caveat', '700 30px "JetBrains Mono"']
     .map((f) => document.fonts.load(f, 'Ёё АБВ abc 0123')));
@@ -48,7 +49,7 @@ function draw(T) {
   (sc.tags || []).forEach((g) => tag(ctx, g, t));
   ctx.restore();
   ui(ctx, S);
-  captions(ctx, T);
+  if (TL.captionsOn !== false) captions(ctx, T);
   let fade = 0;
   if (sc.fade) fade = Math.max(fade, 1 - clamp(t / 0.5));
   if (i === TL.scenes.length - 1 && sc.fadeOut !== false) fade = Math.max(fade, clamp((t - sc.dur + 0.6) / 0.6));

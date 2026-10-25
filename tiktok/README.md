@@ -145,6 +145,41 @@ python make_video.py stories/metro-art-1.json
 `fit` (`cover`, `letterbox`, `blur`), `images` [{ draw, who, at }] — несколько кадров в одной сцене со сменой на слове.
 На верхнем уровне сценария: `style` — описание стиля для всех картинок, `cast.<имя>.look` — внешность героя.
 
+## Бизнес-истории в горизонтальном кадре
+
+Сериал от второго лица («ты кладёшь на стол…»): главы «Проблема 1/2/3» с полоской бюджета, расчёты в тенге,
+переписки, карточки товаров, правила-выводы и крючок на следующую серию. Рисовка минималистичная: человечки
+с круглыми головами, текст стоит прямо в кадре (реплики, листки, чаты), поэтому субтитры выключены.
+Пример — `stories/market-1.json` («Маркетплейс с нуля», серия 1).
+
+На верхнем уровне сценария: `"size": [1920, 1080]` (кадр 16:9), `"captions": false`, `series` — подпись серии
+для сцен с `label`. Внешность людей (`hero`, `cast`): `body` (`hoodie`, `suit`, `jacket`, `dress`), `color`, `pants`,
+`hair` (`none`, `short`, `long`, `bun`, `bald`), `hairColor`, `glasses`. В сцене у человека ещё `mood` (`calm`, `smile`,
+`happy`, `worried`, `shock`, `angry`, `smirk`, `sad`, `sleep`, `focus`), `arms` (`down`, `phone`, `box`, `laptop`, `point`,
+`think`, `up`, `hips`, `eat`, `wave`, `shrug`), `pose` (`stand`, `walk`, `sit`, `lie`), `facing`, `bag: "courier"`,
+`onBox` (сидит на коробках), `then` — смена настроения на слове.
+
+| `type` | Что рисует | Основные поля |
+| --- | --- | --- |
+| `bizcard` | текстовая карточка, тёмная или бумажная | `bg` (`dark`/`paper`), `lines: [{ text, size, color, at, count: [от, до], until, pill, gap }]` |
+| `chapter` | карточка главы | `kicker`, `icon` (`box`, `scale`, `chart`, `doc`, `calendar`, `truck`), `iconText`, `title`, `sub`, `budget { value, from, of, color, note }` |
+| `flat` | квартира | `time` (`day`/`night`), `boxes` (0…14 штабелей), `desk { x }`, `humid { on }`, `tuck`, `lights` |
+| `street` | улица с домами | `time` (`day`/`evening`), `shop` (вывеска) |
+| `compare` | карточки товаров рядом | `products: [{ head, title, price, old, rating, reviews, seller, img, color, highlight, stamp, at }]`, `arrow { text, at }` |
+| `ledger` | расчёт на листе | `title`, `rows: [{ label, value, color, sub, strike, at }]`, `total`, `pill`, `hero` (сбоку) |
+| `sellers` | список поставщиков | `title`, `rows: [{ name, price, note, color, pick, mark, markAt, at }]` |
+| `polaroids` | фотографии на столе | `photos: [{ img (`ok`/`off`/`leak`), caption, sub, mark, at }]` |
+| `chat` | переписка в телефоне | `name`, `status`, `avatar`, `msgs: [{ side: me/them, text, time, media (`scale`/`video`/`humid`), at }]`, `read`, `typing`, `hero` |
+| `call` | звонок: двое на половинках кадра | `left`/`right` (`room`, `office`, `warehouse`), `hero`, `people` |
+| `dash` | кабинет продавца в ноутбуке | `product`, `price`, `orders { from, to, at, until }`, `day: [{ text, at }]`, `bars: [{ v, at }]`, `max` |
+| `pitch` | видео товара и ответы покупателям | `title`, `caption`, `points: [{ q, a, at }]` |
+| `notes` | записи от руки на листке | `title`, `lines: [{ text, at, color, strike }]` |
+| `outro` | концовка с названием канала | `title`, `sub`, `foot` |
+
+В любой из этих сцен: `bubbles: [{ text, x, y, at, until, to: [x, y], kind (`say`/`think`/`name`), sub, icon, w, size }]` —
+реплики с хвостиком к говорящему, `stamps: [{ text, x, y, at, rot, color, size }]` — штампы, `label: true` — подпись серии.
+Код сцен — `render/biz.js`.
+
 ## Голос ElevenLabs
 
 Живой голос вместо бесплатного: ключ ElevenLabs в переменной `ELEVENLABS_API_KEY` и голос в сценарии:
