@@ -48,12 +48,29 @@ function draw(T) {
   (SCENES[sc.type] || SCENES.blank)(ctx, S);
   (sc.tags || []).forEach((g) => tag(ctx, g, t));
   ctx.restore();
+  if (sc.sepia) oldFilm(ctx, T);
   ui(ctx, S);
   if (TL.captionsOn !== false) captions(ctx, T);
   let fade = 0;
   if (sc.fade) fade = Math.max(fade, 1 - clamp(t / 0.5));
   if (i === TL.scenes.length - 1 && sc.fadeOut !== false) fade = Math.max(fade, clamp((t - sc.dur + 0.6) / 0.6));
   if (fade > 0) { ctx.fillStyle = `rgba(0,0,0,${fade})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// Флешбэк: сцена в тонах старой плёнки — сепия, зерно, царапины и виньетка. Плашки и субтитры поверх неё не трогает.
+function oldFilm(c, T) {
+  c.save();
+  c.globalCompositeOperation = 'color'; c.fillStyle = 'rgba(150,108,60,0.85)'; c.fillRect(0, 0, W, H);
+  c.globalCompositeOperation = 'multiply'; c.fillStyle = 'rgba(255,236,205,1)'; c.fillRect(0, 0, W, H);
+  c.globalCompositeOperation = 'source-over';
+  const f = Math.floor(T * 12), r = rng(f + 7);
+  c.fillStyle = 'rgba(255,240,210,0.08)';
+  for (let i = 0; i < 260; i++) c.fillRect(r() * W, r() * H, 2, 2);
+  c.fillStyle = 'rgba(30,20,10,0.12)';
+  for (let i = 0; i < 260; i++) c.fillRect(r() * W, r() * H, 2, 2);
+  if (r() < 0.6) { c.fillStyle = 'rgba(255,245,225,0.18)'; c.fillRect(r() * W, 0, 2, H); }
+  c.restore();
+  vignette(c, 0.6);
 }
 
 // ───────────── Плашки поверх сцены ─────────────

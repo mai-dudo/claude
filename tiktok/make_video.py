@@ -28,7 +28,8 @@ ROOT = Path(__file__).resolve().parent
 VOICE_KEYS = ('tts', 'voiceId', 'voiceModel', 'voiceSettings', 'voice', 'rate', 'pitch')
 TIME_KEYS = {'at', 'from', 'until', 'rail', 'lightsOff', 'lightOff', 'handle', 'phantoms', 'glowFrom', 'wind',
              'enter', 'vanish', 'prune', 'glowAt', 'magic', 'mirrorAt', 'sparksFrom', 'blackout', 'flash', 'pumpOff',
-             'unplug', 'spark', 'candle', 'candleOff', 'gas', 'co', 'radio', 'open', 'sign', 'blanket', 'titleAt'}
+             'unplug', 'spark', 'candle', 'candleOff', 'gas', 'co', 'radio', 'open', 'sign', 'blanket', 'titleAt',
+             'zoomAt', 'zoomUntil', 'eyesAt', 'smoke', 'intercom'}
 
 
 def resolve_time(value, words, dur, where):
@@ -134,7 +135,8 @@ def build(story, out, tts=(None, None), narration=None):
     total = round(T + float(story.get('tail', 0.0)), 3)
     timeline = {'duration': total, 'hero': story.get('hero', {}), 'cast': story.get('cast', {}), 'scenes': scenes, 'captions': caps,
                 'captionY': story.get('captionY', 1400), 'captionSize': story.get('captionSize', 86),
-                'size': story.get('size', [1080, 1920]), 'captionsOn': story.get('captions', True), 'series': story.get('series')}
+                'size': story.get('size', [1080, 1920]), 'captionsOn': story.get('captions', True), 'series': story.get('series'),
+                'cover': story.get('cover', 1.2), 'coverFirst': story.get('coverFirst', False)}
     (out / 'timeline.json').write_text(json.dumps(timeline, ensure_ascii=False, indent=1))
     music = story.get('music')
     audio.mix(total, clips, effects, out / 'audio.wav', ambient=story.get('ambient', 'drone'),
@@ -192,6 +194,8 @@ async def frames(timeline, times, scale, workers, sink):
 def render(timeline, out, fps, scale, workers, until=None):
     n = math.ceil(min(timeline['duration'], until or timeline['duration']) * fps)
     times = [i / fps for i in range(n)]
+    if timeline.get('coverFirst'):
+        times[0] = float(timeline.get('cover', 1.2))  # первый кадр — обложка: TikTok показывает его, если обложку не выбрали
     tmp = out / 'video.tmp.mp4'
     cmd = ['ffmpeg', '-y', '-v', 'error', '-f', 'image2pipe', '-c:v', 'mjpeg', '-framerate', str(fps), '-i', '-',
            '-i', str(out / 'audio.wav'), '-map', '0:v', '-map', '1:a',

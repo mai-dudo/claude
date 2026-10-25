@@ -52,7 +52,8 @@ function earth(c, y0 = -60, y1 = H + 60, seed = 5) {
 
 // ───────────────────────── Вагон метро изнутри ─────────────────────────
 // P: lights ('on' | 'off' | 'flicker'), lightsOff (at), handle (at — подсветить ручку экстренного открытия),
-// hero { x, pose: 'sleep' | 'sit' | 'stand', light: 'phone' }
+// hero { x, pose: 'sleep' | 'sit' | 'stand', light: 'phone' }, people (пассажиры, как hero), smoke (at — из-под пола
+// тянет дымом), intercom (at — подсветить кнопку связи с машинистом)
 SCENES.wagon = (c, S) => {
   const { t, T, P } = S;
   let on = P.lights === 'off' ? 0 : 1;
@@ -98,6 +99,12 @@ SCENES.wagon = (c, S) => {
   c.fillStyle = '#1d2024'; c.fillRect(dx + 166, 478, 6, floor - 478);
   c.fillStyle = '#5d676c'; c.font = '700 22px "JetBrains Mono"'; c.textAlign = 'center';
   c.fillText('НЕ ПРИСЛОНЯТЬСЯ', dx + 170, 925);
+  // кнопка связи с машинистом
+  if (P.intercom != null) {
+    c.fillStyle = '#8f999e'; rr(c, 628, 650, 64, 150, 10); c.fill();
+    c.fillStyle = '#5d676c'; for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) circle(c, 644 + j * 16, 674 + i * 16, 4, '#5d676c');
+    circle(c, 660, 760, 18, '#f2c230');
+  }
   // ручка экстренного открытия
   const hx = 640, hy = 860;
   c.fillStyle = '#c92a2a'; rr(c, hx, hy, 52, 92, 10); c.fill();
@@ -145,6 +152,13 @@ SCENES.wagon = (c, S) => {
       c.globalAlpha = 1;
     }
   }
+  // пассажиры: тот же масштаб, сидят на диване или стоят у дверей
+  const riders = [];
+  for (const sp of P.people || []) {
+    const p = personIn(S, sp, { light: null, pose: 'sit' }), s = 2.35, feet = floor + 12;
+    const hd = drawPerson(c, p.x, feet, s, { ...p, seat: p.pose === 'stand' ? undefined : (feet - 1076) / s });
+    if (hd && !p.dead) riders.push(hd);
+  }
   pole(60, 1560);
 
   // свет
@@ -152,7 +166,12 @@ SCENES.wagon = (c, S) => {
   const handGlow = P.handle != null && t >= P.handle;
   if (handGlow) lights.push({ x: hx + 26, y: hy + 46, r: 230, k: 0.9 });
   if (hand) lights.push({ x: hand.x, y: hand.y, a: hand.a, spread: 0.5, len: 760, r: 260 });
+  for (const r of riders) lights.push({ x: r.x, y: r.y, a: r.a, spread: 0.5, len: 760, r: 220 });
+  const icom = P.intercom != null && t >= P.intercom;
+  if (icom) lights.push({ x: 660, y: 740, r: 240, k: 0.9 });
   darkness(c, (1 - on) * (P.dark ?? 0.93), lights, P.tint || '3,5,10');
+  if (icom) glow(c, 660, 760, 110, '255,214,60', 0.35 + 0.2 * Math.sin(T * 7));
+  if (P.smoke != null && t >= P.smoke) smoke(c, t - P.smoke, T, floor, 'floor');
   if (on < 0.5) glow(c, hx + 26, hy + 20, 70, '255,60,50', 0.35 + 0.15 * Math.sin(T * 4));
   if (handGlow) glow(c, hx + 26, hy + 46, 120, '255,80,60', 0.25 + 0.2 * Math.sin(T * 7));
   if (hand) beam(c, hand.x, hand.y, hand.a, 0.42, 700, 0.18);
@@ -160,7 +179,45 @@ SCENES.wagon = (c, S) => {
 };
 
 // ───────────────────────── Экран телефона ─────────────────────────
-// P: time, date, battery (0..100), net, notes: [{ title, text, at }], call { name, at, ring }
+// Снимок из галереи на экране телефона: тёмный тоннель, обходчик в свете вспышки, а за ним — второй силуэт.
+// ph: { at, zoomAt, zoomUntil, zoomFrom, zoom (во сколько раз), focus: [x, y] в долях снимка, eyesAt (глаза второго ярче), title }
+function galleryPhoto(c, S, ph, px, py, pw, phh) {
+  const { t, T } = S;
+  const k = (ph.at ?? 0) <= 0.05 ? 1 : after(t, ph.at, 0.4);
+  if (k <= 0) return;
+  const z = lerp(ph.zoomFrom ?? 1, ph.zoom ?? 2.6, ease.inOut((t - (ph.zoomAt ?? 99)) / Math.max(0.1, (ph.zoomUntil ?? (ph.zoomAt ?? 99) + 1.5) - (ph.zoomAt ?? 99))));
+  const [fx, fy] = ph.focus || [0.72, 0.42];
+  c.save(); c.globalAlpha = k;
+  c.beginPath(); rr(c, px, py, pw, phh, 80); c.clip();
+  c.fillStyle = '#000'; c.fillRect(px, py, pw, phh);
+  const iy = py + 300, ih = 720;
+  c.save(); c.beginPath(); c.rect(px, iy, pw, ih); c.clip();
+  c.translate(px + pw * fx, iy + ih * fy); c.scale(z, z); c.translate(-(px + pw * fx), -(iy + ih * fy));
+  let g = c.createRadialGradient(px + pw * 0.38, iy + ih * 0.5, 20, px + pw * 0.38, iy + ih * 0.5, pw);
+  g.addColorStop(0, '#3a3a36'); g.addColorStop(0.5, '#141513'); g.addColorStop(1, '#050505');
+  c.fillStyle = g; c.fillRect(px, iy, pw, ih);
+  c.fillStyle = 'rgba(255,255,255,0.05)'; for (let i = 0; i < 6; i++) c.fillRect(px, iy + 60 + i * 80, pw, 3);
+  // второй — в пальто, глубже в тоннеле, почти сливается с темнотой; сзади слабая дымка, чтобы читался силуэт
+  const gx = px + pw * 0.72, gy = iy + ih * 0.86;
+  g = c.createRadialGradient(gx, gy - 110, 10, gx, gy - 110, 190);
+  g.addColorStop(0, 'rgba(70,72,68,0.55)'); g.addColorStop(1, 'rgba(70,72,68,0)');
+  c.fillStyle = g; c.fillRect(gx - 200, gy - 320, 400, 400);
+  const eyes = (ph.eyesAt != null && t >= ph.eyesAt ? 0.95 : 0.4) + 0.12 * Math.sin(T * 2);
+  drawPerson(c, gx, gy, 0.95, { pose: 'stand', facing: -1, silhouette: '#191a19', hat: 'none', light: null, eyes });
+  // обходчик в свете вспышки
+  const ded = { ...HERO_DEFAULT, ...(S.cast[ph.who || 'ded'] || {}), facing: 1, pose: 'stand', light: null };
+  drawPerson(c, px + pw * 0.38, iy + ih * 1.02, 1.55, ded);
+  c.restore();
+  // рамка окна вагона и блик
+  c.strokeStyle = 'rgba(60,64,70,0.9)'; c.lineWidth = 26; c.strokeRect(px + 13, iy + 13, pw - 26, ih - 26);
+  c.fillStyle = 'rgba(255,255,255,0.06)'; c.beginPath(); c.moveTo(px + 60, iy); c.lineTo(px + 170, iy); c.lineTo(px + 40, iy + ih); c.lineTo(px - 60, iy + ih); c.fill();
+  c.fillStyle = '#fff'; c.font = '600 30px Montserrat'; c.textAlign = 'center'; c.fillText(ph.title || 'Сегодня, 03:14', px + pw / 2, py + 250);
+  if (z > 1.05) { c.fillStyle = 'rgba(255,255,255,0.8)'; c.font = '700 26px "JetBrains Mono"'; c.fillText(`×${z.toFixed(1)}`, px + pw / 2, iy + ih + 60); }
+  c.restore();
+}
+
+// P: time, date, battery (0..100), net, notes: [{ title, text, at }], call { name, at, ring }, photo (снимок из галереи,
+// см. galleryPhoto), slide: false — телефон не выезжает снизу (продолжение прошлой сцены)
 SCENES.phone = (c, S) => {
   const { t, T, P } = S;
   c.fillStyle = '#05060a'; c.fillRect(-80, -80, W + 160, H + 160);
@@ -169,7 +226,7 @@ SCENES.phone = (c, S) => {
     glow(c, r() * W, r() * H, 60 + r() * 120, i % 3 ? '90,110,180' : '255,180,110', 0.05 + 0.04 * Math.sin(T + i));
   }
   const pw = 600, ph = 1220, px = (W - pw) / 2;
-  const py = 300 + (1 - ease.out(t / 0.55)) * 900 + Math.sin(T * 1.3) * 6;
+  const py = 300 + (P.slide === false ? 0 : (1 - ease.out(t / 0.55)) * 900) + Math.sin(T * 1.3) * 6;
   glow(c, W / 2, py + ph / 2, 760, '110,130,255', 0.16);
   c.fillStyle = '#0a0c10'; rr(c, px - 18, py - 18, pw + 36, ph + 36, 96); c.fill();
   c.strokeStyle = '#3b404b'; c.lineWidth = 5; c.stroke();
@@ -210,6 +267,7 @@ SCENES.phone = (c, S) => {
     c.fillText(n.text, px + 126, ny + 106);
     c.restore();
   });
+  if (P.photo) galleryPhoto(c, S, P.photo, px, py, pw, ph);
   // звонок: { name, at, ring (сколько секунд идут гудки) }
   if (P.call) {
     const cl = P.call, at = cl.at ?? 0.3, k = after(t, at, 0.35);
@@ -445,7 +503,7 @@ function drawTrain(c, x, yRail, o = {}) {
 // niche (x ниши), signal { x, color }, figure { walk: [x0, x1], from, until, eyes }, phantoms (at), tint (цвет темноты),
 // fog { color, from }, water (уровень, 0..1), surface (город над разрезом), hero { walk, x, light, lightOff, pose },
 // people [{ who, …как hero }], lights [{ x, y, r } или конус { x, y, a, spread, len }], pickets [{ x, text, at }],
-// wind (at — пошёл ветер от поезда)
+// wind (at — пошёл ветер от поезда), smoke (at — дым под сводом), lantern { x, at } (разбитый фонарь на путях)
 SCENES.tunnel = (c, S) => {
   const { t, T, P } = S;
   const top = 500, floor = 1210, base = 1290;
@@ -523,6 +581,7 @@ SCENES.tunnel = (c, S) => {
   }
   // герой
   if (P.pickets) pickets(c, P.pickets, t, T, top);
+  if (P.lantern && t >= (P.lantern.at ?? 0)) lantern(c, P.lantern.x ?? 540, floor - 6, T);
   const people = [heroIn(S, { x: 360, light: 'phone' }), ...(P.people || []).map((sp) => personIn(S, sp, { light: null }))];
   const hands = drawPeople(c, people, floor - 8, 1.25);
   // мотовоз
@@ -568,6 +627,7 @@ SCENES.tunnel = (c, S) => {
   if (P.train && P.train.glowAt != null) lights.push({ x: (P.train.x ?? 520) + P.train.glowAt * (P.train.scale ?? 0.95), y: floor - 260, r: 180, k: 0.7 });
   if (hot) lights.push({ x: W / 2, y: floor + 12, r: 900, k: 0.35 + 0.25 * pulse });
   darkness(c, P.dark ?? 0, lights, P.tint || '2,3,6');
+  if (P.smoke != null && t >= P.smoke) smoke(c, t - P.smoke, T, top, 'ceiling');
   // силуэт поверх темноты, чтобы читался на фоне стены
   if (P.figure) {
     const fg = P.figure, t0 = fg.from ?? 0, t1 = fg.until ?? S.d;
@@ -611,6 +671,38 @@ SCENES.tunnel = (c, S) => {
 };
 
 // Таблички-пикеты на стене тоннеля (каждые 100 м). at — когда подсветить.
+// Дым: из-под пола вагона (from: 'floor', y — пол) или под сводом тоннеля (from: 'ceiling', y — верх). dt — сколько уже идёт.
+function smoke(c, dt, T, y, from) {
+  const k = clamp(dt / 2.5), up = from === 'floor';
+  const g = c.createLinearGradient(0, up ? y : y, 0, up ? y - 900 : y + 700);
+  g.addColorStop(0, `rgba(120,120,116,${0.55 * k})`); g.addColorStop(1, 'rgba(120,120,116,0)');
+  c.fillStyle = g; c.fillRect(-80, up ? y - 900 : y, W + 160, 900);
+  for (let i = 0; i < 12; i++) {
+    const life = (T * 0.08 + hash(i)) % 1, x = (hash(i + 3) * (W + 400) + T * 30 * (hash(i + 5) - 0.3)) % (W + 400) - 200;
+    const yy = up ? y - 80 - life * 700 * k : y + 60 + life * 420 * k, r = 140 + life * 180;
+    const bg = c.createRadialGradient(x, yy, 0, x, yy, r);
+    bg.addColorStop(0, `rgba(135,135,130,${0.3 * k * Math.sin(Math.PI * life)})`); bg.addColorStop(1, 'rgba(135,135,130,0)');
+    c.fillStyle = bg; c.beginPath(); c.arc(x, yy, r, 0, TAU); c.fill();
+  }
+}
+
+// Путейский фонарь, разбитый, лежит на боку у рельса.
+function lantern(c, x, y, T) {
+  c.save(); c.translate(x, y); c.rotate(-1.35);
+  c.fillStyle = '#2f3a2c'; rr(c, -34, -96, 68, 96, 8); c.fill();
+  c.strokeStyle = '#2f3a2c'; c.lineWidth = 8; c.beginPath(); c.arc(0, -96, 26, Math.PI, TAU); c.stroke();
+  c.fillStyle = '#c9b77a'; rr(c, -24, -78, 48, 40, 5); c.fill();
+  c.strokeStyle = '#1b1d22'; c.lineWidth = 3;
+  c.beginPath(); c.moveTo(-20, -74); c.lineTo(4, -54); c.lineTo(-8, -40); c.moveTo(4, -54); c.lineTo(20, -70); c.stroke();
+  c.restore();
+  c.fillStyle = 'rgba(220,230,240,0.85)';
+  for (let i = 0; i < 7; i++) {
+    const sx = x + 60 + hash(i) * 140, sy = y - 4 - hash(i + 2) * 10;
+    c.beginPath(); c.moveTo(sx, sy); c.lineTo(sx + 8 + hash(i + 4) * 10, sy + 3); c.lineTo(sx + 3, sy - 6); c.fill();
+  }
+  glow(c, x + 120, y - 8, 60, '230,240,255', 0.12 + 0.08 * Math.sin(T * 3));
+}
+
 function pickets(c, list, t, T, top) {
   for (const pk of list) {
     const x = pk.x, y = top + 300, lit = pk.at != null && t >= pk.at;

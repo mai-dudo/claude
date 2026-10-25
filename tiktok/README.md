@@ -28,6 +28,8 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 ```
 
 Результат в `out/<slug>/`: `video.mp4`, `cover.jpg`, `post.txt` (название ролика и хэштеги одной строкой — вставить при публикации), `sheet.jpg` (лист кадров).
+`cover` в сценарии — секунда для обложки; с `"coverFirst": true` этот же кадр становится первым кадром ролика: TikTok
+показывает его на обложке, даже если её не выбрать вручную.
 Ключи: `--draft` — черновик 540×960 и 15 к/с, `--at 3,12.5` — только кадры в эти секунды,
 `--workers 4` — сколько вкладок браузера рисуют параллельно (по числу ядер).
 
@@ -78,6 +80,7 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 | `meters: [{ label, value: [от, до], text, at }]` | полоски-шкалы, значения 0…1 |
 | `timer: { from, to, at }` | табло обратного отсчёта, секунды |
 | `cam: { zoom: [1, 1.2], focus: [x, y], punch, shake }` | наезд камеры к точке, тряска |
+| `sepia: true` | флешбэк: сцена в тонах старой плёнки (сепия, зерно, царапины), плашки и субтитры поверх остаются цветными |
 | `sfx: [{ type, at, db }]` | `hit`, `whoosh`, `knock`, `steps`, `zap`, `rumble`, `beep`, `click`, `drip`, `wind`, `powerdown` (гаснет свет), `static` (шипение радио), `water` (вода из крана), `fire` (треск огня) |
 | `fade` | появление из чёрного |
 
@@ -88,10 +91,10 @@ python make_video.py stories/metro-tupik.json               # готовый р�
 
 | `type` | Что рисует | Основные поля |
 | --- | --- | --- |
-| `wagon` | вагон метро изнутри | `lights` (`on`/`off`/`flicker`), `lightsOff`, `handle`, `hero { x, pose: sleep/sit/stand, light }` |
-| `tunnel` | тоннель в разрезе (`style`: `metro` или кирпичный `brick`) | `dark` 0…1, `rail`, `train`, `loco`, `niche`, `signal`, `figure`, `phantoms`, `fog`, `water`, `surface`, `tint`, `people`, `lights`, `pickets: [{ x, text, at }]`, `wind` |
+| `wagon` | вагон метро изнутри | `lights` (`on`/`off`/`flicker`), `lightsOff`, `handle`, `hero { x, pose: sleep/sit/stand, light }`, `people` (пассажиры), `smoke` (из-под пола тянет дымом), `intercom` (подсветить кнопку связи с машинистом) |
+| `tunnel` | тоннель в разрезе (`style`: `metro` или кирпичный `brick`) | `dark` 0…1, `rail`, `train`, `loco`, `niche`, `signal`, `figure`, `phantoms`, `fog`, `water`, `surface`, `tint`, `people`, `lights`, `pickets: [{ x, text, at }]`, `wind`, `smoke` (дым под сводом), `lantern { x, at }` (разбитый фонарь на путях) |
 | `city` | ночной город | `metro` (павильон «М»), `cutaway` (разрез: эскалатор, станция, тупик), `dawn` (рассвет), `danger`, `rain`, `snow` (снег и заснеженный двор), `blackout` (дома гаснут; `0` — уже темно), `flash` (вспышка на подстанции), `figures { n, kind: people/zombie }`, `hero`, `people` |
-| `phone` | экран телефона | `time`, `date`, `battery`, `net`, `notes: [{ title, text, at }]`, `call { name, at, ring }` — экран звонка |
+| `phone` | экран телефона | `time`, `date`, `battery`, `net`, `notes: [{ title, text, at }]`, `call { name, at, ring }` — экран звонка, `photo { at, zoomAt, zoomUntil, zoomFrom, zoom, focus, eyesAt, title }` — снимок из галереи с увеличением, `slide: false` — телефон не выезжает снизу |
 | `map` | схема линии метро | `stations: [{ name, pos }]`, `deadEnd`, `marker { pos, label }`, `measure { a, b, text }` |
 | `note` | записи в тетради при свете фонаря | `title`, `lines: [{ text, at, color, strike }]` |
 | `cave` | пещера в разрезе | `water` (0…1 или `[от, до]` — вода поднимается), `murk`, `dark`, `ledge`, `squeeze`, `drips`, `hole`, `guide`, `crowd { n, x0, x1, who, pose }`, `stretcher`, `surface`, `lights` |
