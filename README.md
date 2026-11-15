@@ -50,3 +50,8 @@ git archive HEAD | tar -x -C /tmp/site && cp -r .vercel /tmp/site/ && cd /tmp/si
 ```
 
 Авторы и лицензии видео, иконок, игр и шрифта — в `CREDITS.md`.
+
+## Игра для Roblox
+
+В папке `roblox/` лежит отдельный проект — игра «Крути и выигрывай» для Roblox. К сайту она не относится
+и на Vercel не выкладывается (см. `.vercelignore`). Как её открыть и опубликовать — в `roblox/README.md`.

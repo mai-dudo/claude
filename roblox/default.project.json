@@ -1,0 +1,59 @@
+{
+  "name": "SpinAndWin",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/shared"
+      },
+      "Remotes": {
+        "$className": "Folder",
+        "GetState": { "$className": "RemoteFunction" },
+        "Spin": { "$className": "RemoteFunction" },
+        "BuyUpgrade": { "$className": "RemoteFunction" },
+        "Rebirth": { "$className": "RemoteFunction" },
+        "StateChanged": { "$className": "RemoteEvent" },
+        "Announce": { "$className": "RemoteEvent" }
+      }
+    },
+
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+
+    "Workspace": {
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Locked": true,
+          "Color": [0.11, 0.1, 0.2],
+          "Position": [0, -10, 0],
+          "Size": [512, 20, 512]
+        }
+      },
+      "SpawnLocation": {
+        "$className": "SpawnLocation",
+        "$properties": {
+          "Anchored": true,
+          "Neutral": true,
+          "Duration": 0,
+          "Color": [1, 0.84, 0],
+          "Position": [0, 0.5, 20],
+          "Size": [10, 1, 10]
+        }
+      }
+    }
+  }
+}

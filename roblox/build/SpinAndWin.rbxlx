@@ -1,0 +1,2522 @@
+<roblox version="4">
+  <Item class="ReplicatedStorage" referent="0">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="Folder" referent="1">
+      <Properties>
+        <string name="Name">Remotes</string>
+      </Properties>
+      <Item class="RemoteEvent" referent="2">
+        <Properties>
+          <string name="Name">Announce</string>
+        </Properties>
+      </Item>
+      <Item class="RemoteFunction" referent="3">
+        <Properties>
+          <string name="Name">BuyUpgrade</string>
+        </Properties>
+      </Item>
+      <Item class="RemoteFunction" referent="4">
+        <Properties>
+          <string name="Name">GetState</string>
+        </Properties>
+      </Item>
+      <Item class="RemoteFunction" referent="5">
+        <Properties>
+          <string name="Name">Rebirth</string>
+        </Properties>
+      </Item>
+      <Item class="RemoteFunction" referent="6">
+        <Properties>
+          <string name="Name">Spin</string>
+        </Properties>
+      </Item>
+      <Item class="RemoteEvent" referent="7">
+        <Properties>
+          <string name="Name">StateChanged</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="8">
+      <Properties>
+        <string name="Name">Shared</string>
+      </Properties>
+      <Item class="ModuleScript" referent="9">
+        <Properties>
+          <string name="Name">Config</string>
+          <string name="Source"><![CDATA[--!strict
+-- Все настройки игры в одном месте. Меняйте числа здесь — код трогать не нужно.
+
+export type Segment = {
+	id: string,
+	name: string,
+	color: string, -- цвет сектора, hex
+	textColor: string, -- цвет надписи на секторе, hex
+	accent: string, -- цвет названия на тёмном фоне (в списках и над головой), hex
+	weight: number, -- базовый шанс в процентах (в сумме 100)
+	multiplier: number, -- во сколько раз сектор умножает базовую награду
+	announce: boolean, -- объявлять ли выпадение всему серверу
+}
+
+export type Upgrade = {
+	name: string,
+	description: string,
+	maxLevel: number,
+	baseCost: number,
+	costGrowth: number, -- во сколько раз дорожает каждый следующий уровень
+}
+
+export type GamePass = {
+	id: number, -- ID геймпасса из Creator Dashboard; 0 — пасс выключен
+	name: string,
+	description: string,
+}
+
+local Config = {}
+
+-- Имя хранилища сохранений. Смена имени обнулит прогресс всех игроков.
+Config.DataStoreName = "SpinAndWin_v1"
+Config.AutosaveInterval = 90 -- секунд между автосохранениями
+
+Config.BaseReward = 10 -- монет за «Обычный» сектор без улучшений
+Config.MaxCoins = 1e15 -- потолок монет, чтобы числа оставались точными
+
+Config.BaseSpinTime = 4.0 -- сколько секунд крутится колесо без улучшений
+Config.MinSpinTime = 1.0
+Config.SpinTimePerLevel = 0.3 -- на сколько секунд ускоряет каждый уровень «Скорости»
+Config.SpinTolerance = 0.35 -- запас на задержку сети при проверке перезарядки
+
+Config.LuckPerLevel = 0.25 -- +25% удачи за уровень
+Config.CoinsPerLevel = 0.5 -- +50% монет за уровень
+Config.RebirthBonus = 1 -- +100% монет за каждое перерождение
+Config.RebirthBaseCost = 250000
+Config.RebirthCostGrowth = 4
+
+-- Сектора по возрастанию редкости. Номер в этом списке — «тир» сектора.
+Config.Segments = {
+	{
+		id = "common",
+		name = "Обычный",
+		color = "#8d99ae",
+		textColor = "#ffffff",
+		accent = "#8d99ae",
+		weight = 45,
+		multiplier = 1,
+		announce = false,
+	},
+	{
+		id = "uncommon",
+		name = "Необычный",
+		color = "#43a047",
+		textColor = "#ffffff",
+		accent = "#43a047",
+		weight = 27,
+		multiplier = 3,
+		announce = false,
+	},
+	{
+		id = "rare",
+		name = "Редкий",
+		color = "#1e88e5",
+		textColor = "#ffffff",
+		accent = "#1e88e5",
+		weight = 15,
+		multiplier = 8,
+		announce = false,
+	},
+	{
+		id = "epic",
+		name = "Эпический",
+		color = "#8e24aa",
+		textColor = "#ffffff",
+		accent = "#8e24aa",
+		weight = 8,
+		multiplier = 25,
+		announce = false,
+	},
+	{
+		id = "legendary",
+		name = "Легендарный",
+		color = "#fb8c00",
+		textColor = "#ffffff",
+		accent = "#fb8c00",
+		weight = 3.5,
+		multiplier = 100,
+		announce = false,
+	},
+	{
+		id = "mythic",
+		name = "Мифический",
+		color = "#e53935",
+		textColor = "#ffffff",
+		accent = "#e53935",
+		weight = 1.2,
+		multiplier = 500,
+		announce = true,
+	},
+	{
+		id = "secret",
+		name = "Секретный",
+		color = "#1b1f3b",
+		textColor = "#7df9ff",
+		accent = "#7df9ff",
+		weight = 0.25,
+		multiplier = 3000,
+		announce = true,
+	},
+	{
+		id = "jackpot",
+		name = "ДЖЕКПОТ",
+		color = "#ffd600",
+		textColor = "#3b2a00",
+		accent = "#ffd600",
+		weight = 0.05,
+		multiplier = 25000,
+		announce = true,
+	},
+} :: { Segment }
+
+-- В каком порядке тиры стоят на колесе (по часовой стрелке от указателя).
+-- Редкие сектора перемешаны с частыми, чтобы колесо выглядело живее.
+Config.WheelOrder = { 1, 5, 2, 7, 3, 6, 4, 8 }
+
+Config.Upgrades = {
+	coins = {
+		name = "Множитель монет",
+		description = "+50% монет за каждую крутку",
+		maxLevel = 50,
+		baseCost = 60,
+		costGrowth = 1.3,
+	},
+	luck = {
+		name = "Удача",
+		description = "Редкие сектора выпадают чаще",
+		maxLevel = 20,
+		baseCost = 150,
+		costGrowth = 1.7,
+	},
+	speed = {
+		name = "Скорость колеса",
+		description = "Колесо останавливается быстрее",
+		maxLevel = 10,
+		baseCost = 250,
+		costGrowth = 2.2,
+	},
+	auto = {
+		name = "Авто-крутка",
+		description = "Колесо крутится само",
+		maxLevel = 1,
+		baseCost = 5000,
+		costGrowth = 1,
+	},
+} :: { [string]: Upgrade }
+
+Config.UpgradeOrder = { "coins", "luck", "speed", "auto" }
+
+-- Улучшения, которые сохраняются после перерождения.
+Config.KeptOnRebirth = { auto = true } :: { [string]: boolean }
+
+-- Геймпассы — так игра приносит робуксы вам как автору.
+-- Создайте пассы в Creator Dashboard и впишите сюда их ID. Пока ID равен 0, пасс не показывается.
+Config.GamePasses = {
+	doubleCoins = {
+		id = 0,
+		name = "x2 монет",
+		description = "Все выигрыши удваиваются навсегда",
+	},
+	doubleLuck = {
+		id = 0,
+		name = "x2 удача",
+		description = "Удача удваивается навсегда",
+	},
+	autoSpin = {
+		id = 0,
+		name = "Авто-крутка",
+		description = "Авто-крутка сразу и навсегда",
+	},
+} :: { [string]: GamePass }
+
+Config.GamePassOrder = { "doubleCoins", "doubleLuck", "autoSpin" }
+
+-- Звуки: впишите ID звуков из Toolbox. 0 — звук выключен.
+Config.Sounds = {
+	spin = 0,
+	win = 0,
+	rare = 0,
+	buy = 0,
+}
+
+return Config
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="10">
+        <Properties>
+          <string name="Name">Wheel</string>
+          <string name="Source"><![CDATA[--!strict
+-- Чистая логика колеса: шансы, награды, цены. Одна и та же на сервере и на клиенте,
+-- поэтому игрок видит ровно те шансы, по которым сервер выбирает сектор.
+
+local Config = require(script.Parent.Config)
+
+local Wheel = {}
+
+local SUFFIXES = { "", "K", "M", "B", "T", "Qa", "Qi" }
+
+local function clampLevel(level: number, maxLevel: number): number
+	return math.clamp(math.floor(level), 0, maxLevel)
+end
+
+-- Итоговая удача: 1 — базовая, больше — редкие сектора чаще.
+function Wheel.getLuck(luckLevel: number, hasLuckPass: boolean): number
+	local level = clampLevel(luckLevel, Config.Upgrades.luck.maxLevel)
+	local luck = 1 + Config.LuckPerLevel * level
+	if hasLuckPass then
+		luck *= 2
+	end
+	return luck
+end
+
+-- Веса секторов с учётом удачи. Чем реже сектор, тем сильнее на него действует удача:
+-- самый частый не меняется, самый редкий умножается на всю удачу.
+function Wheel.getWeights(luck: number): { number }
+	local count = #Config.Segments
+	local weights = table.create(count)
+	for tier, segment in Config.Segments do
+		local exponent = if count > 1 then (tier - 1) / (count - 1) else 0
+		weights[tier] = segment.weight * math.max(luck, 1) ^ exponent
+	end
+	return weights
+end
+
+-- Шансы секторов в долях от единицы.
+function Wheel.getOdds(luck: number): { number }
+	local weights = Wheel.getWeights(luck)
+	local total = 0
+	for _, weight in weights do
+		total += weight
+	end
+	local odds = table.create(#weights)
+	for tier, weight in weights do
+		odds[tier] = weight / total
+	end
+	return odds
+end
+
+-- Выбор сектора. roll — случайное число от 0 до 1.
+function Wheel.roll(luck: number, roll: number): number
+	local odds = Wheel.getOdds(luck)
+	local cursor = 0
+	for tier, chance in odds do
+		cursor += chance
+		if roll < cursor then
+			return tier
+		end
+	end
+	return 1
+end
+
+function Wheel.getCoinMultiplier(coinsLevel: number, rebirths: number, hasCoinsPass: boolean): number
+	local level = clampLevel(coinsLevel, Config.Upgrades.coins.maxLevel)
+	local multiplier = (1 + Config.CoinsPerLevel * level) * (1 + Config.RebirthBonus * math.max(rebirths, 0))
+	if hasCoinsPass then
+		multiplier *= 2
+	end
+	return multiplier
+end
+
+function Wheel.getReward(tier: number, coinsLevel: number, rebirths: number, hasCoinsPass: boolean): number
+	local segment = Config.Segments[tier]
+	if not segment then
+		return 0
+	end
+	local multiplier = Wheel.getCoinMultiplier(coinsLevel, rebirths, hasCoinsPass)
+	return math.floor(Config.BaseReward * segment.multiplier * multiplier + 0.5)
+end
+
+function Wheel.getSpinTime(speedLevel: number): number
+	local level = clampLevel(speedLevel, Config.Upgrades.speed.maxLevel)
+	return math.max(Config.MinSpinTime, Config.BaseSpinTime - Config.SpinTimePerLevel * level)
+end
+
+-- Цена следующего уровня улучшения. nil — улучшение не существует или уже на максимуме.
+function Wheel.getUpgradeCost(upgradeId: string, currentLevel: number): number?
+	local upgrade = Config.Upgrades[upgradeId]
+	if not upgrade or currentLevel >= upgrade.maxLevel then
+		return nil
+	end
+	return math.floor(upgrade.baseCost * upgrade.costGrowth ^ math.max(currentLevel, 0) + 0.5)
+end
+
+function Wheel.getRebirthCost(rebirths: number): number
+	return math.floor(Config.RebirthBaseCost * Config.RebirthCostGrowth ^ math.max(rebirths, 0) + 0.5)
+end
+
+-- На каком месте колеса (по часовой стрелке от указателя) стоит тир.
+function Wheel.getWheelPosition(tier: number): number
+	return table.find(Config.WheelOrder, tier) or 1
+end
+
+-- 1234 -> "1,234"; 12345 -> "12.3K"; 2500000 -> "2.5M"
+function Wheel.formatNumber(value: number): string
+	local amount = math.floor(math.max(value, 0) + 0.5)
+	if amount < 10000 then
+		local text = tostring(amount)
+		if amount >= 1000 then
+			text = string.sub(text, 1, -4) .. "," .. string.sub(text, -3)
+		end
+		return text
+	end
+
+	local index = 1
+	local scaled = amount
+	while scaled >= 1000 and index < #SUFFIXES do
+		scaled /= 1000
+		index += 1
+	end
+
+	-- Округляем вниз, чтобы не показать больше, чем есть. Крошечная добавка гасит ошибку
+	-- дробной арифметики: без неё 2.05 превращается в 2.04.
+	local text
+	if scaled >= 100 then
+		text = string.format("%d", math.floor(scaled + 1e-9))
+	elseif scaled >= 10 then
+		text = string.format("%.1f", math.floor(scaled * 10 + 1e-9) / 10)
+	else
+		text = string.format("%.2f", math.floor(scaled * 100 + 1e-9) / 100)
+	end
+	-- "12.0" -> "12", "1.50" -> "1.5"
+	if string.find(text, ".", 1, true) then
+		text = string.gsub(text, "0+$", "")
+		text = string.gsub(text, "%.$", "")
+	end
+	return text .. SUFFIXES[index]
+end
+
+-- 0.45 -> "45%"; 0.012 -> "1.2%"; 0.0005 -> "1 из 2,000"
+function Wheel.formatOdds(chance: number): string
+	if chance <= 0 then
+		return "0%"
+	end
+	if chance >= 0.01 then
+		local percent = chance * 100
+		if percent >= 10 then
+			return string.format("%d%%", math.floor(percent + 0.5))
+		end
+		return string.format("%.1f%%", percent)
+	end
+	return "1 из " .. Wheel.formatNumber(math.floor(1 / chance + 0.5))
+end
+
+return Wheel
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="11">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="Script" referent="12">
+      <Properties>
+        <string name="Name">Server</string>
+        <token name="RunContext">0</token>
+        <string name="Source"><![CDATA[--!strict
+-- Главный серверный скрипт. Сервер сам выбирает сектор и считает награду,
+-- клиент только показывает анимацию — поэтому накрутить монеты читами нельзя.
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local Wheel = require(ReplicatedStorage.Shared.Wheel)
+local PlayerData = require(script.PlayerData)
+local World = require(script.World)
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local GetState = Remotes:WaitForChild("GetState") :: RemoteFunction
+local Spin = Remotes:WaitForChild("Spin") :: RemoteFunction
+local BuyUpgrade = Remotes:WaitForChild("BuyUpgrade") :: RemoteFunction
+local Rebirth = Remotes:WaitForChild("Rebirth") :: RemoteFunction
+local StateChanged = Remotes:WaitForChild("StateChanged") :: RemoteEvent
+local Announce = Remotes:WaitForChild("Announce") :: RemoteEvent
+
+local rng = Random.new()
+
+type Session = PlayerData.Session
+
+-- Что клиент знает о своём прогрессе.
+local function buildState(session: Session)
+	local data = session.data
+	return {
+		coins = data.coins,
+		spins = data.spins,
+		rebirths = data.rebirths,
+		best = data.best,
+		upgrades = table.clone(data.upgrades),
+		counts = table.clone(data.counts),
+		passes = table.clone(session.passes),
+		canSave = session.canSave,
+	}
+end
+
+local function hasAuto(session: Session): boolean
+	return session.data.upgrades.auto > 0 or session.passes.autoSpin == true
+end
+
+---------------------------------------------------------------------------------------------------
+-- Таблица лидеров и подпись над головой
+---------------------------------------------------------------------------------------------------
+
+local function updateLeaderstats(player: Player, session: Session)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	if not leaderstats then
+		return
+	end
+	local coins = leaderstats:FindFirstChild("Монеты")
+	local rebirths = leaderstats:FindFirstChild("Ребёрты")
+	if coins and coins:IsA("NumberValue") then
+		coins.Value = session.data.coins
+	end
+	if rebirths and rebirths:IsA("IntValue") then
+		rebirths.Value = session.data.rebirths
+	end
+end
+
+local function createLeaderstats(player: Player)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+
+	local coins = Instance.new("NumberValue")
+	coins.Name = "Монеты"
+	coins.Parent = leaderstats
+
+	local rebirths = Instance.new("IntValue")
+	rebirths.Name = "Ребёрты"
+	rebirths.Parent = leaderstats
+
+	leaderstats.Parent = player
+end
+
+-- Над головой игрока видно самую редкую его находку — повод похвастаться.
+local function getTitleLabel(head: BasePart): (BillboardGui, TextLabel)
+	local existing = head:FindFirstChild("RarityTitle")
+	if existing and existing:IsA("BillboardGui") then
+		local existingLabel = existing:FindFirstChild("Label")
+		if existingLabel and existingLabel:IsA("TextLabel") then
+			return existing, existingLabel
+		end
+		existing:Destroy()
+	end
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "RarityTitle"
+	billboard.Size = UDim2.fromScale(6, 1)
+	billboard.StudsOffset = Vector3.new(0, 3, 0)
+	billboard.MaxDistance = 80
+	billboard.LightInfluence = 0
+
+	local label = Instance.new("TextLabel")
+	label.Name = "Label"
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.TextStrokeTransparency = 0.4
+	label.Parent = billboard
+
+	billboard.Parent = head
+	return billboard, label
+end
+
+local function updateTitle(player: Player, session: Session)
+	local character = player.Character
+	local head = character and character:FindFirstChild("Head")
+	if not head or not head:IsA("BasePart") then
+		return
+	end
+
+	local billboard, label = getTitleLabel(head)
+	local segment = Config.Segments[session.data.best]
+	if not segment then
+		billboard.Enabled = false
+		return
+	end
+
+	local text = segment.name
+	if session.data.rebirths > 0 then
+		text ..= ` · ребёрт {session.data.rebirths}`
+	end
+	label.Text = text
+	label.TextColor3 = Color3.fromHex(segment.accent)
+	billboard.Enabled = true
+end
+
+local function refreshPublic(player: Player, session: Session)
+	updateLeaderstats(player, session)
+	updateTitle(player, session)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Геймпассы
+---------------------------------------------------------------------------------------------------
+
+local function loadPasses(player: Player, session: Session)
+	for key, pass in Config.GamePasses do
+		if pass.id ~= 0 then
+			local ok, owned = pcall(function()
+				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, pass.id)
+			end)
+			if ok and owned then
+				session.passes[key] = true
+			end
+		end
+	end
+end
+
+MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player: Player, passId: number, purchased: boolean)
+	if not purchased then
+		return
+	end
+	local session = PlayerData.get(player)
+	if not session then
+		return
+	end
+	for key, pass in Config.GamePasses do
+		if pass.id ~= 0 and pass.id == passId then
+			session.passes[key] = true
+			StateChanged:FireClient(player, buildState(session))
+		end
+	end
+end)
+
+---------------------------------------------------------------------------------------------------
+-- Запросы от клиента
+---------------------------------------------------------------------------------------------------
+
+GetState.OnServerInvoke = function(player: Player)
+	-- Данные грузятся в фоне; ждём, пока сессия откроется.
+	local deadline = os.clock() + 15
+	while os.clock() < deadline and player.Parent do
+		local session = PlayerData.get(player)
+		if session then
+			return buildState(session)
+		end
+		task.wait(0.1)
+	end
+	return nil
+end
+
+Spin.OnServerInvoke = function(player: Player)
+	local session = PlayerData.get(player)
+	if not session then
+		return { ok = false, reason = "loading" }
+	end
+
+	local data = session.data
+	local now = os.clock()
+	local spinTime = Wheel.getSpinTime(data.upgrades.speed)
+	if now - session.lastSpin < spinTime - Config.SpinTolerance then
+		return { ok = false, reason = "cooldown" }
+	end
+	session.lastSpin = now
+
+	local luck = Wheel.getLuck(data.upgrades.luck, session.passes.doubleLuck == true)
+	local tier = Wheel.roll(luck, rng:NextNumber())
+	local reward = Wheel.getReward(tier, data.upgrades.coins, data.rebirths, session.passes.doubleCoins == true)
+
+	data.coins = math.min(data.coins + reward, Config.MaxCoins)
+	data.spins += 1
+	data.counts[tier] += 1
+	data.best = math.max(data.best, tier)
+	session.dirty = true
+
+	-- Таблицу лидеров и объявление показываем, когда колесо у игрока остановится,
+	-- иначе результат будет виден раньше анимации.
+	task.delay(spinTime, function()
+		if not player.Parent then
+			return
+		end
+		local current = PlayerData.get(player)
+		if current then
+			refreshPublic(player, current)
+		end
+		if Config.Segments[tier].announce then
+			Announce:FireAllClients(player.DisplayName, tier, reward)
+		end
+	end)
+
+	return { ok = true, tier = tier, reward = reward, state = buildState(session) }
+end
+
+BuyUpgrade.OnServerInvoke = function(player: Player, upgradeId: any)
+	local session = PlayerData.get(player)
+	if not session or typeof(upgradeId) ~= "string" or not Config.Upgrades[upgradeId] then
+		return { ok = false, reason = "invalid" }
+	end
+
+	local data = session.data
+	if upgradeId == "auto" and hasAuto(session) then
+		return { ok = false, reason = "max" }
+	end
+
+	local cost = Wheel.getUpgradeCost(upgradeId, data.upgrades[upgradeId])
+	if not cost then
+		return { ok = false, reason = "max" }
+	end
+	if data.coins < cost then
+		return { ok = false, reason = "coins" }
+	end
+
+	data.coins -= cost
+	data.upgrades[upgradeId] += 1
+	session.dirty = true
+	updateLeaderstats(player, session)
+
+	return { ok = true, state = buildState(session) }
+end
+
+Rebirth.OnServerInvoke = function(player: Player)
+	local session = PlayerData.get(player)
+	if not session then
+		return { ok = false, reason = "loading" }
+	end
+
+	local data = session.data
+	local cost = Wheel.getRebirthCost(data.rebirths)
+	if data.coins < cost then
+		return { ok = false, reason = "coins" }
+	end
+
+	data.coins = 0
+	data.rebirths += 1
+	for id in Config.Upgrades do
+		if not Config.KeptOnRebirth[id] then
+			data.upgrades[id] = 0
+		end
+	end
+	session.dirty = true
+	refreshPublic(player, session)
+
+	return { ok = true, state = buildState(session) }
+end
+
+---------------------------------------------------------------------------------------------------
+-- Вход и выход игроков
+---------------------------------------------------------------------------------------------------
+
+local function onPlayerAdded(player: Player)
+	createLeaderstats(player)
+
+	player.CharacterAdded:Connect(function(character: Model)
+		-- Голова появляется чуть позже самого персонажа.
+		local head = character:WaitForChild("Head", 10)
+		local session = PlayerData.get(player)
+		if head and session then
+			updateTitle(player, session)
+		end
+	end)
+
+	local session = PlayerData.load(player)
+	if not session then
+		return
+	end
+	loadPasses(player, session)
+	refreshPublic(player, session)
+	StateChanged:FireClient(player, buildState(session))
+end
+
+World.build()
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+for _, player in Players:GetPlayers() do
+	task.spawn(onPlayerAdded, player)
+end
+
+Players.PlayerRemoving:Connect(function(player: Player)
+	PlayerData.release(player)
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(Config.AutosaveInterval)
+		for _, player in Players:GetPlayers() do
+			task.spawn(PlayerData.save, player)
+		end
+	end
+end)
+
+game:BindToClose(function()
+	PlayerData.saveAll()
+end)
+]]></string>
+      </Properties>
+      <Item class="ModuleScript" referent="13">
+        <Properties>
+          <string name="Name">PlayerData</string>
+          <string name="Source"><![CDATA[--!strict
+-- Прогресс игроков: загрузка, хранение на время сессии и сохранение в DataStore.
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local Config = require(game:GetService("ReplicatedStorage").Shared.Config)
+
+export type Data = {
+	version: number,
+	coins: number,
+	spins: number,
+	rebirths: number,
+	best: number, -- самый редкий тир, который выпадал
+	upgrades: { [string]: number },
+	counts: { number }, -- сколько раз выпал каждый тир
+}
+
+export type Session = {
+	data: Data,
+	passes: { [string]: boolean },
+	lastSpin: number,
+	canSave: boolean, -- false, если загрузка не удалась: тогда не затираем старое сохранение
+	dirty: boolean,
+}
+
+local PlayerData = {}
+
+local sessions: { [Player]: Session } = {}
+local activeSaves = 0 -- сколько записей в DataStore идёт прямо сейчас
+local store: DataStore? = nil
+local storeChecked = false
+
+local function getStore(): DataStore?
+	if not storeChecked then
+		storeChecked = true
+		local ok, result = pcall(function()
+			return DataStoreService:GetDataStore(Config.DataStoreName)
+		end)
+		if ok then
+			store = result
+		else
+			warn("[SpinAndWin] Сохранения недоступны: " .. tostring(result))
+		end
+	end
+	return store
+end
+
+local function keyFor(player: Player): string
+	return "player_" .. player.UserId
+end
+
+local function toCount(value: any, maximum: number): number
+	if typeof(value) ~= "number" or value ~= value then
+		return 0
+	end
+	return math.clamp(math.floor(value), 0, maximum)
+end
+
+-- Приводит сохранённую таблицу к актуальному виду: чинит типы и добавляет новые поля.
+local function sanitize(raw: any): Data
+	local source = if typeof(raw) == "table" then raw else {}
+	local sourceUpgrades = if typeof(source.upgrades) == "table" then source.upgrades else {}
+	local sourceCounts = if typeof(source.counts) == "table" then source.counts else {}
+
+	local upgrades = {}
+	for id, upgrade in Config.Upgrades do
+		upgrades[id] = toCount(sourceUpgrades[id], upgrade.maxLevel)
+	end
+
+	local counts = table.create(#Config.Segments, 0)
+	for tier = 1, #Config.Segments do
+		counts[tier] = toCount(sourceCounts[tier], 2 ^ 53)
+	end
+
+	return {
+		version = 1,
+		coins = toCount(source.coins, Config.MaxCoins),
+		spins = toCount(source.spins, 2 ^ 53),
+		rebirths = toCount(source.rebirths, 1000),
+		best = toCount(source.best, #Config.Segments),
+		upgrades = upgrades,
+		counts = counts,
+	}
+end
+
+-- Загружает прогресс и открывает сессию. Возвращает nil, если игрок успел выйти.
+function PlayerData.load(player: Player): Session?
+	local dataStore = getStore()
+	local raw: any = nil
+	local canSave = false
+
+	if dataStore then
+		-- В Studio без доступа к API запрос падает сразу, повторять его бессмысленно.
+		local attempts = if RunService:IsStudio() then 1 else 3
+		for attempt = 1, attempts do
+			local ok, result = pcall(function()
+				return dataStore:GetAsync(keyFor(player))
+			end)
+			if ok then
+				raw = result
+				canSave = true
+				break
+			end
+			warn(`[SpinAndWin] Не удалось загрузить данные {player.Name} (попытка {attempt}): {result}`)
+			if attempt < attempts then
+				task.wait(attempt)
+			end
+		end
+	end
+
+	if not player:IsDescendantOf(Players) then
+		return nil
+	end
+
+	local session: Session = {
+		data = sanitize(raw),
+		passes = {},
+		lastSpin = -math.huge,
+		canSave = canSave,
+		dirty = false,
+	}
+	sessions[player] = session
+	return session
+end
+
+function PlayerData.get(player: Player): Session?
+	return sessions[player]
+end
+
+function PlayerData.save(player: Player): boolean
+	local session = sessions[player]
+	local dataStore = getStore()
+	if not session or not dataStore or not session.canSave then
+		return false
+	end
+	if not session.dirty then
+		return true
+	end
+
+	session.dirty = false
+	activeSaves += 1
+	local ok, result = pcall(function()
+		dataStore:SetAsync(keyFor(player), session.data, { player.UserId })
+	end)
+	activeSaves -= 1
+	if not ok then
+		session.dirty = true
+		warn(`[SpinAndWin] Не удалось сохранить данные {player.Name}: {result}`)
+	end
+	return ok
+end
+
+-- Сохраняет и закрывает сессию при выходе игрока.
+function PlayerData.release(player: Player)
+	PlayerData.save(player)
+	sessions[player] = nil
+end
+
+-- Сохраняет всех перед выключением сервера и ждёт, пока запишутся и те сохранения,
+-- что уже были запущены выходом игроков.
+function PlayerData.saveAll()
+	for player in sessions do
+		task.spawn(PlayerData.save, player)
+	end
+	local deadline = os.clock() + 25
+	while activeSaves > 0 and os.clock() < deadline do
+		task.wait(0.1)
+	end
+end
+
+return PlayerData
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="14">
+        <Properties>
+          <string name="Name">World</string>
+          <string name="Source"><![CDATA[--!strict
+-- Строит лобби при запуске сервера: площадку, большой экран с колесом и колонны в цветах редкостей.
+-- Всё собрано из простых деталей, поэтому карту можно свободно менять или заменить своей.
+
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+
+local World = {}
+
+local STAGE_CENTER = Vector3.new(0, 0, -25)
+local STAGE_RADIUS = 28
+local SPAWN_POINT = Vector3.new(0, 0, 20)
+local SCREEN_SIZE = 32
+
+local function makePart(parent: Instance, name: string, size: Vector3, cframe: CFrame, color: Color3): Part
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.Size = size
+	part.CFrame = cframe
+	part.Color = color
+	part.Material = Enum.Material.SmoothPlastic
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part.Parent = parent
+	return part
+end
+
+local function setupLighting()
+	Lighting.ClockTime = 19.2
+	Lighting.Brightness = 1.5
+	Lighting.Ambient = Color3.fromRGB(80, 80, 110)
+	Lighting.OutdoorAmbient = Color3.fromRGB(90, 90, 130)
+
+	local bloom = Instance.new("BloomEffect")
+	bloom.Intensity = 0.5
+	bloom.Size = 24
+	bloom.Threshold = 1.5
+	bloom.Parent = Lighting
+end
+
+local function buildStage(lobby: Instance)
+	-- Цилиндр лежит на боку, поэтому поворачиваем его осью вверх.
+	local stage = makePart(
+		lobby,
+		"Stage",
+		Vector3.new(1, STAGE_RADIUS * 2, STAGE_RADIUS * 2),
+		CFrame.new(STAGE_CENTER + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, 0, math.rad(90)),
+		Color3.fromRGB(45, 40, 80)
+	)
+	stage.Shape = Enum.PartType.Cylinder
+
+	local rim = makePart(
+		lobby,
+		"StageRim",
+		Vector3.new(0.6, STAGE_RADIUS * 2 + 3, STAGE_RADIUS * 2 + 3),
+		CFrame.new(STAGE_CENTER + Vector3.new(0, 0.3, 0)) * CFrame.Angles(0, 0, math.rad(90)),
+		Color3.fromRGB(255, 214, 0)
+	)
+	rim.Shape = Enum.PartType.Cylinder
+	rim.Material = Enum.Material.Neon
+end
+
+local function buildScreen(lobby: Instance)
+	local screenCenter = STAGE_CENTER + Vector3.new(0, 4 + SCREEN_SIZE / 2, -STAGE_RADIUS + 3)
+	local facing = CFrame.lookAt(screenCenter, Vector3.new(SPAWN_POINT.X, screenCenter.Y, SPAWN_POINT.Z))
+
+	-- Клиент вешает на этот экран колесо (см. client/init.client.luau).
+	local screen = makePart(
+		lobby,
+		"WheelScreen",
+		Vector3.new(SCREEN_SIZE, SCREEN_SIZE, 1),
+		facing,
+		Color3.fromRGB(15, 15, 25)
+	)
+	screen.CastShadow = false
+
+	makePart(
+		lobby,
+		"ScreenFrame",
+		Vector3.new(SCREEN_SIZE + 3, SCREEN_SIZE + 3, 1),
+		facing * CFrame.new(0, 0, 0.6),
+		Color3.fromRGB(70, 60, 120)
+	)
+
+	for _, side in { -1, 1 } do
+		makePart(
+			lobby,
+			"ScreenLeg",
+			Vector3.new(2.5, 5, 2.5),
+			facing * CFrame.new(side * (SCREEN_SIZE / 2 - 3), -(SCREEN_SIZE / 2 + 2), 0.6),
+			Color3.fromRGB(70, 60, 120)
+		)
+	end
+
+	local sign = makePart(
+		lobby,
+		"TitleSign",
+		Vector3.new(SCREEN_SIZE + 3, 6, 1),
+		facing * CFrame.new(0, SCREEN_SIZE / 2 + 5.5, 0.6),
+		Color3.fromRGB(25, 20, 50)
+	)
+
+	local surface = Instance.new("SurfaceGui")
+	surface.Name = "Title"
+	surface.Face = Enum.NormalId.Front
+	surface.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	surface.PixelsPerStud = 30
+	surface.LightInfluence = 0
+	surface.Parent = sign
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBlack
+	label.Text = "КРУТИ И ВЫИГРЫВАЙ"
+	label.TextColor3 = Color3.fromRGB(255, 214, 0)
+	label.TextScaled = true
+	label.Parent = surface
+end
+
+local function buildPillars(lobby: Instance)
+	for tier, segment in Config.Segments do
+		-- Колонны стоят парами по бокам сцены: частые тиры ближе к спавну, редкие — у экрана.
+		-- Проход от спавна к экрану остаётся свободным.
+		local pair = math.ceil(tier / 2)
+		local spread = -25 + (pair - 1) * 22
+		local angle = math.rad(if tier % 2 == 1 then 180 - spread else spread)
+		local offset = Vector3.new(math.cos(angle), 0, -math.sin(angle)) * (STAGE_RADIUS + 8)
+		local base = STAGE_CENTER + offset
+		local height = 8 + tier * 1.5
+		local color = Color3.fromHex(segment.color)
+
+		makePart(
+			lobby,
+			"Pillar",
+			Vector3.new(3, height, 3),
+			CFrame.new(base + Vector3.new(0, height / 2, 0)),
+			Color3.fromRGB(40, 36, 70)
+		)
+
+		local cap = makePart(
+			lobby,
+			"PillarCap",
+			Vector3.new(3.6, 1.2, 3.6),
+			CFrame.new(base + Vector3.new(0, height + 0.6, 0)),
+			color
+		)
+		cap.Material = Enum.Material.Neon
+
+		local light = Instance.new("PointLight")
+		light.Color = color
+		light.Range = 18
+		light.Brightness = 1.5
+		light.Parent = cap
+	end
+end
+
+function World.build()
+	setupLighting()
+
+	local lobby = Instance.new("Folder")
+	lobby.Name = "Lobby"
+
+	buildStage(lobby)
+	buildScreen(lobby)
+	buildPillars(lobby)
+
+	lobby.Parent = workspace
+end
+
+return World
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="StarterPlayer" referent="15">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterPlayerScripts" referent="16">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="LocalScript" referent="17">
+        <Properties>
+          <string name="Name">Client</string>
+          <string name="Source"><![CDATA[-- Главный клиентский скрипт: строит интерфейс и показывает то, что решил сервер.
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared:WaitForChild("Config"))
+local Wheel = require(Shared:WaitForChild("Wheel"))
+local Ui = require(script:WaitForChild("Ui"))
+local WheelView = require(script:WaitForChild("WheelView"))
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local GetState = Remotes:WaitForChild("GetState")
+local SpinRemote = Remotes:WaitForChild("Spin")
+local BuyUpgrade = Remotes:WaitForChild("BuyUpgrade")
+local RebirthRemote = Remotes:WaitForChild("Rebirth")
+local StateChanged = Remotes:WaitForChild("StateChanged")
+local Announce = Remotes:WaitForChild("Announce")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local Colors = Ui.Colors
+
+---------------------------------------------------------------------------------------------------
+-- Состояние
+---------------------------------------------------------------------------------------------------
+
+-- Последнее, что прислал сервер. До загрузки — нули.
+local state = { coins = 0, spins = 0, rebirths = 0, best = 0, upgrades = {}, counts = {}, passes = {} }
+for id in Config.Upgrades do
+	state.upgrades[id] = 0
+end
+for tier = 1, #Config.Segments do
+	state.counts[tier] = 0
+end
+
+local loaded = false
+local busy = false -- идёт крутка
+local autoEnabled = false
+local pendingReward = 0 -- выигрыш, который сервер уже начислил, но колесо ещё не показало
+local shownCoins = 0 -- число на экране, плавно догоняет настоящее
+local targetCoins = 0
+
+local refresh -- объявлена ниже
+
+local function levelOf(id: string): number
+	return state.upgrades[id] or 0
+end
+
+local function hasAuto(): boolean
+	return levelOf("auto") > 0 or state.passes.autoSpin == true
+end
+
+local function getLuck(): number
+	return Wheel.getLuck(levelOf("luck"), state.passes.doubleLuck == true)
+end
+
+local function getMultiplier(): number
+	return Wheel.getCoinMultiplier(levelOf("coins"), state.rebirths, state.passes.doubleCoins == true)
+end
+
+local function rewardFor(tier: number): number
+	return Wheel.getReward(tier, levelOf("coins"), state.rebirths, state.passes.doubleCoins == true)
+end
+
+-- 1.50 -> "1.5", 2.00 -> "2"
+local function trimNumber(value: number): string
+	local text = string.format("%.2f", value)
+	text = string.gsub(text, "%.?0+$", "")
+	return text
+end
+
+---------------------------------------------------------------------------------------------------
+-- Звуки
+---------------------------------------------------------------------------------------------------
+
+local sounds = {}
+for name, id in Config.Sounds do
+	if id ~= 0 then
+		sounds[name] = Ui.create("Sound", {
+			Name = "Spin_" .. name,
+			SoundId = "rbxassetid://" .. id,
+			Volume = 0.6,
+			Parent = SoundService,
+		})
+	end
+end
+
+local function playSound(name: string)
+	local sound = sounds[name]
+	if sound then
+		sound:Play()
+	end
+end
+
+---------------------------------------------------------------------------------------------------
+-- Каркас интерфейса
+---------------------------------------------------------------------------------------------------
+
+local screen = Ui.create("ScreenGui", {
+	Name = "SpinGui",
+	ResetOnSpawn = false,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	DisplayOrder = 5,
+	Parent = playerGui,
+})
+
+-- Верх: монеты и строка с множителями.
+local topBar = Ui.create("Frame", {
+	Name = "TopBar",
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.fromScale(0.5, 0.012),
+	Size = UDim2.fromScale(0.6, 0.13),
+	BackgroundTransparency = 1,
+	Parent = screen,
+}, {
+	Ui.create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Vertical,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		Padding = UDim.new(0, 3),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}),
+})
+
+local coinsPill = Ui.create("Frame", {
+	Name = "Coins",
+	LayoutOrder = 1,
+	Size = UDim2.fromScale(0.4, 0.55),
+	BackgroundColor3 = Colors.panel,
+	BorderSizePixel = 0,
+	Parent = topBar,
+}, {
+	Ui.corner(UDim.new(0.5, 0)),
+	Ui.stroke(Colors.gold, 2),
+	Ui.sizeLimit(Vector2.new(170, 32), Vector2.new(320, 54)),
+})
+
+Ui.create("Frame", {
+	Name = "CoinIcon",
+	AnchorPoint = Vector2.new(0, 0.5),
+	Position = UDim2.new(0, 8, 0.5, 0),
+	Size = UDim2.fromScale(0.62, 0.62),
+	SizeConstraint = Enum.SizeConstraint.RelativeYY,
+	BackgroundColor3 = Colors.gold,
+	BorderSizePixel = 0,
+	Parent = coinsPill,
+}, { Ui.corner(UDim.new(0.5, 0)) })
+
+local coinsLabel = Ui.label({
+	Name = "Amount",
+	Position = UDim2.fromScale(0.2, 0.12),
+	Size = UDim2.fromScale(0.74, 0.76),
+	Font = Enum.Font.GothamBlack,
+	Text = "0",
+	TextColor3 = Colors.gold,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	Parent = coinsPill,
+}, 34)
+
+local statsLabel = Ui.label({
+	Name = "Stats",
+	LayoutOrder = 2,
+	Size = UDim2.fromScale(1, 0.24),
+	Text = "",
+	TextColor3 = Colors.textDim,
+	Parent = topBar,
+}, 16)
+Ui.sizeLimit(Vector2.new(0, 12), nil).Parent = statsLabel
+
+-- Центр: колесо и кнопки под ним. Размер считается от высоты экрана, чтобы влезать на телефон.
+local center = Ui.create("Frame", {
+	Name = "Center",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.565),
+	Size = UDim2.fromScale(0.63, 0.8),
+	SizeConstraint = Enum.SizeConstraint.RelativeYY,
+	BackgroundTransparency = 1,
+	Parent = screen,
+}, { Ui.sizeLimit(nil, Vector2.new(460, 583)) })
+
+local wheelHolder = Ui.create("Frame", {
+	Name = "WheelHolder",
+	Size = UDim2.fromScale(1, 1),
+	SizeConstraint = Enum.SizeConstraint.RelativeXX,
+	BackgroundTransparency = 1,
+	Parent = center,
+})
+
+local wheel = WheelView.new(wheelHolder)
+
+local spinButton = Ui.button({
+	Name = "Spin",
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.fromScale(0, 1),
+	Size = UDim2.fromScale(0.66, 0.15),
+	BackgroundColor3 = Colors.disabled,
+	Text = "Загрузка…",
+	Parent = center,
+}, 38)
+
+local autoButton = Ui.button({
+	Name = "Auto",
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.fromScale(1, 1),
+	Size = UDim2.fromScale(0.31, 0.15),
+	BackgroundColor3 = Colors.row,
+	Text = "АВТО",
+	Parent = center,
+}, 20)
+
+-- Табличка с выигрышем поверх колеса.
+local resultStroke = Ui.stroke(Colors.gold, 3)
+local resultScale = Ui.create("UIScale", { Scale = 1 })
+local resultPopup = Ui.create("Frame", {
+	Name = "Result",
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromScale(0.86, 0.34),
+	BackgroundColor3 = Colors.background,
+	BackgroundTransparency = 0.08,
+	BorderSizePixel = 0,
+	Visible = false,
+	ZIndex = 10,
+	Parent = wheelHolder,
+}, { Ui.corner(16), resultStroke, resultScale })
+
+local resultName = Ui.label({
+	Position = UDim2.fromScale(0.05, 0.08),
+	Size = UDim2.fromScale(0.9, 0.36),
+	Text = "",
+	Parent = resultPopup,
+}, 34)
+
+local resultAmount = Ui.label({
+	Position = UDim2.fromScale(0.05, 0.46),
+	Size = UDim2.fromScale(0.9, 0.46),
+	Font = Enum.Font.GothamBlack,
+	Text = "",
+	TextColor3 = Colors.gold,
+	Parent = resultPopup,
+}, 54)
+
+local resultToken = 0
+
+local function hideResult()
+	resultToken += 1
+	resultPopup.Visible = false
+end
+
+local function showResult(tier: number, reward: number)
+	local segment = Config.Segments[tier]
+	local accent = Color3.fromHex(segment.accent)
+
+	resultToken += 1
+	local token = resultToken
+
+	resultName.Text = segment.name
+	resultName.TextColor3 = accent
+	resultAmount.Text = "+" .. Wheel.formatNumber(reward)
+	resultStroke.Color = accent
+	resultScale.Scale = 0.6
+	resultPopup.Visible = true
+	TweenService:Create(
+		resultScale,
+		TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		{ Scale = 1 }
+	):Play()
+	playSound(if segment.announce then "rare" else "win")
+
+	task.delay(1.6, function()
+		if resultToken == token then
+			resultPopup.Visible = false
+		end
+	end)
+end
+
+-- Слева: кнопки меню.
+local menu = Ui.create("Frame", {
+	Name = "Menu",
+	AnchorPoint = Vector2.new(0, 0.5),
+	Position = UDim2.fromScale(0.012, 0.46),
+	Size = UDim2.fromScale(0.13, 0.26),
+	BackgroundTransparency = 1,
+	Parent = screen,
+}, {
+	Ui.sizeLimit(Vector2.new(112, 110), Vector2.new(190, 170)),
+	Ui.create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Vertical,
+		Padding = UDim.new(0.06, 0),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}),
+})
+
+local upgradesButton = Ui.button({
+	Name = "Upgrades",
+	LayoutOrder = 1,
+	Size = UDim2.fromScale(1, 0.29),
+	BackgroundColor3 = Colors.gold,
+	Text = "Улучшения",
+	TextColor3 = Colors.goldDark,
+	Parent = menu,
+}, 20)
+
+local oddsButton = Ui.button({
+	Name = "Odds",
+	LayoutOrder = 2,
+	Size = UDim2.fromScale(1, 0.29),
+	BackgroundColor3 = Colors.row,
+	Text = "Шансы",
+	Parent = menu,
+}, 20)
+
+local hideButton = Ui.button({
+	Name = "Hide",
+	LayoutOrder = 3,
+	Size = UDim2.fromScale(1, 0.29),
+	BackgroundColor3 = Colors.row,
+	Text = "Скрыть колесо",
+	Parent = menu,
+}, 20)
+
+-- Справа: объявления о редких выигрышах.
+local toasts = Ui.create("Frame", {
+	Name = "Toasts",
+	AnchorPoint = Vector2.new(1, 0.5),
+	Position = UDim2.fromScale(0.99, 0.5),
+	Size = UDim2.fromScale(0.22, 0.4),
+	BackgroundTransparency = 1,
+	Parent = screen,
+}, {
+	Ui.sizeLimit(Vector2.new(170, 0), Vector2.new(300, 400)),
+	Ui.create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Vertical,
+		Padding = UDim.new(0, 6),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		VerticalAlignment = Enum.VerticalAlignment.Bottom,
+	}),
+})
+
+local toastOrder = 0
+
+local function showToast(text: string, color: Color3, duration: number?)
+	toastOrder += 1
+	local toast = Ui.label({
+		LayoutOrder = toastOrder,
+		Size = UDim2.new(1, 0, 0, 52),
+		BackgroundColor3 = Colors.background,
+		BackgroundTransparency = 0.15,
+		Text = text,
+		TextColor3 = color,
+		Parent = toasts,
+	}, 15)
+	Ui.corner(10).Parent = toast
+	Ui.create("UIPadding", {
+		PaddingLeft = UDim.new(0, 8),
+		PaddingRight = UDim.new(0, 8),
+		PaddingTop = UDim.new(0, 4),
+		PaddingBottom = UDim.new(0, 4),
+		Parent = toast,
+	})
+	task.delay(duration or 6, function()
+		toast:Destroy()
+	end)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Панели
+---------------------------------------------------------------------------------------------------
+
+local openPanel = nil
+
+local function closePanel()
+	if openPanel then
+		openPanel.Visible = false
+		openPanel = nil
+	end
+end
+
+local function togglePanel(panel)
+	local wasOpen = openPanel == panel
+	closePanel()
+	if not wasOpen then
+		panel.Visible = true
+		openPanel = panel
+	end
+end
+
+-- Окно с заголовком, крестиком и прокручиваемым списком.
+local function makePanel(name: string, title: string)
+	local panel = Ui.create("Frame", {
+		Name = name,
+		Active = true, -- не пропускает нажатия на то, что под окном
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.565),
+		Size = UDim2.fromScale(0.5, 0.84),
+		BackgroundColor3 = Colors.panel,
+		BorderSizePixel = 0,
+		Visible = false,
+		ZIndex = 20,
+		Parent = screen,
+	}, {
+		Ui.corner(16),
+		Ui.stroke(Colors.gold, 2),
+		Ui.sizeLimit(Vector2.new(300, 230), Vector2.new(520, 620)),
+	})
+
+	Ui.label({
+		Name = "Title",
+		Position = UDim2.new(0, 16, 0, 8),
+		Size = UDim2.new(1, -76, 0, 36),
+		Font = Enum.Font.GothamBlack,
+		Text = title,
+		TextColor3 = Colors.gold,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = panel,
+	}, 26)
+
+	local close = Ui.button({
+		Name = "Close",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -10, 0, 8),
+		Size = UDim2.fromOffset(36, 36),
+		BackgroundColor3 = Colors.red,
+		Text = "X",
+		Parent = panel,
+	}, 22)
+	close.Activated:Connect(closePanel)
+
+	local list = Ui.create("ScrollingFrame", {
+		Name = "List",
+		Position = UDim2.new(0, 12, 0, 52),
+		Size = UDim2.new(1, -24, 1, -64),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ScrollBarThickness = 6,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		Parent = panel,
+	}, {
+		Ui.create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Vertical,
+			Padding = UDim.new(0, 8),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	})
+
+	return panel, list
+end
+
+-- Строка списка: название, пояснение и кнопка справа.
+local function makeRow(list: Instance, order: number)
+	local frame = Ui.create("Frame", {
+		LayoutOrder = order,
+		Size = UDim2.new(1, -10, 0, 72),
+		BackgroundColor3 = Colors.row,
+		BorderSizePixel = 0,
+		Parent = list,
+	}, { Ui.corner(10) })
+
+	local title = Ui.label({
+		Name = "Title",
+		Position = UDim2.new(0, 12, 0, 6),
+		Size = UDim2.new(0.64, -12, 0, 24),
+		Text = "",
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = frame,
+	}, 19)
+
+	local detail = Ui.label({
+		Name = "Detail",
+		Position = UDim2.new(0, 12, 0, 31),
+		Size = UDim2.new(0.64, -12, 0, 35),
+		Font = Enum.Font.GothamMedium,
+		Text = "",
+		TextColor3 = Colors.textDim,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Parent = frame,
+	}, 14)
+
+	local button = Ui.button({
+		Name = "Action",
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -10, 0.5, 0),
+		Size = UDim2.new(0.34, -10, 0, 46),
+		Text = "",
+		Parent = frame,
+	}, 18)
+
+	return { frame = frame, title = title, detail = detail, button = button }
+end
+
+local function setButton(button, text: string, color: Color3, textColor: Color3?)
+	button.Text = text
+	button.BackgroundColor3 = color
+	button.TextColor3 = textColor or Colors.text
+end
+
+-- Улучшения ----------------------------------------------------------------------------------------
+
+local upgradesPanel, upgradesList = makePanel("UpgradesPanel", "Улучшения")
+
+local requestInFlight = false
+
+-- Отправляет запрос на сервер и применяет новое состояние. Второй запрос не уйдёт, пока не вернулся первый.
+local function request(remote, ...): boolean
+	if requestInFlight or not loaded then
+		return false
+	end
+	requestInFlight = true
+	local arguments = table.pack(...)
+	local ok, result = pcall(function()
+		return remote:InvokeServer(table.unpack(arguments, 1, arguments.n))
+	end)
+	requestInFlight = false
+
+	if ok and typeof(result) == "table" and result.ok and typeof(result.state) == "table" then
+		state = result.state
+		refresh()
+		return true
+	end
+	return false
+end
+
+local function effectText(id: string, level: number): string
+	if id == "coins" then
+		return "x" .. trimNumber(1 + Config.CoinsPerLevel * level)
+	elseif id == "luck" then
+		return "x" .. trimNumber(1 + Config.LuckPerLevel * level)
+	elseif id == "speed" then
+		return string.format("%.1f с", Wheel.getSpinTime(level))
+	end
+	return ""
+end
+
+local upgradeRows = {}
+for order, id in Config.UpgradeOrder do
+	local row = makeRow(upgradesList, order)
+	upgradeRows[id] = row
+	row.button.Activated:Connect(function()
+		if request(BuyUpgrade, id) then
+			playSound("buy")
+		end
+	end)
+end
+
+local rebirthRow = makeRow(upgradesList, 50)
+local rebirthArmedAt = 0
+
+rebirthRow.button.Activated:Connect(function()
+	if targetCoins < Wheel.getRebirthCost(state.rebirths) then
+		return
+	end
+	-- Перерождение сбрасывает прогресс, поэтому просим нажать дважды.
+	if os.clock() - rebirthArmedAt > 4 then
+		rebirthArmedAt = os.clock()
+		refresh()
+		task.delay(4.1, function()
+			refresh()
+		end)
+		return
+	end
+	rebirthArmedAt = 0
+	if request(RebirthRemote) then
+		playSound("rare")
+	else
+		refresh()
+	end
+end)
+
+local passRows = {}
+for order, key in Config.GamePassOrder do
+	local pass = Config.GamePasses[key]
+	if pass and pass.id ~= 0 then
+		local row = makeRow(upgradesList, 100 + order)
+		row.title.Text = pass.name
+		row.detail.Text = pass.description
+		passRows[key] = row
+		row.button.Activated:Connect(function()
+			if state.passes[key] ~= true then
+				MarketplaceService:PromptGamePassPurchase(player, pass.id)
+			end
+		end)
+	end
+end
+
+local function refreshUpgrades()
+	for _, id in Config.UpgradeOrder do
+		local upgrade = Config.Upgrades[id]
+		local row = upgradeRows[id]
+		local level = levelOf(id)
+		local cost = Wheel.getUpgradeCost(id, level)
+		local owned = id == "auto" and hasAuto()
+
+		if id == "auto" then
+			row.title.Text = upgrade.name
+			row.detail.Text = upgrade.description
+		else
+			row.title.Text = `{upgrade.name} · ур. {level}/{upgrade.maxLevel}`
+			if cost then
+				row.detail.Text = `{upgrade.description}\n{effectText(id, level)} → {effectText(id, level + 1)}`
+			else
+				row.detail.Text = `{upgrade.description}\n{effectText(id, level)}`
+			end
+		end
+
+		if owned then
+			setButton(row.button, "Куплено", Colors.disabled)
+		elseif not cost then
+			setButton(row.button, "МАКС", Colors.disabled)
+		elseif targetCoins >= cost then
+			setButton(row.button, Wheel.formatNumber(cost), Colors.green)
+		else
+			setButton(row.button, Wheel.formatNumber(cost), Colors.disabled)
+		end
+	end
+
+	local rebirthCost = Wheel.getRebirthCost(state.rebirths)
+	local bonusNow = 1 + Config.RebirthBonus * state.rebirths
+	local bonusNext = 1 + Config.RebirthBonus * (state.rebirths + 1)
+	rebirthRow.title.Text = `Перерождение · {state.rebirths}`
+	rebirthRow.detail.Text =
+		`Сбросит монеты и улучшения.\nНавсегда: монеты x{trimNumber(bonusNow)} → x{trimNumber(bonusNext)}`
+	if targetCoins < rebirthCost then
+		setButton(rebirthRow.button, Wheel.formatNumber(rebirthCost), Colors.disabled)
+	elseif os.clock() - rebirthArmedAt <= 4 then
+		setButton(rebirthRow.button, "Точно?", Colors.red)
+	else
+		setButton(rebirthRow.button, Wheel.formatNumber(rebirthCost), Colors.gold, Colors.goldDark)
+	end
+
+	for key, row in passRows do
+		if state.passes[key] == true then
+			setButton(row.button, "Куплено", Colors.disabled)
+		else
+			setButton(row.button, "Купить", Colors.gold, Colors.goldDark)
+		end
+	end
+end
+
+-- Шансы --------------------------------------------------------------------------------------------
+
+local oddsPanel, oddsList = makePanel("OddsPanel", "Шансы")
+
+local oddsNote = Ui.label({
+	LayoutOrder = 0,
+	Size = UDim2.new(1, -10, 0, 20),
+	Font = Enum.Font.GothamMedium,
+	Text = "",
+	TextColor3 = Colors.textDim,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	Parent = oddsList,
+}, 14)
+
+local oddsRows = {}
+for tier, segment in Config.Segments do
+	local frame = Ui.create("Frame", {
+		LayoutOrder = tier,
+		Size = UDim2.new(1, -10, 0, 48),
+		BackgroundColor3 = Colors.row,
+		BorderSizePixel = 0,
+		Parent = oddsList,
+	}, { Ui.corner(10) })
+
+	Ui.create("Frame", {
+		Name = "Swatch",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 10, 0.5, 0),
+		Size = UDim2.fromOffset(26, 26),
+		BackgroundColor3 = Color3.fromHex(segment.color),
+		BorderSizePixel = 0,
+		Parent = frame,
+	}, { Ui.corner(UDim.new(0.5, 0)), Ui.stroke(Color3.fromHex(segment.accent), 2) })
+
+	Ui.label({
+		Name = "TierName",
+		Position = UDim2.new(0, 46, 0, 5),
+		Size = UDim2.new(0.44, -46, 0, 21),
+		Text = segment.name,
+		TextColor3 = Color3.fromHex(segment.accent),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = frame,
+	}, 17)
+
+	local count = Ui.label({
+		Name = "Count",
+		Position = UDim2.new(0, 46, 0, 27),
+		Size = UDim2.new(0.44, -46, 0, 15),
+		Font = Enum.Font.GothamMedium,
+		Text = "",
+		TextColor3 = Colors.textDim,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = frame,
+	}, 12)
+
+	local chance = Ui.label({
+		Name = "Chance",
+		Position = UDim2.new(0.44, 0, 0, 8),
+		Size = UDim2.new(0.28, 0, 0, 32),
+		Text = "",
+		Parent = frame,
+	}, 16)
+
+	local reward = Ui.label({
+		Name = "Reward",
+		Position = UDim2.new(0.72, 0, 0, 8),
+		Size = UDim2.new(0.28, -10, 0, 32),
+		Text = "",
+		TextColor3 = Colors.gold,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		Parent = frame,
+	}, 17)
+
+	oddsRows[tier] = { count = count, chance = chance, reward = reward }
+end
+
+local function refreshOdds()
+	local luck = getLuck()
+	local odds = Wheel.getOdds(luck)
+	oddsNote.Text = `С вашей удачей x{trimNumber(luck)}. Сектора на колесе одного размера, шансы разные.`
+	for tier, row in oddsRows do
+		row.chance.Text = Wheel.formatOdds(odds[tier])
+		row.reward.Text = "+" .. Wheel.formatNumber(rewardFor(tier))
+		row.count.Text = "выпадал: " .. Wheel.formatNumber(state.counts[tier] or 0)
+	end
+end
+
+---------------------------------------------------------------------------------------------------
+-- Обновление всего интерфейса по состоянию
+---------------------------------------------------------------------------------------------------
+
+function refresh()
+	targetCoins = math.max(state.coins - pendingReward, 0)
+
+	statsLabel.Text = `Удача x{trimNumber(getLuck())} · Монеты x{trimNumber(getMultiplier())} · Круток: {Wheel.formatNumber(
+		state.spins
+	)}`
+
+	wheel:setRewardText(function(tier: number)
+		return Wheel.formatNumber(rewardFor(tier))
+	end)
+
+	if not loaded then
+		setButton(spinButton, "Загрузка…", Colors.disabled)
+	elseif busy then
+		setButton(spinButton, "Крутим…", Colors.disabled)
+	else
+		setButton(spinButton, "КРУТИТЬ", Colors.green)
+	end
+
+	if not hasAuto() then
+		setButton(autoButton, "АВТО\nкупить", Colors.row)
+	elseif autoEnabled then
+		setButton(autoButton, "АВТО\nвкл", Colors.green)
+	else
+		setButton(autoButton, "АВТО\nвыкл", Colors.row)
+	end
+
+	refreshUpgrades()
+	refreshOdds()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Крутка
+---------------------------------------------------------------------------------------------------
+
+local function spinOnce()
+	hideResult()
+
+	local ok, result = pcall(function()
+		return SpinRemote:InvokeServer()
+	end)
+	if not ok or typeof(result) ~= "table" or not result.ok then
+		-- Сервер отказал (перезарядка или данные ещё грузятся) — чуть ждём и отдаём кнопку.
+		task.wait(0.5)
+		return
+	end
+
+	-- Сервер уже начислил выигрыш, но показываем его только после остановки колеса.
+	state = result.state
+	pendingReward = result.reward
+	refresh()
+
+	playSound("spin")
+	wheel:spinTo(result.tier, Wheel.getSpinTime(levelOf("speed")))
+
+	pendingReward = 0
+	showResult(result.tier, result.reward)
+	refresh()
+end
+
+local function startSpinning()
+	if busy or not loaded then
+		return
+	end
+	busy = true
+	refresh()
+
+	while true do
+		spinOnce()
+		if not (autoEnabled and hasAuto()) then
+			break
+		end
+		task.wait(0.45) -- пауза, чтобы успеть увидеть выигрыш
+		if not (autoEnabled and hasAuto()) then
+			break
+		end
+	end
+
+	busy = false
+	refresh()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Кнопки и события
+---------------------------------------------------------------------------------------------------
+
+spinButton.Activated:Connect(startSpinning)
+
+autoButton.Activated:Connect(function()
+	if not hasAuto() then
+		if openPanel ~= upgradesPanel then
+			togglePanel(upgradesPanel)
+		end
+		return
+	end
+	autoEnabled = not autoEnabled
+	refresh()
+	if autoEnabled then
+		startSpinning()
+	end
+end)
+
+upgradesButton.Activated:Connect(function()
+	togglePanel(upgradesPanel)
+end)
+
+oddsButton.Activated:Connect(function()
+	togglePanel(oddsPanel)
+end)
+
+hideButton.Activated:Connect(function()
+	center.Visible = not center.Visible
+	hideButton.Text = if center.Visible then "Скрыть колесо" else "Показать колесо"
+end)
+
+-- Клавиша E крутит колесо.
+UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+	if not processed and input.KeyCode == Enum.KeyCode.E then
+		startSpinning()
+	end
+end)
+
+-- Принимает состояние от сервера. В первый раз предупреждает, если сохранения недоступны
+-- (так бывает в Studio без доступа к API или при сбое DataStore).
+local function applyState(newState)
+	local first = not loaded
+	state = newState
+	loaded = true
+	refresh()
+	if first and newState.canSave == false then
+		showToast("Сохранения сейчас недоступны: прогресс этой игры не сохранится.", Colors.red, 12)
+	end
+end
+
+StateChanged.OnClientEvent:Connect(function(newState)
+	if typeof(newState) == "table" then
+		applyState(newState)
+	end
+end)
+
+Announce.OnClientEvent:Connect(function(name, tier, reward)
+	local segment = Config.Segments[tier]
+	if typeof(name) ~= "string" or typeof(reward) ~= "number" or not segment then
+		return
+	end
+	showToast(
+		`{name} выбил «{segment.name}»: +{Wheel.formatNumber(reward)} монет!`,
+		Color3.fromHex(segment.accent)
+	)
+end)
+
+-- Число монет плавно догоняет настоящее значение.
+RunService.RenderStepped:Connect(function(deltaTime: number)
+	if shownCoins == targetCoins then
+		return
+	end
+	local difference = targetCoins - shownCoins
+	if math.abs(difference) < 1 then
+		shownCoins = targetCoins
+	else
+		shownCoins += difference * math.min(1, deltaTime * 12)
+	end
+	coinsLabel.Text = Wheel.formatNumber(shownCoins)
+end)
+
+---------------------------------------------------------------------------------------------------
+-- Большой экран в лобби
+---------------------------------------------------------------------------------------------------
+
+local bigWheel = nil
+
+task.spawn(function()
+	local lobby = workspace:WaitForChild("Lobby", 30)
+	local screenPart = lobby and lobby:WaitForChild("WheelScreen", 30)
+	if not screenPart then
+		return
+	end
+
+	local surface = Ui.create("SurfaceGui", {
+		Name = "BigWheel",
+		Adornee = screenPart,
+		Face = Enum.NormalId.Front,
+		SizingMode = Enum.SurfaceGuiSizingMode.FixedSize,
+		CanvasSize = Vector2.new(600, 600),
+		LightInfluence = 0,
+		ResetOnSpawn = false,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		Parent = playerGui,
+	})
+
+	local holder = Ui.create("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.9, 0.9),
+		BackgroundTransparency = 1,
+		Parent = surface,
+	})
+
+	local view = WheelView.new(holder)
+	view:setRewardText(function(tier: number)
+		return "x" .. Wheel.formatNumber(Config.Segments[tier].multiplier)
+	end)
+	bigWheel = view
+
+	RunService.RenderStepped:Connect(function(deltaTime: number)
+		view:rotate(deltaTime * 14)
+	end)
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(0.4)
+		wheel:blink()
+		if bigWheel then
+			bigWheel:blink()
+		end
+	end
+end)
+
+---------------------------------------------------------------------------------------------------
+-- Загрузка прогресса
+---------------------------------------------------------------------------------------------------
+
+refresh()
+
+task.spawn(function()
+	while not loaded do
+		local ok, result = pcall(function()
+			return GetState:InvokeServer()
+		end)
+		if ok and typeof(result) == "table" then
+			if not loaded then
+				applyState(result)
+			end
+			return
+		end
+		task.wait(1)
+	end
+end)
+]]></string>
+        </Properties>
+        <Item class="ModuleScript" referent="18">
+          <Properties>
+            <string name="Name">Ui</string>
+            <string name="Source"><![CDATA[-- Маленькие помощники для сборки интерфейса из кода.
+
+local Ui = {}
+
+Ui.Colors = {
+	background = Color3.fromRGB(20, 18, 38),
+	panel = Color3.fromRGB(30, 27, 56),
+	row = Color3.fromRGB(44, 40, 80),
+	gold = Color3.fromRGB(255, 214, 0),
+	goldDark = Color3.fromRGB(59, 42, 0),
+	green = Color3.fromRGB(56, 170, 78),
+	red = Color3.fromRGB(229, 57, 53),
+	disabled = Color3.fromRGB(86, 84, 104),
+	text = Color3.fromRGB(255, 255, 255),
+	textDim = Color3.fromRGB(184, 180, 214),
+}
+
+-- Создаёт объект, задаёт свойства и вкладывает детей. Parent ставится последним.
+function Ui.create(className: string, props: { [string]: any }?, children: { Instance }?): any
+	local instance = Instance.new(className) :: any
+	local parent = nil
+	if props then
+		for key, value in props do
+			if key == "Parent" then
+				parent = value
+			else
+				instance[key] = value
+			end
+		end
+	end
+	if children then
+		for _, child in children do
+			child.Parent = instance
+		end
+	end
+	if parent then
+		instance.Parent = parent
+	end
+	return instance
+end
+
+-- Скругление: число — в пикселях, UDim — как есть (UDim.new(0.5, 0) даёт круг).
+function Ui.corner(radius: number | UDim): UICorner
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = if typeof(radius) == "number" then UDim.new(0, radius) else radius
+	return corner
+end
+
+function Ui.stroke(color: Color3, thickness: number): UIStroke
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = color
+	stroke.Thickness = thickness
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	return stroke
+end
+
+function Ui.textLimit(maxSize: number, minSize: number?): UITextSizeConstraint
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = maxSize
+	limit.MinTextSize = minSize or 1
+	return limit
+end
+
+function Ui.sizeLimit(minSize: Vector2?, maxSize: Vector2?): UISizeConstraint
+	local limit = Instance.new("UISizeConstraint")
+	if minSize then
+		limit.MinSize = minSize
+	end
+	if maxSize then
+		limit.MaxSize = maxSize
+	end
+	return limit
+end
+
+-- Надпись, которая сама подгоняет размер шрифта под рамку.
+function Ui.label(props: { [string]: any }, maxTextSize: number): TextLabel
+	local label = Ui.create("TextLabel", {
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = Ui.Colors.text,
+		TextScaled = true,
+		TextWrapped = true,
+	}, { Ui.textLimit(maxTextSize) })
+	for key, value in props do
+		label[key] = value
+	end
+	return label
+end
+
+function Ui.button(props: { [string]: any }, maxTextSize: number): TextButton
+	local button = Ui.create("TextButton", {
+		AutoButtonColor = true,
+		BackgroundColor3 = Ui.Colors.green,
+		BorderSizePixel = 0,
+		Font = Enum.Font.GothamBlack,
+		TextColor3 = Ui.Colors.text,
+		TextScaled = true,
+		TextWrapped = true,
+	}, {
+		Ui.corner(12),
+		Ui.textLimit(maxTextSize),
+		-- Поля, чтобы текст не упирался в края кнопки на маленьких экранах.
+		Ui.create("UIPadding", {
+			PaddingLeft = UDim.new(0, 8),
+			PaddingRight = UDim.new(0, 8),
+			PaddingTop = UDim.new(0, 4),
+			PaddingBottom = UDim.new(0, 4),
+		}),
+	})
+	for key, value in props do
+		button[key] = value
+	end
+	return button
+end
+
+return Ui
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="19">
+          <Properties>
+            <string name="Name">WheelView</string>
+            <string name="Source"><![CDATA[-- Рисует колесо без картинок: каждый сектор собран из тонких повёрнутых полосок.
+-- Одно и то же колесо используется на экране игрока и на большом экране в лобби.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local Ui = require(script.Parent.Ui)
+
+local WheelView = {}
+WheelView.__index = WheelView
+
+local STRIP_ANGLE = 2.5 -- ширина одной полоски в градусах; меньше — глаже края секторов
+local BULB_COUNT = 16
+
+-- Точка на круге: угол в градусах по часовой стрелке от верха, радиус в долях ширины колеса.
+local function onCircle(angle: number, radius: number): UDim2
+	local radians = math.rad(angle)
+	return UDim2.fromScale(0.5 + radius * math.sin(radians), 0.5 - radius * math.cos(radians))
+end
+
+function WheelView.new(parent: Instance)
+	local self = setmetatable({}, WheelView)
+
+	local count = #Config.WheelOrder
+	local segmentAngle = 360 / count
+	local stripsPerSegment = math.ceil(segmentAngle / STRIP_ANGLE)
+	local stripAngle = segmentAngle / stripsPerSegment
+	-- Полоска длиной в радиус (0.5) перекрывает свой угол при ширине tan(угол / 2);
+	-- небольшой запас убирает щели между соседними полосками.
+	local stripWidth = math.tan(math.rad(stripAngle / 2)) * 1.3
+
+	local root = Ui.create("Frame", {
+		Name = "Wheel",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Parent = parent,
+	})
+
+	-- Золотой обод: круг под диском, который выглядывает по краям.
+	Ui.create("Frame", {
+		Name = "Rim",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Ui.Colors.gold,
+		BorderSizePixel = 0,
+		ZIndex = 1,
+		Parent = root,
+	}, { Ui.corner(UDim.new(0.5, 0)) })
+
+	local disc = Ui.create("Frame", {
+		Name = "Disc",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.93, 0.93),
+		BackgroundTransparency = 1,
+		ZIndex = 2,
+		Parent = root,
+	})
+
+	self.rewardLabels = {}
+
+	for position, tier in Config.WheelOrder do
+		local segment = Config.Segments[tier]
+		local startAngle = (position - 1) * segmentAngle
+		local middle = startAngle + segmentAngle / 2
+		local color = Color3.fromHex(segment.color)
+		local textColor = Color3.fromHex(segment.textColor)
+
+		for index = 0, stripsPerSegment - 1 do
+			local angle = startAngle + (index + 0.5) * stripAngle
+			Ui.create("Frame", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = onCircle(angle, 0.25),
+				Size = UDim2.fromScale(stripWidth, 0.5),
+				Rotation = angle,
+				BackgroundColor3 = color,
+				BorderSizePixel = 0,
+				ZIndex = 1,
+				Parent = disc,
+			})
+		end
+
+		-- Разделитель между секторами.
+		Ui.create("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = onCircle(startAngle, 0.25),
+			Size = UDim2.fromScale(0.012, 0.5),
+			Rotation = startAngle,
+			BackgroundColor3 = Ui.Colors.background,
+			BorderSizePixel = 0,
+			ZIndex = 2,
+			Parent = disc,
+		})
+
+		local rewardLabel = Ui.label({
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = onCircle(middle, 0.385),
+			Size = UDim2.fromScale(0.27, 0.085),
+			Rotation = middle,
+			Font = Enum.Font.GothamBlack,
+			Text = "x" .. segment.multiplier,
+			TextColor3 = textColor,
+			TextWrapped = false,
+			ZIndex = 3,
+			Parent = disc,
+		}, 60)
+		self.rewardLabels[tier] = rewardLabel
+
+		Ui.label({
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = onCircle(middle, 0.285),
+			Size = UDim2.fromScale(0.2, 0.05),
+			Rotation = middle,
+			Text = segment.name,
+			TextColor3 = textColor,
+			TextWrapped = false,
+			ZIndex = 3,
+			Parent = disc,
+		}, 40)
+	end
+
+	-- Лампочки на ободе.
+	self.bulbs = {}
+	for index = 1, BULB_COUNT do
+		local bulb = Ui.create("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = onCircle((index - 1) * (360 / BULB_COUNT) + 360 / BULB_COUNT / 2, 0.4825),
+			Size = UDim2.fromScale(0.022, 0.022),
+			BackgroundColor3 = Ui.Colors.text,
+			BorderSizePixel = 0,
+			ZIndex = 3,
+			Parent = root,
+		}, { Ui.corner(UDim.new(0.5, 0)) })
+		table.insert(self.bulbs, bulb)
+	end
+
+	-- Ступица в центре.
+	Ui.create("Frame", {
+		Name = "Hub",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.2, 0.2),
+		BackgroundColor3 = Ui.Colors.gold,
+		BorderSizePixel = 0,
+		ZIndex = 4,
+		Parent = root,
+	}, {
+		Ui.corner(UDim.new(0.5, 0)),
+		Ui.create("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(0.7, 0.7),
+			BackgroundColor3 = Ui.Colors.background,
+			BorderSizePixel = 0,
+		}, { Ui.corner(UDim.new(0.5, 0)) }),
+	})
+
+	-- Указатель сверху: ромб, нижний угол которого смотрит на выигравший сектор.
+	Ui.create("Frame", {
+		Name = "Pointer",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.035),
+		Size = UDim2.fromScale(0.1, 0.1),
+		Rotation = 45,
+		BackgroundColor3 = Ui.Colors.text,
+		BorderSizePixel = 0,
+		ZIndex = 5,
+		Parent = root,
+	}, {
+		Ui.corner(4),
+		Ui.create("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(0.68, 0.68),
+			BackgroundColor3 = Ui.Colors.red,
+			BorderSizePixel = 0,
+		}, { Ui.corner(3) }),
+	})
+
+	self.root = root
+	self.disc = disc
+	self.blinkPhase = false
+	self.tween = nil
+
+	return self
+end
+
+-- Меняет подписи наград на секторах. format получает номер тира и возвращает текст.
+function WheelView:setRewardText(format: (tier: number) -> string)
+	for tier, label in self.rewardLabels do
+		label.Text = format(tier)
+	end
+end
+
+-- Крутит колесо и останавливает его на секторе нужного тира. Ждёт конца анимации.
+function WheelView:spinTo(tier: number, duration: number)
+	local count = #Config.WheelOrder
+	local segmentAngle = 360 / count
+	local position = table.find(Config.WheelOrder, tier) or 1
+
+	-- Останавливаемся не ровно по центру сектора, а в случайном месте внутри него.
+	local center = (position - 0.5) * segmentAngle
+	local jitter = (math.random() - 0.5) * segmentAngle * 0.7
+	local stopAt = (-(center + jitter)) % 360
+
+	if self.tween then
+		self.tween:Cancel()
+	end
+
+	-- Сбрасываем накопленные обороты, чтобы угол не рос бесконечно.
+	self.disc.Rotation %= 360
+	local turns = math.max(2, math.round(duration * 1.5))
+	local tween = TweenService:Create(
+		self.disc,
+		TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+		{ Rotation = turns * 360 + stopAt }
+	)
+	self.tween = tween
+	tween:Play()
+	tween.Completed:Wait()
+	if self.tween == tween then
+		self.tween = nil
+	end
+end
+
+-- Медленное вращение «для красоты» (большой экран в лобби).
+function WheelView:rotate(degrees: number)
+	self.disc.Rotation = (self.disc.Rotation + degrees) % 360
+end
+
+-- Переключает лампочки через одну.
+function WheelView:blink()
+	self.blinkPhase = not self.blinkPhase
+	for index, bulb in self.bulbs do
+		local lit = (index % 2 == 0) == self.blinkPhase
+		bulb.BackgroundColor3 = if lit then Ui.Colors.text else Ui.Colors.goldDark
+	end
+end
+
+return WheelView
+]]></string>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="Workspace" referent="20">
+    <Properties>
+      <string name="Name">Workspace</string>
+      <bool name="NeedsPivotMigration">false</bool>
+    </Properties>
+    <Item class="Part" referent="21">
+      <Properties>
+        <string name="Name">Baseplate</string>
+        <bool name="Anchored">true</bool>
+        <Color3uint8 name="Color3uint8">1841715</Color3uint8>
+        <bool name="Locked">true</bool>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>-10</Y>
+          <Z>0</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>512</X>
+          <Y>20</Y>
+          <Z>512</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+    <Item class="SpawnLocation" referent="22">
+      <Properties>
+        <string name="Name">SpawnLocation</string>
+        <bool name="Anchored">true</bool>
+        <Color3uint8 name="Color3uint8">16766464</Color3uint8>
+        <int name="Duration">0</int>
+        <bool name="Neutral">true</bool>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>0.5</Y>
+          <Z>20</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>10</X>
+          <Y>1</Y>
+          <Z>10</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>
